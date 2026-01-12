@@ -1,6 +1,15 @@
 # HYDRA 10.0 - ClaudeCLI
 
-**Maximum Autonomy Mode** | **Parallel Execution** | **MCP Orchestration**
+[![GitHub stars](https://img.shields.io/github/stars/pawelserkowski-lang/ClaudeCLI?style=flat-square)](https://github.com/pawelserkowski-lang/ClaudeCLI/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/pawelserkowski-lang/ClaudeCLI?style=flat-square)](https://github.com/pawelserkowski-lang/ClaudeCLI/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/pawelserkowski-lang/ClaudeCLI?style=flat-square)](https://github.com/pawelserkowski-lang/ClaudeCLI/issues)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
+[![PowerShell](https://img.shields.io/badge/PowerShell-7.0+-5391FE?style=flat-square&logo=powershell&logoColor=white)](https://github.com/PowerShell/PowerShell)
+[![Windows](https://img.shields.io/badge/Windows-11-0078D6?style=flat-square&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![Ollama](https://img.shields.io/badge/Ollama-Local_AI-000000?style=flat-square)](https://ollama.ai)
+[![Claude](https://img.shields.io/badge/Claude-Anthropic-CC785C?style=flat-square)](https://anthropic.com)
+
+**Maximum Autonomy Mode** | **Parallel Execution** | **MCP Orchestration** | **Advanced AI**
 
 ```
  _   ___   ______  ____   ___
@@ -36,6 +45,24 @@ HYDRA 10.0 to zaawansowane środowisko dla **Claude CLI** działające w trybie 
 - Wszystkie niezależne operacje wykonywane równolegle
 - PowerShell Jobs dla MCP health checks
 - Zgodność z zasadą: *"Każda operacja, która może być wykonana równolegle, MUSI być wykonana równolegle"*
+
+### 🧠 Advanced AI System (5 Modules)
+
+| Module | Description | Key Feature |
+|--------|-------------|-------------|
+| **Self-Correction** | Auto-validates code with phi3:mini | Regenerates on syntax errors |
+| **Few-Shot Learning** | Learns from successful responses | Context-aware examples |
+| **Speculative Decoding** | Parallel multi-model generation | Model racing & consensus |
+| **Load Balancing** | CPU-aware provider switching | Auto local/cloud selection |
+| **Semantic File Mapping** | Deep RAG with import analysis | Dependency graph context |
+
+```powershell
+# Quick AI commands
+Invoke-AdvancedAI "Write Python sort" -Mode code    # Self-correction + few-shot
+Get-AIQuick "Capital of France?"                     # Model racing (~2s)
+New-AICode "Download file function"                  # Code with validation
+Invoke-SemanticQuery -FilePath "app.py" -Query "How does auth work?"
+```
 
 ### 🛠️ MCP Tools Integration
 | Tool | Port | Transport | Funkcja |
@@ -74,23 +101,30 @@ powershell -ExecutionPolicy Bypass -File _launcher.ps1
 ```
 C:\Users\BIURODOM\Desktop\ClaudeCLI\
 ├── .claude/
-│   ├── commands/            # Custom slash commands
+│   ├── commands/            # Custom slash commands (ai, ai-batch, ai-config...)
 │   ├── hooks/               # Event hooks
 │   ├── skills/              # Custom skills (serena-commander, hydra)
-│   ├── settings.local.json  # Permissions & config (Maximum Autonomy)
 │   └── statusline.js        # Status bar config
 ├── .serena/
-│   ├── cache/               # Serena cache
-│   ├── memories/            # Persistent memories (25 slots)
 │   └── project.yml          # Serena project config
-├── .gitignore               # Ochrona sekretów
-├── CLAUDE.md                # System instructions (386 linii)
-├── README.md                # Ten plik
-├── ClaudeCLI.vbs            # Windows shortcut helper
-├── _launcher.ps1            # Main launcher (try/catch, health check)
-├── mcp-health-check.ps1     # MCP diagnostics (parallel execution)
-├── create-shortcuts.ps1     # Desktop shortcut creator
-└── icon.ico                 # Ikona aplikacji
+├── ai-handler/              # 🤖 AI Model Handler
+│   ├── AIModelHandler.psm1  # Main module
+│   ├── ai-config.json       # Provider/model configuration
+│   ├── modules/             # 🧠 Advanced AI Modules
+│   │   ├── SelfCorrection.psm1
+│   │   ├── FewShotLearning.psm1
+│   │   ├── SpeculativeDecoding.psm1
+│   │   ├── LoadBalancer.psm1
+│   │   ├── SemanticFileMapping.psm1
+│   │   └── AdvancedAI.psm1
+│   └── *.ps1                # CLI wrappers & tests
+├── parallel/                # ⚡ Parallel execution system
+│   ├── modules/ParallelUtils.psm1
+│   └── scripts/             # Git, Download, Compress, TaskDAG...
+├── CLAUDE.md                # System instructions (900+ lines)
+├── README.md                # This file
+├── _launcher.ps1            # Main launcher
+└── mcp-health-check.ps1     # MCP diagnostics
 ```
 
 ## 🔐 Security Policy
