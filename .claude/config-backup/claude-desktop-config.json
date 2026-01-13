@@ -1,0 +1,48 @@
+{
+  "globalShortcut": "",
+  "preferences": {
+    "menuBarEnabled": true,
+    "chromeExtensionEnabled": true,
+    "legacyQuickEntryEnabled": false
+  },
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "desktop-app",
+        "--project",
+        "C:\\Users\\BIURODOM\\Desktop\\ClaudeCLI"
+      ],
+      "env": {
+        "PATH": "C:\\Program Files\\Git\\cmd;C:\\Program Files\\Git\\bin;C:\\Program Files\\Git\\mingw64\\bin;C:\\WINDOWS\\system32;C:\\WINDOWS;C:\\Users\\BIURODOM\\.local\\bin;C:\\Program Files\\nodejs;C:\\Users\\BIURODOM\\AppData\\Roaming\\npm",
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      }
+    },
+    "desktop-commander": {
+      "command": "npx",
+      "args": ["-y", "@wonderwhy-er/desktop-commander"],
+      "env": {
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      }
+    },
+    "kapture": {
+      "command": "npx",
+      "args": ["-y", "kapture-mcp", "bridge"],
+      "env": {
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      }
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["@playwright/mcp@latest"],
+      "env": {
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      }
+    }
+  }
+}

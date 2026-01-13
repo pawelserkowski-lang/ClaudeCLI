@@ -13,6 +13,67 @@
 
 ---
 
+## 🔥 ZASADA: AI Handler - Auto-Load on Startup
+
+> **AI Handler MUSI być załadowany automatycznie przy każdym starcie ClaudeCLI.**
+
+### Status na starcie
+
+```
+  AI Handler:
+    Ollama (local)   Running on :11434        [OK]
+    Cloud APIs       Anthropic, OpenAI        [OK]
+    AI Handler       v1.0 loaded              [OK]
+```
+
+### Co jest włączone automatycznie:
+
+| Komponent | Opis | Status |
+|-----------|------|--------|
+| `AIModelHandler.psm1` | Główny moduł | Import globalny |
+| `Initialize-AIState` | Stan providerów | Auto-init |
+| Ollama check | Port 11434 | Status w GUI |
+| Cloud API keys | Anthropic/OpenAI | Weryfikacja |
+| Alias `ai` | Quick queries | Globalny |
+
+### Dostępne komendy po starcie:
+
+```powershell
+# Quick AI call (local Ollama preferred)
+ai "Twoje pytanie"
+
+# Status wszystkich providerów
+Get-AIStatus
+
+# Pełne API call z auto-fallback
+Invoke-AIRequest -Messages @(@{role="user"; content="..."})
+
+# Test providerów
+Test-AIProviders
+```
+
+### Fallback chain (automatyczny):
+
+```
+Local:  Ollama (llama3.2:3b) → qwen2.5-coder:1.5b
+Cloud:  Anthropic (Haiku) → OpenAI (gpt-4o-mini)
+
+Priorytet: LOCAL FIRST (koszt $0) → Cloud jako fallback
+```
+
+### Implementacja w `_launcher.ps1`:
+
+Sekcja `# === AI HANDLER ===` automatycznie:
+1. Importuje moduł globalnie
+2. Inicjalizuje stan
+3. Sprawdza Ollama (local)
+4. Weryfikuje klucze API (cloud)
+5. Tworzy alias `ai`
+
+**Ta zasada jest OBOWIĄZKOWA** - AI Handler musi być dostępny natychmiast po starcie bez dodatkowej konfiguracji.
+
+---
+
 ## 1. Parallel Execution (Zasada Nadrzędna)
 
 > Każda operacja, która może być wykonana równolegle, MUSI być wykonana równolegle.

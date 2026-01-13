@@ -216,41 +216,6 @@ function Get-DirectorySizeParallel {
 
 #region Process Management
 
-function Start-ProcessesParallel {
-    <#
-    .SYNOPSIS
-        Start multiple processes in parallel
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [hashtable[]]$Processes  # @{Name='...'; Arguments='...'; WorkingDirectory='...'}
-    )
-    
-    $Processes | ForEach-Object -Parallel {
-        $proc = $_
-        $psi = [System.Diagnostics.ProcessStartInfo]::new()
-        $psi.FileName = $proc.Name
-        $psi.Arguments = $proc.Arguments
-        $psi.WorkingDirectory = $proc.WorkingDirectory
-        $psi.UseShellExecute = $false
-        $psi.RedirectStandardOutput = $true
-        $psi.RedirectStandardError = $true
-        
-        $process = [System.Diagnostics.Process]::Start($psi)
-        $stdout = $process.StandardOutput.ReadToEnd()
-        $stderr = $process.StandardError.ReadToEnd()
-        $process.WaitForExit()
-        
-        @{
-            Name = $proc.Name
-            ExitCode = $process.ExitCode
-            Output = $stdout
-            Error = $stderr
-        }
-    } -ThrottleLimit $script:OptimalThrottle
-}
-
 function Invoke-CommandsParallel {
     <#
     .SYNOPSIS
@@ -335,115 +300,8 @@ function Invoke-WebRequestsParallel {
     } -ThrottleLimit ([Math]::Min($script:CoreCount * 4, 64))
 }
 
-function Get-FilesParallelDownload {
-    <#
-    .SYNOPSIS
-        Download multiple files in parallel
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [hashtable[]]$Downloads  # @{Url='...'; Destination='...'}
-    )
-    
-    $Downloads | ForEach-Object -Parallel {
-        $dl = $_
-        try {
-            Invoke-WebRequest -Uri $dl.Url -OutFile $dl.Destination -ErrorAction Stop
-            @{
-                Url = $dl.Url
-                Destination = $dl.Destination
-                Success = $true
-            }
-        }
-        catch {
-            @{
-                Url = $dl.Url
-                Destination = $dl.Destination
-                Success = $false
-                Error = $_.Exception.Message
-            }
-        }
-    } -ThrottleLimit ([Math]::Min($script:CoreCount * 4, 32))
-}
-
 #endregion
 
-#region Runspace Pool (Advanced)
-
-function New-RunspacePool {
-    <#
-    .SYNOPSIS
-        Create a runspace pool for advanced parallel scenarios
-    #>
-    [CmdletBinding()]
-    param(
-        [int]$MinRunspaces = 1,
-        [int]$MaxRunspaces = $script:CoreCount
-    )
-    
-    $pool = [runspacefactory]::CreateRunspacePool($MinRunspaces, $MaxRunspaces)
-    $pool.Open()
-    return $pool
-}
-
-function Invoke-RunspacePool {
-    <#
-    .SYNOPSIS
-        Execute scriptblocks using runspace pool
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [System.Management.Automation.Runspaces.RunspacePool]$Pool,
-        
-        [Parameter(Mandatory)]
-        [scriptblock[]]$ScriptBlocks,
-        
-        [object[]]$Arguments
-    )
-    
-    $jobs = @()
-    
-    foreach ($sb in $ScriptBlocks) {
-        $ps = [powershell]::Create()
-        $ps.RunspacePool = $Pool
-        $ps.AddScript($sb) | Out-Null
-        
-        if ($Arguments) {
-            foreach ($arg in $Arguments) {
-                $ps.AddArgument($arg) | Out-Null
-            }
-        }
-        
-        $jobs += @{
-            PowerShell = $ps
-            Handle = $ps.BeginInvoke()
-        }
-    }
-    
-    # Wait and collect results
-    $results = @()
-    foreach ($job in $jobs) {
-        $results += $job.PowerShell.EndInvoke($job.Handle)
-        $job.PowerShell.Dispose()
-    }
-    
-    return $results
-}
-
-function Close-RunspacePool {
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [System.Management.Automation.Runspaces.RunspacePool]$Pool
-    )
-    
-    $Pool.Close()
-    $Pool.Dispose()
-}
-
-#endregion
 
 #region Git Operations
 
@@ -486,38 +344,6 @@ function Invoke-GitParallel {
                 Success = $false
                 Error = "Not a git repository"
             }
-        }
-    } -ThrottleLimit $script:OptimalThrottle
-}
-
-function Sync-GitReposParallel {
-    <#
-    .SYNOPSIS
-        Fetch and pull all git repos in parallel
-    #>
-    [CmdletBinding()]
-    param(
-        [Parameter(Mandatory)]
-        [string]$BasePath
-    )
-    
-    $repos = Get-ChildItem -Path $BasePath -Directory | 
-             Where-Object { Test-Path (Join-Path $_.FullName ".git") }
-    
-    $repos | ForEach-Object -Parallel {
-        $repo = $_.FullName
-        Push-Location $repo
-        try {
-            git fetch --all --jobs=4 2>&1 | Out-Null
-            $pullOutput = git pull 2>&1
-            @{
-                Repository = $repo
-                Success = $LASTEXITCODE -eq 0
-                Output = $pullOutput -join "`n"
-            }
-        }
-        finally {
-            Pop-Location
         }
     } -ThrottleLimit $script:OptimalThrottle
 }

@@ -1,347 +1,1826 @@
-{
-  "providers": {
-    "anthropic": {
-      "name": "Anthropic",
-      "baseUrl": "https://api.anthropic.com/v1",
-      "apiKeyEnv": "ANTHROPIC_API_KEY",
-      "priority": 1,
-      "enabled": true,
-      "models": {
-        "claude-sonnet-4-20250514": {
-          "tier": "pro",
-          "contextWindow": 200000,
-          "maxOutput": 16000,
-          "inputCost": 3.0,
-          "outputCost": 15.0,
-          "tokensPerMinute": 80000,
-          "requestsPerMinute": 100,
-          "capabilities": [
-            "vision",
-            "code",
-            "analysis",
-            "creative"
-          ]
-        },
-        "claude-3-5-sonnet-20241022": {
-          "tier": "standard",
-          "contextWindow": 200000,
-          "maxOutput": 8192,
-          "inputCost": 3.0,
-          "outputCost": 15.0,
-          "tokensPerMinute": 80000,
-          "requestsPerMinute": 100,
-          "capabilities": [
-            "vision",
-            "code",
-            "analysis"
-          ]
-        },
-        "claude-3-5-haiku-20241022": {
-          "tier": "lite",
-          "contextWindow": 200000,
-          "maxOutput": 8192,
-          "inputCost": 0.8,
-          "outputCost": 4.0,
-          "tokensPerMinute": 100000,
-          "requestsPerMinute": 200,
-          "capabilities": [
-            "code",
-            "analysis"
-          ]
-        }
-      }
-    },
-    "openai": {
-      "name": "OpenAI",
-      "baseUrl": "https://api.openai.com/v1",
-      "apiKeyEnv": "OPENAI_API_KEY",
-      "priority": 2,
-      "enabled": true,
-      "models": {
-        "gpt-4o": {
-          "tier": "pro",
-          "contextWindow": 128000,
-          "maxOutput": 16384,
-          "inputCost": 2.5,
-          "outputCost": 10.0,
-          "tokensPerMinute": 30000,
-          "requestsPerMinute": 500,
-          "capabilities": [
-            "vision",
-            "code",
-            "analysis"
-          ]
-        },
-        "gpt-4o-mini": {
-          "tier": "lite",
-          "contextWindow": 128000,
-          "maxOutput": 16384,
-          "inputCost": 0.15,
-          "outputCost": 0.6,
-          "tokensPerMinute": 200000,
-          "requestsPerMinute": 500,
-          "capabilities": [
-            "code",
-            "analysis"
-          ]
-        }
-      }
-    },
-    "google": {
-      "name": "Google",
-      "baseUrl": "https://generativelanguage.googleapis.com/v1beta",
-      "apiKeyEnv": "GOOGLE_API_KEY",
-      "priority": 3,
-      "enabled": true,
-      "models": {
-        "gemini-1.5-pro": {
-          "tier": "pro",
-          "contextWindow": 128000,
-          "maxOutput": 8192,
-          "inputCost": 3.5,
-          "outputCost": 10.5,
-          "tokensPerMinute": 60000,
-          "requestsPerMinute": 60,
-          "capabilities": [
-            "vision",
-            "code",
-            "analysis"
-          ]
-        },
-        "gemini-1.5-flash": {
-          "tier": "lite",
-          "contextWindow": 128000,
-          "maxOutput": 8192,
-          "inputCost": 0.35,
-          "outputCost": 1.05,
-          "tokensPerMinute": 120000,
-          "requestsPerMinute": 120,
-          "capabilities": [
-            "vision",
-            "code",
-            "analysis"
-          ]
-        }
-      }
-    },
-    "mistral": {
-      "name": "Mistral",
-      "baseUrl": "https://api.mistral.ai/v1",
-      "apiKeyEnv": "MISTRAL_API_KEY",
-      "priority": 4,
-      "enabled": true,
-      "models": {
-        "mistral-large-latest": {
-          "tier": "pro",
-          "contextWindow": 128000,
-          "maxOutput": 8192,
-          "inputCost": 2.0,
-          "outputCost": 6.0,
-          "tokensPerMinute": 60000,
-          "requestsPerMinute": 60,
-          "capabilities": [
-            "code",
-            "analysis"
-          ]
-        },
-        "mistral-small-latest": {
-          "tier": "lite",
-          "contextWindow": 32000,
-          "maxOutput": 8192,
-          "inputCost": 0.2,
-          "outputCost": 0.6,
-          "tokensPerMinute": 120000,
-          "requestsPerMinute": 120,
-          "capabilities": [
-            "code",
-            "analysis"
-          ]
-        }
-      }
-    },
-    "groq": {
-      "name": "Groq",
-      "baseUrl": "https://api.groq.com/openai/v1",
-      "apiKeyEnv": "GROQ_API_KEY",
-      "priority": 5,
-      "enabled": true,
-      "models": {
-        "llama-3.1-70b-versatile": {
-          "tier": "pro",
-          "contextWindow": 128000,
-          "maxOutput": 8192,
-          "inputCost": 0.59,
-          "outputCost": 0.79,
-          "tokensPerMinute": 70000,
-          "requestsPerMinute": 120,
-          "capabilities": [
-            "code",
-            "analysis"
-          ]
-        },
-        "llama-3.1-8b-instant": {
-          "tier": "lite",
-          "contextWindow": 128000,
-          "maxOutput": 8192,
-          "inputCost": 0.05,
-          "outputCost": 0.08,
-          "tokensPerMinute": 120000,
-          "requestsPerMinute": 300,
-          "capabilities": [
-            "code",
-            "analysis"
-          ]
-        }
-      }
-    },
-    "ollama": {
-      "name": "Ollama (Local)",
-      "baseUrl": "http://localhost:11434/api",
-      "apiKeyEnv": null,
-      "priority": 6,
-      "enabled": true,
-      "models": {
-        "llama3.2:3b": {
-          "tier": "standard",
-          "contextWindow": 128000,
-          "maxOutput": 4096,
-          "inputCost": 0.0,
-          "outputCost": 0.0,
-          "tokensPerMinute": 999999,
-          "requestsPerMinute": 999999,
-          "capabilities": [
-            "code",
-            "analysis",
-            "creative"
-          ]
-        },
-        "qwen2.5-coder:1.5b": {
-          "tier": "lite",
-          "contextWindow": 32768,
-          "maxOutput": 4096,
-          "inputCost": 0.0,
-          "outputCost": 0.0,
-          "tokensPerMinute": 999999,
-          "requestsPerMinute": 999999,
-          "capabilities": [
-            "code"
-          ]
-        },
-        "phi3:mini": {
-          "tier": "lite",
-          "contextWindow": 128000,
-          "maxOutput": 4096,
-          "inputCost": 0.0,
-          "outputCost": 0.0,
-          "tokensPerMinute": 999999,
-          "requestsPerMinute": 999999,
-          "capabilities": [
-            "code",
-            "analysis"
-          ]
-        },
-        "llama3.2:1b": {
-          "tier": "lite",
-          "contextWindow": 128000,
-          "maxOutput": 4096,
-          "inputCost": 0.0,
-          "outputCost": 0.0,
-          "tokensPerMinute": 999999,
-          "requestsPerMinute": 999999,
-          "capabilities": [
-            "code",
-            "analysis"
-          ]
-        }
-      }
-    }
-  },
-  "fallbackChain": {
-    "anthropic": [
-      "claude-sonnet-4-20250514",
-      "claude-3-5-sonnet-20241022",
-      "claude-3-5-haiku-20241022"
-    ],
-    "openai": [
-      "gpt-4o",
-      "gpt-4o-mini"
-    ],
-    "google": [
-      "gemini-1.5-pro",
-      "gemini-1.5-flash"
-    ],
-    "mistral": [
-      "mistral-large-latest",
-      "mistral-small-latest"
-    ],
-    "groq": [
-      "llama-3.1-70b-versatile",
-      "llama-3.1-8b-instant"
-    ],
-    "ollama": [
-      "llama3.2:3b",
-      "qwen2.5-coder:1.5b",
-      "phi3:mini",
-      "llama3.2:1b"
-    ]
-  },
-  "providerFallbackOrder": [
-    "anthropic",
-    "openai",
-    "google",
-    "mistral",
-    "groq",
-    "ollama"
-  ],
-  "settings": {
-    "costOptimization": true,
-    "ollamaDefaultModel": "llama3.2:3b",
-    "autoInstallOllama": true,
-    "maxRetries": 3,
-    "autoFallback": true,
-    "logLevel": "info",
-    "logFormat": "json",
-    "preferLocal": true,
-    "rateLimitThreshold": 0.85,
-    "streamResponses": true,
-    "outputTokenRatio": 0.5,
-    "parallelExecution": {
-      "maxConcurrent": 4,
-      "batchSize": 10,
-      "timeoutMs": 30000,
-      "enabled": true
-    },
-    "retryDelayMs": 1000,
-    "modelDiscovery": {
-      "enabled": true,
-      "updateConfigOnStart": true,
-      "parallel": true,
-      "skipValidation": false
-    },
-    "advancedAI": {
-      "selfCorrection": {
-        "enabled": true,
-        "validationModel": "phi3:mini",
-        "maxAttempts": 3
-      },
-      "fewShotLearning": {
-        "enabled": true,
-        "maxExamples": 3,
-        "maxHistoryEntries": 100
-      },
-      "speculativeDecoding": {
-        "enabled": true,
-        "fastModel": "llama3.2:1b",
-        "accurateModel": "llama3.2:3b",
-        "codeModel": "qwen2.5-coder:1.5b",
-        "timeoutMs": 30000
-      },
-      "promptOptimizer": {
-        "enabled": true,
-        "autoOptimize": true,
-        "minClarityThreshold": 60,
-        "showEnhancements": true
-      }
-    }
-  }
+﻿{
+    "providers":  {
+                      "anthropic":  {
+                                        "name":  "Anthropic",
+                                        "baseUrl":  "https://api.anthropic.com/v1",
+                                        "apiKeyEnv":  "ANTHROPIC_API_KEY",
+                                        "priority":  1,
+                                        "enabled":  true,
+                                        "models":  {
+                                                       "claude-3-5-haiku-20241022":  {
+                                                                                         "tokensPerMinute":  999999,
+                                                                                         "outputCost":  4,
+                                                                                         "capabilities":  [
+                                                                                                              "code",
+                                                                                                              "analysis"
+                                                                                                          ],
+                                                                                         "parameterSize":  null,
+                                                                                         "contextWindow":  200000,
+                                                                                         "sizeGB":  null,
+                                                                                         "inputCost":  0.8,
+                                                                                         "tier":  "lite",
+                                                                                         "requestsPerMinute":  999999,
+                                                                                         "maxOutput":  8192
+                                                                                     },
+                                                       "claude-3-5-sonnet-20241022":  {
+                                                                                          "tokensPerMinute":  999999,
+                                                                                          "outputCost":  15,
+                                                                                          "capabilities":  [
+                                                                                                               "vision",
+                                                                                                               "code",
+                                                                                                               "analysis"
+                                                                                                           ],
+                                                                                          "parameterSize":  null,
+                                                                                          "contextWindow":  200000,
+                                                                                          "sizeGB":  null,
+                                                                                          "inputCost":  3,
+                                                                                          "tier":  "standard",
+                                                                                          "requestsPerMinute":  999999,
+                                                                                          "maxOutput":  8192
+                                                                                      },
+                                                       "claude-opus-4-20250514":  {
+                                                                                      "tokensPerMinute":  999999,
+                                                                                      "outputCost":  75,
+                                                                                      "capabilities":  [
+                                                                                                           "vision",
+                                                                                                           "code",
+                                                                                                           "analysis",
+                                                                                                           "creative",
+                                                                                                           "extended_thinking"
+                                                                                                       ],
+                                                                                      "parameterSize":  null,
+                                                                                      "contextWindow":  200000,
+                                                                                      "sizeGB":  null,
+                                                                                      "inputCost":  15,
+                                                                                      "tier":  "flagship",
+                                                                                      "requestsPerMinute":  999999,
+                                                                                      "maxOutput":  32000
+                                                                                  },
+                                                       "claude-sonnet-4-20250514":  {
+                                                                                        "tokensPerMinute":  999999,
+                                                                                        "outputCost":  15,
+                                                                                        "capabilities":  [
+                                                                                                             "vision",
+                                                                                                             "code",
+                                                                                                             "analysis",
+                                                                                                             "creative"
+                                                                                                         ],
+                                                                                        "parameterSize":  null,
+                                                                                        "contextWindow":  200000,
+                                                                                        "sizeGB":  null,
+                                                                                        "inputCost":  3,
+                                                                                        "tier":  "pro",
+                                                                                        "requestsPerMinute":  999999,
+                                                                                        "maxOutput":  16000
+                                                                                    }
+                                                   }
+                                    },
+                      "openai":  {
+                                     "name":  "OpenAI",
+                                     "baseUrl":  "https://api.openai.com/v1",
+                                     "apiKeyEnv":  "OPENAI_API_KEY",
+                                     "priority":  2,
+                                     "enabled":  true,
+                                     "models":  {
+                                                    "gpt-3.5-turbo-16k":  {
+                                                                              "tokensPerMinute":  999999,
+                                                                              "outputCost":  1.5,
+                                                                              "capabilities":  [
+                                                                                                   "code",
+                                                                                                   "analysis"
+                                                                                               ],
+                                                                              "parameterSize":  null,
+                                                                              "contextWindow":  128000,
+                                                                              "sizeGB":  null,
+                                                                              "inputCost":  0.5,
+                                                                              "tier":  "standard",
+                                                                              "requestsPerMinute":  999999,
+                                                                              "maxOutput":  16384
+                                                                          },
+                                                    "gpt-4o-mini-transcribe-2025-12-15":  {
+                                                                                              "tokensPerMinute":  999999,
+                                                                                              "outputCost":  0.6,
+                                                                                              "capabilities":  [
+                                                                                                                   "code",
+                                                                                                                   "analysis"
+                                                                                                               ],
+                                                                                              "parameterSize":  null,
+                                                                                              "contextWindow":  128000,
+                                                                                              "sizeGB":  null,
+                                                                                              "inputCost":  0.15,
+                                                                                              "tier":  "lite",
+                                                                                              "requestsPerMinute":  999999,
+                                                                                              "maxOutput":  16384
+                                                                                          },
+                                                    "gpt-4o-search-preview-2025-03-11":  {
+                                                                                             "tokensPerMinute":  999999,
+                                                                                             "outputCost":  10,
+                                                                                             "capabilities":  [
+                                                                                                                  "vision",
+                                                                                                                  "code",
+                                                                                                                  "analysis"
+                                                                                                              ],
+                                                                                             "parameterSize":  null,
+                                                                                             "contextWindow":  128000,
+                                                                                             "sizeGB":  null,
+                                                                                             "inputCost":  2.5,
+                                                                                             "tier":  "pro",
+                                                                                             "requestsPerMinute":  999999,
+                                                                                             "maxOutput":  16384
+                                                                                         },
+                                                    "gpt-4.1":  {
+                                                                    "tokensPerMinute":  999999,
+                                                                    "outputCost":  1.5,
+                                                                    "capabilities":  [
+                                                                                         "code",
+                                                                                         "analysis"
+                                                                                     ],
+                                                                    "parameterSize":  null,
+                                                                    "contextWindow":  128000,
+                                                                    "sizeGB":  null,
+                                                                    "inputCost":  0.5,
+                                                                    "tier":  "standard",
+                                                                    "requestsPerMinute":  999999,
+                                                                    "maxOutput":  16384
+                                                                },
+                                                    "gpt-4-turbo-preview":  {
+                                                                                "tokensPerMinute":  999999,
+                                                                                "outputCost":  30,
+                                                                                "capabilities":  [
+                                                                                                     "vision",
+                                                                                                     "code",
+                                                                                                     "analysis"
+                                                                                                 ],
+                                                                                "parameterSize":  null,
+                                                                                "contextWindow":  128000,
+                                                                                "sizeGB":  null,
+                                                                                "inputCost":  10,
+                                                                                "tier":  "pro",
+                                                                                "requestsPerMinute":  999999,
+                                                                                "maxOutput":  16384
+                                                                            },
+                                                    "gpt-4o-mini-tts-2025-12-15":  {
+                                                                                       "tokensPerMinute":  999999,
+                                                                                       "outputCost":  0.6,
+                                                                                       "capabilities":  [
+                                                                                                            "code",
+                                                                                                            "analysis"
+                                                                                                        ],
+                                                                                       "parameterSize":  null,
+                                                                                       "contextWindow":  128000,
+                                                                                       "sizeGB":  null,
+                                                                                       "inputCost":  0.15,
+                                                                                       "tier":  "lite",
+                                                                                       "requestsPerMinute":  999999,
+                                                                                       "maxOutput":  16384
+                                                                                   },
+                                                    "o3-2025-04-16":  {
+                                                                          "tokensPerMinute":  999999,
+                                                                          "outputCost":  1.5,
+                                                                          "capabilities":  [
+                                                                                               "code",
+                                                                                               "analysis"
+                                                                                           ],
+                                                                          "parameterSize":  null,
+                                                                          "contextWindow":  128000,
+                                                                          "sizeGB":  null,
+                                                                          "inputCost":  0.5,
+                                                                          "tier":  "standard",
+                                                                          "requestsPerMinute":  999999,
+                                                                          "maxOutput":  16384
+                                                                      },
+                                                    "gpt-4o-mini-search-preview-2025-03-11":  {
+                                                                                                  "tokensPerMinute":  999999,
+                                                                                                  "outputCost":  0.6,
+                                                                                                  "capabilities":  [
+                                                                                                                       "code",
+                                                                                                                       "analysis"
+                                                                                                                   ],
+                                                                                                  "parameterSize":  null,
+                                                                                                  "contextWindow":  128000,
+                                                                                                  "sizeGB":  null,
+                                                                                                  "inputCost":  0.15,
+                                                                                                  "tier":  "lite",
+                                                                                                  "requestsPerMinute":  999999,
+                                                                                                  "maxOutput":  16384
+                                                                                              },
+                                                    "gpt-4o-transcribe-diarize":  {
+                                                                                      "tokensPerMinute":  999999,
+                                                                                      "outputCost":  10,
+                                                                                      "capabilities":  [
+                                                                                                           "vision",
+                                                                                                           "code",
+                                                                                                           "analysis"
+                                                                                                       ],
+                                                                                      "parameterSize":  null,
+                                                                                      "contextWindow":  128000,
+                                                                                      "sizeGB":  null,
+                                                                                      "inputCost":  2.5,
+                                                                                      "tier":  "pro",
+                                                                                      "requestsPerMinute":  999999,
+                                                                                      "maxOutput":  16384
+                                                                                  },
+                                                    "gpt-4-0125-preview":  {
+                                                                               "tokensPerMinute":  999999,
+                                                                               "outputCost":  1.5,
+                                                                               "capabilities":  [
+                                                                                                    "code",
+                                                                                                    "analysis"
+                                                                                                ],
+                                                                               "parameterSize":  null,
+                                                                               "contextWindow":  128000,
+                                                                               "sizeGB":  null,
+                                                                               "inputCost":  0.5,
+                                                                               "tier":  "standard",
+                                                                               "requestsPerMinute":  999999,
+                                                                               "maxOutput":  16384
+                                                                           },
+                                                    "gpt-4o-mini":  {
+                                                                        "tokensPerMinute":  999999,
+                                                                        "outputCost":  0.6,
+                                                                        "capabilities":  [
+                                                                                             "code",
+                                                                                             "analysis"
+                                                                                         ],
+                                                                        "parameterSize":  null,
+                                                                        "contextWindow":  128000,
+                                                                        "sizeGB":  null,
+                                                                        "inputCost":  0.15,
+                                                                        "tier":  "lite",
+                                                                        "requestsPerMinute":  999999,
+                                                                        "maxOutput":  16384
+                                                                    },
+                                                    "o3":  {
+                                                               "tokensPerMinute":  999999,
+                                                               "outputCost":  1.5,
+                                                               "capabilities":  [
+                                                                                    "code",
+                                                                                    "analysis"
+                                                                                ],
+                                                               "parameterSize":  null,
+                                                               "contextWindow":  128000,
+                                                               "sizeGB":  null,
+                                                               "inputCost":  0.5,
+                                                               "tier":  "standard",
+                                                               "requestsPerMinute":  999999,
+                                                               "maxOutput":  16384
+                                                           },
+                                                    "gpt-4o-mini-tts":  {
+                                                                            "tokensPerMinute":  999999,
+                                                                            "outputCost":  0.6,
+                                                                            "capabilities":  [
+                                                                                                 "code",
+                                                                                                 "analysis"
+                                                                                             ],
+                                                                            "parameterSize":  null,
+                                                                            "contextWindow":  128000,
+                                                                            "sizeGB":  null,
+                                                                            "inputCost":  0.15,
+                                                                            "tier":  "lite",
+                                                                            "requestsPerMinute":  999999,
+                                                                            "maxOutput":  16384
+                                                                        },
+                                                    "gpt-4-turbo-2024-04-09":  {
+                                                                                   "tokensPerMinute":  999999,
+                                                                                   "outputCost":  30,
+                                                                                   "capabilities":  [
+                                                                                                        "vision",
+                                                                                                        "code",
+                                                                                                        "analysis"
+                                                                                                    ],
+                                                                                   "parameterSize":  null,
+                                                                                   "contextWindow":  128000,
+                                                                                   "sizeGB":  null,
+                                                                                   "inputCost":  10,
+                                                                                   "tier":  "pro",
+                                                                                   "requestsPerMinute":  999999,
+                                                                                   "maxOutput":  16384
+                                                                               },
+                                                    "gpt-4o-mini-transcribe-2025-03-20":  {
+                                                                                              "tokensPerMinute":  999999,
+                                                                                              "outputCost":  0.6,
+                                                                                              "capabilities":  [
+                                                                                                                   "code",
+                                                                                                                   "analysis"
+                                                                                                               ],
+                                                                                              "parameterSize":  null,
+                                                                                              "contextWindow":  128000,
+                                                                                              "sizeGB":  null,
+                                                                                              "inputCost":  0.15,
+                                                                                              "tier":  "lite",
+                                                                                              "requestsPerMinute":  999999,
+                                                                                              "maxOutput":  16384
+                                                                                          },
+                                                    "gpt-4o-mini-tts-2025-03-20":  {
+                                                                                       "tokensPerMinute":  999999,
+                                                                                       "outputCost":  0.6,
+                                                                                       "capabilities":  [
+                                                                                                            "code",
+                                                                                                            "analysis"
+                                                                                                        ],
+                                                                                       "parameterSize":  null,
+                                                                                       "contextWindow":  128000,
+                                                                                       "sizeGB":  null,
+                                                                                       "inputCost":  0.15,
+                                                                                       "tier":  "lite",
+                                                                                       "requestsPerMinute":  999999,
+                                                                                       "maxOutput":  16384
+                                                                                   },
+                                                    "gpt-4o-search-preview":  {
+                                                                                  "tokensPerMinute":  999999,
+                                                                                  "outputCost":  10,
+                                                                                  "capabilities":  [
+                                                                                                       "vision",
+                                                                                                       "code",
+                                                                                                       "analysis"
+                                                                                                   ],
+                                                                                  "parameterSize":  null,
+                                                                                  "contextWindow":  128000,
+                                                                                  "sizeGB":  null,
+                                                                                  "inputCost":  2.5,
+                                                                                  "tier":  "pro",
+                                                                                  "requestsPerMinute":  999999,
+                                                                                  "maxOutput":  16384
+                                                                              },
+                                                    "gpt-4o":  {
+                                                                   "tokensPerMinute":  999999,
+                                                                   "outputCost":  10,
+                                                                   "capabilities":  [
+                                                                                        "vision",
+                                                                                        "code",
+                                                                                        "analysis"
+                                                                                    ],
+                                                                   "parameterSize":  null,
+                                                                   "contextWindow":  128000,
+                                                                   "sizeGB":  null,
+                                                                   "inputCost":  2.5,
+                                                                   "tier":  "pro",
+                                                                   "requestsPerMinute":  999999,
+                                                                   "maxOutput":  16384
+                                                               },
+                                                    "gpt-4.1-mini":  {
+                                                                         "tokensPerMinute":  999999,
+                                                                         "outputCost":  1.5,
+                                                                         "capabilities":  [
+                                                                                              "code",
+                                                                                              "analysis"
+                                                                                          ],
+                                                                         "parameterSize":  null,
+                                                                         "contextWindow":  128000,
+                                                                         "sizeGB":  null,
+                                                                         "inputCost":  0.5,
+                                                                         "tier":  "standard",
+                                                                         "requestsPerMinute":  999999,
+                                                                         "maxOutput":  16384
+                                                                     },
+                                                    "gpt-4":  {
+                                                                  "tokensPerMinute":  999999,
+                                                                  "outputCost":  1.5,
+                                                                  "capabilities":  [
+                                                                                       "code",
+                                                                                       "analysis"
+                                                                                   ],
+                                                                  "parameterSize":  null,
+                                                                  "contextWindow":  128000,
+                                                                  "sizeGB":  null,
+                                                                  "inputCost":  0.5,
+                                                                  "tier":  "standard",
+                                                                  "requestsPerMinute":  999999,
+                                                                  "maxOutput":  16384
+                                                              },
+                                                    "gpt-4o-mini-transcribe":  {
+                                                                                   "tokensPerMinute":  999999,
+                                                                                   "outputCost":  0.6,
+                                                                                   "capabilities":  [
+                                                                                                        "code",
+                                                                                                        "analysis"
+                                                                                                    ],
+                                                                                   "parameterSize":  null,
+                                                                                   "contextWindow":  128000,
+                                                                                   "sizeGB":  null,
+                                                                                   "inputCost":  0.15,
+                                                                                   "tier":  "lite",
+                                                                                   "requestsPerMinute":  999999,
+                                                                                   "maxOutput":  16384
+                                                                               },
+                                                    "o3-mini-2025-01-31":  {
+                                                                               "tokensPerMinute":  999999,
+                                                                               "outputCost":  4.4,
+                                                                               "capabilities":  [
+                                                                                                    "code",
+                                                                                                    "analysis",
+                                                                                                    "reasoning"
+                                                                                                ],
+                                                                               "parameterSize":  null,
+                                                                               "contextWindow":  128000,
+                                                                               "sizeGB":  null,
+                                                                               "inputCost":  1.1,
+                                                                               "tier":  "standard",
+                                                                               "requestsPerMinute":  999999,
+                                                                               "maxOutput":  16384
+                                                                           },
+                                                    "gpt-4o-mini-search-preview":  {
+                                                                                       "tokensPerMinute":  999999,
+                                                                                       "outputCost":  0.6,
+                                                                                       "capabilities":  [
+                                                                                                            "code",
+                                                                                                            "analysis"
+                                                                                                        ],
+                                                                                       "parameterSize":  null,
+                                                                                       "contextWindow":  128000,
+                                                                                       "sizeGB":  null,
+                                                                                       "inputCost":  0.15,
+                                                                                       "tier":  "lite",
+                                                                                       "requestsPerMinute":  999999,
+                                                                                       "maxOutput":  16384
+                                                                                   },
+                                                    "gpt-4o-2024-05-13":  {
+                                                                              "tokensPerMinute":  999999,
+                                                                              "outputCost":  10,
+                                                                              "capabilities":  [
+                                                                                                   "vision",
+                                                                                                   "code",
+                                                                                                   "analysis"
+                                                                                               ],
+                                                                              "parameterSize":  null,
+                                                                              "contextWindow":  128000,
+                                                                              "sizeGB":  null,
+                                                                              "inputCost":  2.5,
+                                                                              "tier":  "pro",
+                                                                              "requestsPerMinute":  999999,
+                                                                              "maxOutput":  16384
+                                                                          },
+                                                    "gpt-4.1-nano":  {
+                                                                         "tokensPerMinute":  999999,
+                                                                         "outputCost":  1.5,
+                                                                         "capabilities":  [
+                                                                                              "code",
+                                                                                              "analysis"
+                                                                                          ],
+                                                                         "parameterSize":  null,
+                                                                         "contextWindow":  128000,
+                                                                         "sizeGB":  null,
+                                                                         "inputCost":  0.5,
+                                                                         "tier":  "standard",
+                                                                         "requestsPerMinute":  999999,
+                                                                         "maxOutput":  16384
+                                                                     },
+                                                    "o1-pro-2025-03-19":  {
+                                                                              "tokensPerMinute":  999999,
+                                                                              "outputCost":  1.5,
+                                                                              "capabilities":  [
+                                                                                                   "code",
+                                                                                                   "analysis"
+                                                                                               ],
+                                                                              "parameterSize":  null,
+                                                                              "contextWindow":  128000,
+                                                                              "sizeGB":  null,
+                                                                              "inputCost":  0.5,
+                                                                              "tier":  "standard",
+                                                                              "requestsPerMinute":  999999,
+                                                                              "maxOutput":  16384
+                                                                          },
+                                                    "gpt-4.1-nano-2025-04-14":  {
+                                                                                    "tokensPerMinute":  999999,
+                                                                                    "outputCost":  1.5,
+                                                                                    "capabilities":  [
+                                                                                                         "code",
+                                                                                                         "analysis"
+                                                                                                     ],
+                                                                                    "parameterSize":  null,
+                                                                                    "contextWindow":  128000,
+                                                                                    "sizeGB":  null,
+                                                                                    "inputCost":  0.5,
+                                                                                    "tier":  "standard",
+                                                                                    "requestsPerMinute":  999999,
+                                                                                    "maxOutput":  16384
+                                                                                },
+                                                    "gpt-4-0613":  {
+                                                                       "tokensPerMinute":  999999,
+                                                                       "outputCost":  1.5,
+                                                                       "capabilities":  [
+                                                                                            "code",
+                                                                                            "analysis"
+                                                                                        ],
+                                                                       "parameterSize":  null,
+                                                                       "contextWindow":  128000,
+                                                                       "sizeGB":  null,
+                                                                       "inputCost":  0.5,
+                                                                       "tier":  "standard",
+                                                                       "requestsPerMinute":  999999,
+                                                                       "maxOutput":  16384
+                                                                   },
+                                                    "o1":  {
+                                                               "tokensPerMinute":  999999,
+                                                               "outputCost":  1.5,
+                                                               "capabilities":  [
+                                                                                    "code",
+                                                                                    "analysis"
+                                                                                ],
+                                                               "parameterSize":  null,
+                                                               "contextWindow":  128000,
+                                                               "sizeGB":  null,
+                                                               "inputCost":  0.5,
+                                                               "tier":  "standard",
+                                                               "requestsPerMinute":  999999,
+                                                               "maxOutput":  16384
+                                                           },
+                                                    "o1-pro":  {
+                                                                   "tokensPerMinute":  999999,
+                                                                   "outputCost":  1.5,
+                                                                   "capabilities":  [
+                                                                                        "code",
+                                                                                        "analysis"
+                                                                                    ],
+                                                                   "parameterSize":  null,
+                                                                   "contextWindow":  128000,
+                                                                   "sizeGB":  null,
+                                                                   "inputCost":  0.5,
+                                                                   "tier":  "standard",
+                                                                   "requestsPerMinute":  999999,
+                                                                   "maxOutput":  16384
+                                                               },
+                                                    "o1-2024-12-17":  {
+                                                                          "tokensPerMinute":  999999,
+                                                                          "outputCost":  1.5,
+                                                                          "capabilities":  [
+                                                                                               "code",
+                                                                                               "analysis"
+                                                                                           ],
+                                                                          "parameterSize":  null,
+                                                                          "contextWindow":  128000,
+                                                                          "sizeGB":  null,
+                                                                          "inputCost":  0.5,
+                                                                          "tier":  "standard",
+                                                                          "requestsPerMinute":  999999,
+                                                                          "maxOutput":  16384
+                                                                      },
+                                                    "gpt-4-1106-preview":  {
+                                                                               "tokensPerMinute":  999999,
+                                                                               "outputCost":  1.5,
+                                                                               "capabilities":  [
+                                                                                                    "code",
+                                                                                                    "analysis"
+                                                                                                ],
+                                                                               "parameterSize":  null,
+                                                                               "contextWindow":  128000,
+                                                                               "sizeGB":  null,
+                                                                               "inputCost":  0.5,
+                                                                               "tier":  "standard",
+                                                                               "requestsPerMinute":  999999,
+                                                                               "maxOutput":  16384
+                                                                           },
+                                                    "gpt-4-turbo":  {
+                                                                        "tokensPerMinute":  999999,
+                                                                        "outputCost":  30,
+                                                                        "capabilities":  [
+                                                                                             "vision",
+                                                                                             "code",
+                                                                                             "analysis"
+                                                                                         ],
+                                                                        "parameterSize":  null,
+                                                                        "contextWindow":  128000,
+                                                                        "sizeGB":  null,
+                                                                        "inputCost":  10,
+                                                                        "tier":  "pro",
+                                                                        "requestsPerMinute":  999999,
+                                                                        "maxOutput":  16384
+                                                                    },
+                                                    "gpt-4o-2024-11-20":  {
+                                                                              "tokensPerMinute":  999999,
+                                                                              "outputCost":  10,
+                                                                              "capabilities":  [
+                                                                                                   "vision",
+                                                                                                   "code",
+                                                                                                   "analysis"
+                                                                                               ],
+                                                                              "parameterSize":  null,
+                                                                              "contextWindow":  128000,
+                                                                              "sizeGB":  null,
+                                                                              "inputCost":  2.5,
+                                                                              "tier":  "pro",
+                                                                              "requestsPerMinute":  999999,
+                                                                              "maxOutput":  16384
+                                                                          },
+                                                    "gpt-3.5-turbo-0125":  {
+                                                                               "tokensPerMinute":  999999,
+                                                                               "outputCost":  1.5,
+                                                                               "capabilities":  [
+                                                                                                    "code",
+                                                                                                    "analysis"
+                                                                                                ],
+                                                                               "parameterSize":  null,
+                                                                               "contextWindow":  128000,
+                                                                               "sizeGB":  null,
+                                                                               "inputCost":  0.5,
+                                                                               "tier":  "standard",
+                                                                               "requestsPerMinute":  999999,
+                                                                               "maxOutput":  16384
+                                                                           },
+                                                    "o3-mini":  {
+                                                                    "tokensPerMinute":  999999,
+                                                                    "outputCost":  4.4,
+                                                                    "capabilities":  [
+                                                                                         "code",
+                                                                                         "analysis",
+                                                                                         "reasoning"
+                                                                                     ],
+                                                                    "parameterSize":  null,
+                                                                    "contextWindow":  128000,
+                                                                    "sizeGB":  null,
+                                                                    "inputCost":  1.1,
+                                                                    "tier":  "standard",
+                                                                    "requestsPerMinute":  999999,
+                                                                    "maxOutput":  16384
+                                                                },
+                                                    "gpt-4o-2024-08-06":  {
+                                                                              "tokensPerMinute":  999999,
+                                                                              "outputCost":  10,
+                                                                              "capabilities":  [
+                                                                                                   "vision",
+                                                                                                   "code",
+                                                                                                   "analysis"
+                                                                                               ],
+                                                                              "parameterSize":  null,
+                                                                              "contextWindow":  128000,
+                                                                              "sizeGB":  null,
+                                                                              "inputCost":  2.5,
+                                                                              "tier":  "pro",
+                                                                              "requestsPerMinute":  999999,
+                                                                              "maxOutput":  16384
+                                                                          },
+                                                    "gpt-3.5-turbo":  {
+                                                                          "tokensPerMinute":  999999,
+                                                                          "outputCost":  1.5,
+                                                                          "capabilities":  [
+                                                                                               "code",
+                                                                                               "analysis"
+                                                                                           ],
+                                                                          "parameterSize":  null,
+                                                                          "contextWindow":  128000,
+                                                                          "sizeGB":  null,
+                                                                          "inputCost":  0.5,
+                                                                          "tier":  "standard",
+                                                                          "requestsPerMinute":  999999,
+                                                                          "maxOutput":  16384
+                                                                      },
+                                                    "gpt-4o-mini-2024-07-18":  {
+                                                                                   "tokensPerMinute":  999999,
+                                                                                   "outputCost":  0.6,
+                                                                                   "capabilities":  [
+                                                                                                        "code",
+                                                                                                        "analysis"
+                                                                                                    ],
+                                                                                   "parameterSize":  null,
+                                                                                   "contextWindow":  128000,
+                                                                                   "sizeGB":  null,
+                                                                                   "inputCost":  0.15,
+                                                                                   "tier":  "lite",
+                                                                                   "requestsPerMinute":  999999,
+                                                                                   "maxOutput":  16384
+                                                                               },
+                                                    "gpt-3.5-turbo-1106":  {
+                                                                               "tokensPerMinute":  999999,
+                                                                               "outputCost":  1.5,
+                                                                               "capabilities":  [
+                                                                                                    "code",
+                                                                                                    "analysis"
+                                                                                                ],
+                                                                               "parameterSize":  null,
+                                                                               "contextWindow":  128000,
+                                                                               "sizeGB":  null,
+                                                                               "inputCost":  0.5,
+                                                                               "tier":  "standard",
+                                                                               "requestsPerMinute":  999999,
+                                                                               "maxOutput":  16384
+                                                                           },
+                                                    "gpt-4.1-mini-2025-04-14":  {
+                                                                                    "tokensPerMinute":  999999,
+                                                                                    "outputCost":  1.5,
+                                                                                    "capabilities":  [
+                                                                                                         "code",
+                                                                                                         "analysis"
+                                                                                                     ],
+                                                                                    "parameterSize":  null,
+                                                                                    "contextWindow":  128000,
+                                                                                    "sizeGB":  null,
+                                                                                    "inputCost":  0.5,
+                                                                                    "tier":  "standard",
+                                                                                    "requestsPerMinute":  999999,
+                                                                                    "maxOutput":  16384
+                                                                                },
+                                                    "gpt-4.1-2025-04-14":  {
+                                                                               "tokensPerMinute":  999999,
+                                                                               "outputCost":  1.5,
+                                                                               "capabilities":  [
+                                                                                                    "code",
+                                                                                                    "analysis"
+                                                                                                ],
+                                                                               "parameterSize":  null,
+                                                                               "contextWindow":  128000,
+                                                                               "sizeGB":  null,
+                                                                               "inputCost":  0.5,
+                                                                               "tier":  "standard",
+                                                                               "requestsPerMinute":  999999,
+                                                                               "maxOutput":  16384
+                                                                           },
+                                                    "gpt-4o-transcribe":  {
+                                                                              "tokensPerMinute":  999999,
+                                                                              "outputCost":  10,
+                                                                              "capabilities":  [
+                                                                                                   "vision",
+                                                                                                   "code",
+                                                                                                   "analysis"
+                                                                                               ],
+                                                                              "parameterSize":  null,
+                                                                              "contextWindow":  128000,
+                                                                              "sizeGB":  null,
+                                                                              "inputCost":  2.5,
+                                                                              "tier":  "pro",
+                                                                              "requestsPerMinute":  999999,
+                                                                              "maxOutput":  16384
+                                                                          }
+                                                }
+                                 },
+                      "google":  {
+                                     "name":  "Google",
+                                     "baseUrl":  "https://generativelanguage.googleapis.com/v1beta",
+                                     "apiKeyEnv":  "GOOGLE_API_KEY",
+                                     "priority":  3,
+                                     "enabled":  true,
+                                     "models":  {
+                                                    "gemini-2.5-flash-preview-tts":  {
+                                                                                         "tokensPerMinute":  999999,
+                                                                                         "outputCost":  0,
+                                                                                         "capabilities":  [
+                                                                                                              "vision",
+                                                                                                              "code",
+                                                                                                              "analysis"
+                                                                                                          ],
+                                                                                         "parameterSize":  null,
+                                                                                         "contextWindow":  128000,
+                                                                                         "sizeGB":  null,
+                                                                                         "inputCost":  0,
+                                                                                         "tier":  "standard",
+                                                                                         "requestsPerMinute":  999999,
+                                                                                         "maxOutput":  8192
+                                                                                     },
+                                                    "gemini-2.0-flash-lite-001":  {
+                                                                                      "tokensPerMinute":  999999,
+                                                                                      "outputCost":  0,
+                                                                                      "capabilities":  [
+                                                                                                           "vision",
+                                                                                                           "code",
+                                                                                                           "analysis"
+                                                                                                       ],
+                                                                                      "parameterSize":  null,
+                                                                                      "contextWindow":  128000,
+                                                                                      "sizeGB":  null,
+                                                                                      "inputCost":  0,
+                                                                                      "tier":  "standard",
+                                                                                      "requestsPerMinute":  999999,
+                                                                                      "maxOutput":  8192
+                                                                                  },
+                                                    "gemini-2.5-pro-preview-tts":  {
+                                                                                       "tokensPerMinute":  999999,
+                                                                                       "outputCost":  0,
+                                                                                       "capabilities":  [
+                                                                                                            "vision",
+                                                                                                            "code",
+                                                                                                            "analysis"
+                                                                                                        ],
+                                                                                       "parameterSize":  null,
+                                                                                       "contextWindow":  128000,
+                                                                                       "sizeGB":  null,
+                                                                                       "inputCost":  0,
+                                                                                       "tier":  "pro",
+                                                                                       "requestsPerMinute":  999999,
+                                                                                       "maxOutput":  8192
+                                                                                   },
+                                                    "gemini-2.0-flash-lite-preview-02-05":  {
+                                                                                                "tokensPerMinute":  999999,
+                                                                                                "outputCost":  0,
+                                                                                                "capabilities":  [
+                                                                                                                     "vision",
+                                                                                                                     "code",
+                                                                                                                     "analysis"
+                                                                                                                 ],
+                                                                                                "parameterSize":  null,
+                                                                                                "contextWindow":  128000,
+                                                                                                "sizeGB":  null,
+                                                                                                "inputCost":  0,
+                                                                                                "tier":  "standard",
+                                                                                                "requestsPerMinute":  999999,
+                                                                                                "maxOutput":  8192
+                                                                                            },
+                                                    "gemini-embedding-001":  {
+                                                                                 "tokensPerMinute":  999999,
+                                                                                 "outputCost":  0,
+                                                                                 "capabilities":  [
+                                                                                                      "vision",
+                                                                                                      "code",
+                                                                                                      "analysis"
+                                                                                                  ],
+                                                                                 "parameterSize":  null,
+                                                                                 "contextWindow":  128000,
+                                                                                 "sizeGB":  null,
+                                                                                 "inputCost":  0,
+                                                                                 "tier":  "standard",
+                                                                                 "requestsPerMinute":  999999,
+                                                                                 "maxOutput":  8192
+                                                                             },
+                                                    "gemini-flash-latest":  {
+                                                                                "tokensPerMinute":  999999,
+                                                                                "outputCost":  0,
+                                                                                "capabilities":  [
+                                                                                                     "vision",
+                                                                                                     "code",
+                                                                                                     "analysis"
+                                                                                                 ],
+                                                                                "parameterSize":  null,
+                                                                                "contextWindow":  128000,
+                                                                                "sizeGB":  null,
+                                                                                "inputCost":  0,
+                                                                                "tier":  "standard",
+                                                                                "requestsPerMinute":  999999,
+                                                                                "maxOutput":  8192
+                                                                            },
+                                                    "gemini-2.5-flash":  {
+                                                                             "tokensPerMinute":  999999,
+                                                                             "outputCost":  0,
+                                                                             "capabilities":  [
+                                                                                                  "vision",
+                                                                                                  "code",
+                                                                                                  "analysis"
+                                                                                              ],
+                                                                             "parameterSize":  null,
+                                                                             "contextWindow":  128000,
+                                                                             "sizeGB":  null,
+                                                                             "inputCost":  0,
+                                                                             "tier":  "standard",
+                                                                             "requestsPerMinute":  999999,
+                                                                             "maxOutput":  8192
+                                                                         },
+                                                    "gemini-3-flash-preview":  {
+                                                                                   "tokensPerMinute":  999999,
+                                                                                   "outputCost":  0,
+                                                                                   "capabilities":  [
+                                                                                                        "vision",
+                                                                                                        "code",
+                                                                                                        "analysis"
+                                                                                                    ],
+                                                                                   "parameterSize":  null,
+                                                                                   "contextWindow":  128000,
+                                                                                   "sizeGB":  null,
+                                                                                   "inputCost":  0,
+                                                                                   "tier":  "standard",
+                                                                                   "requestsPerMinute":  999999,
+                                                                                   "maxOutput":  8192
+                                                                               },
+                                                    "gemini-2.5-flash-lite":  {
+                                                                                  "tokensPerMinute":  999999,
+                                                                                  "outputCost":  0,
+                                                                                  "capabilities":  [
+                                                                                                       "vision",
+                                                                                                       "code",
+                                                                                                       "analysis"
+                                                                                                   ],
+                                                                                  "parameterSize":  null,
+                                                                                  "contextWindow":  128000,
+                                                                                  "sizeGB":  null,
+                                                                                  "inputCost":  0,
+                                                                                  "tier":  "standard",
+                                                                                  "requestsPerMinute":  999999,
+                                                                                  "maxOutput":  8192
+                                                                              },
+                                                    "gemini-pro-latest":  {
+                                                                              "tokensPerMinute":  999999,
+                                                                              "outputCost":  0,
+                                                                              "capabilities":  [
+                                                                                                   "vision",
+                                                                                                   "code",
+                                                                                                   "analysis"
+                                                                                               ],
+                                                                              "parameterSize":  null,
+                                                                              "contextWindow":  128000,
+                                                                              "sizeGB":  null,
+                                                                              "inputCost":  0,
+                                                                              "tier":  "pro",
+                                                                              "requestsPerMinute":  999999,
+                                                                              "maxOutput":  8192
+                                                                          },
+                                                    "gemini-2.5-computer-use-preview-10-2025":  {
+                                                                                                    "tokensPerMinute":  999999,
+                                                                                                    "outputCost":  0,
+                                                                                                    "capabilities":  [
+                                                                                                                         "vision",
+                                                                                                                         "code",
+                                                                                                                         "analysis"
+                                                                                                                     ],
+                                                                                                    "parameterSize":  null,
+                                                                                                    "contextWindow":  128000,
+                                                                                                    "sizeGB":  null,
+                                                                                                    "inputCost":  0,
+                                                                                                    "tier":  "standard",
+                                                                                                    "requestsPerMinute":  999999,
+                                                                                                    "maxOutput":  8192
+                                                                                                },
+                                                    "gemini-2.5-flash-preview-09-2025":  {
+                                                                                             "tokensPerMinute":  999999,
+                                                                                             "outputCost":  0,
+                                                                                             "capabilities":  [
+                                                                                                                  "vision",
+                                                                                                                  "code",
+                                                                                                                  "analysis"
+                                                                                                              ],
+                                                                                             "parameterSize":  null,
+                                                                                             "contextWindow":  128000,
+                                                                                             "sizeGB":  null,
+                                                                                             "inputCost":  0,
+                                                                                             "tier":  "standard",
+                                                                                             "requestsPerMinute":  999999,
+                                                                                             "maxOutput":  8192
+                                                                                         },
+                                                    "gemini-3-pro-image-preview":  {
+                                                                                       "tokensPerMinute":  999999,
+                                                                                       "outputCost":  0,
+                                                                                       "capabilities":  [
+                                                                                                            "vision",
+                                                                                                            "code",
+                                                                                                            "analysis"
+                                                                                                        ],
+                                                                                       "parameterSize":  null,
+                                                                                       "contextWindow":  128000,
+                                                                                       "sizeGB":  null,
+                                                                                       "inputCost":  0,
+                                                                                       "tier":  "pro",
+                                                                                       "requestsPerMinute":  999999,
+                                                                                       "maxOutput":  8192
+                                                                                   },
+                                                    "gemini-2.0-flash":  {
+                                                                             "tokensPerMinute":  999999,
+                                                                             "outputCost":  0,
+                                                                             "capabilities":  [
+                                                                                                  "vision",
+                                                                                                  "code",
+                                                                                                  "analysis"
+                                                                                              ],
+                                                                             "parameterSize":  null,
+                                                                             "contextWindow":  128000,
+                                                                             "sizeGB":  null,
+                                                                             "inputCost":  0,
+                                                                             "tier":  "standard",
+                                                                             "requestsPerMinute":  999999,
+                                                                             "maxOutput":  8192
+                                                                         },
+                                                    "gemini-2.5-flash-image-preview":  {
+                                                                                           "tokensPerMinute":  999999,
+                                                                                           "outputCost":  0,
+                                                                                           "capabilities":  [
+                                                                                                                "vision",
+                                                                                                                "code",
+                                                                                                                "analysis"
+                                                                                                            ],
+                                                                                           "parameterSize":  null,
+                                                                                           "contextWindow":  128000,
+                                                                                           "sizeGB":  null,
+                                                                                           "inputCost":  0,
+                                                                                           "tier":  "standard",
+                                                                                           "requestsPerMinute":  999999,
+                                                                                           "maxOutput":  8192
+                                                                                       },
+                                                    "gemini-2.5-pro":  {
+                                                                           "tokensPerMinute":  999999,
+                                                                           "outputCost":  0,
+                                                                           "capabilities":  [
+                                                                                                "vision",
+                                                                                                "code",
+                                                                                                "analysis"
+                                                                                            ],
+                                                                           "parameterSize":  null,
+                                                                           "contextWindow":  128000,
+                                                                           "sizeGB":  null,
+                                                                           "inputCost":  0,
+                                                                           "tier":  "pro",
+                                                                           "requestsPerMinute":  999999,
+                                                                           "maxOutput":  8192
+                                                                       },
+                                                    "gemini-flash-lite-latest":  {
+                                                                                     "tokensPerMinute":  999999,
+                                                                                     "outputCost":  0,
+                                                                                     "capabilities":  [
+                                                                                                          "vision",
+                                                                                                          "code",
+                                                                                                          "analysis"
+                                                                                                      ],
+                                                                                     "parameterSize":  null,
+                                                                                     "contextWindow":  128000,
+                                                                                     "sizeGB":  null,
+                                                                                     "inputCost":  0,
+                                                                                     "tier":  "standard",
+                                                                                     "requestsPerMinute":  999999,
+                                                                                     "maxOutput":  8192
+                                                                                 },
+                                                    "gemini-robotics-er-1.5-preview":  {
+                                                                                           "tokensPerMinute":  999999,
+                                                                                           "outputCost":  0,
+                                                                                           "capabilities":  [
+                                                                                                                "vision",
+                                                                                                                "code",
+                                                                                                                "analysis"
+                                                                                                            ],
+                                                                                           "parameterSize":  null,
+                                                                                           "contextWindow":  128000,
+                                                                                           "sizeGB":  null,
+                                                                                           "inputCost":  0,
+                                                                                           "tier":  "standard",
+                                                                                           "requestsPerMinute":  999999,
+                                                                                           "maxOutput":  8192
+                                                                                       },
+                                                    "gemini-2.5-flash-lite-preview-09-2025":  {
+                                                                                                  "tokensPerMinute":  999999,
+                                                                                                  "outputCost":  0,
+                                                                                                  "capabilities":  [
+                                                                                                                       "vision",
+                                                                                                                       "code",
+                                                                                                                       "analysis"
+                                                                                                                   ],
+                                                                                                  "parameterSize":  null,
+                                                                                                  "contextWindow":  128000,
+                                                                                                  "sizeGB":  null,
+                                                                                                  "inputCost":  0,
+                                                                                                  "tier":  "standard",
+                                                                                                  "requestsPerMinute":  999999,
+                                                                                                  "maxOutput":  8192
+                                                                                              },
+                                                    "gemini-embedding-exp-03-07":  {
+                                                                                       "tokensPerMinute":  999999,
+                                                                                       "outputCost":  0,
+                                                                                       "capabilities":  [
+                                                                                                            "vision",
+                                                                                                            "code",
+                                                                                                            "analysis"
+                                                                                                        ],
+                                                                                       "parameterSize":  null,
+                                                                                       "contextWindow":  128000,
+                                                                                       "sizeGB":  null,
+                                                                                       "inputCost":  0,
+                                                                                       "tier":  "standard",
+                                                                                       "requestsPerMinute":  999999,
+                                                                                       "maxOutput":  8192
+                                                                                   },
+                                                    "gemini-embedding-exp":  {
+                                                                                 "tokensPerMinute":  999999,
+                                                                                 "outputCost":  0,
+                                                                                 "capabilities":  [
+                                                                                                      "vision",
+                                                                                                      "code",
+                                                                                                      "analysis"
+                                                                                                  ],
+                                                                                 "parameterSize":  null,
+                                                                                 "contextWindow":  128000,
+                                                                                 "sizeGB":  null,
+                                                                                 "inputCost":  0,
+                                                                                 "tier":  "standard",
+                                                                                 "requestsPerMinute":  999999,
+                                                                                 "maxOutput":  8192
+                                                                             },
+                                                    "gemini-2.0-flash-lite-preview":  {
+                                                                                          "tokensPerMinute":  999999,
+                                                                                          "outputCost":  0,
+                                                                                          "capabilities":  [
+                                                                                                               "vision",
+                                                                                                               "code",
+                                                                                                               "analysis"
+                                                                                                           ],
+                                                                                          "parameterSize":  null,
+                                                                                          "contextWindow":  128000,
+                                                                                          "sizeGB":  null,
+                                                                                          "inputCost":  0,
+                                                                                          "tier":  "standard",
+                                                                                          "requestsPerMinute":  999999,
+                                                                                          "maxOutput":  8192
+                                                                                      },
+                                                    "gemini-3-pro-preview":  {
+                                                                                 "tokensPerMinute":  999999,
+                                                                                 "outputCost":  0,
+                                                                                 "capabilities":  [
+                                                                                                      "vision",
+                                                                                                      "code",
+                                                                                                      "analysis"
+                                                                                                  ],
+                                                                                 "parameterSize":  null,
+                                                                                 "contextWindow":  128000,
+                                                                                 "sizeGB":  null,
+                                                                                 "inputCost":  0,
+                                                                                 "tier":  "pro",
+                                                                                 "requestsPerMinute":  999999,
+                                                                                 "maxOutput":  8192
+                                                                             },
+                                                    "gemini-2.5-flash-image":  {
+                                                                                   "tokensPerMinute":  999999,
+                                                                                   "outputCost":  0,
+                                                                                   "capabilities":  [
+                                                                                                        "vision",
+                                                                                                        "code",
+                                                                                                        "analysis"
+                                                                                                    ],
+                                                                                   "parameterSize":  null,
+                                                                                   "contextWindow":  128000,
+                                                                                   "sizeGB":  null,
+                                                                                   "inputCost":  0,
+                                                                                   "tier":  "standard",
+                                                                                   "requestsPerMinute":  999999,
+                                                                                   "maxOutput":  8192
+                                                                               },
+                                                    "gemini-2.0-flash-001":  {
+                                                                                 "tokensPerMinute":  999999,
+                                                                                 "outputCost":  0,
+                                                                                 "capabilities":  [
+                                                                                                      "vision",
+                                                                                                      "code",
+                                                                                                      "analysis"
+                                                                                                  ],
+                                                                                 "parameterSize":  null,
+                                                                                 "contextWindow":  128000,
+                                                                                 "sizeGB":  null,
+                                                                                 "inputCost":  0,
+                                                                                 "tier":  "standard",
+                                                                                 "requestsPerMinute":  999999,
+                                                                                 "maxOutput":  8192
+                                                                             },
+                                                    "gemini-exp-1206":  {
+                                                                            "tokensPerMinute":  999999,
+                                                                            "outputCost":  0,
+                                                                            "capabilities":  [
+                                                                                                 "vision",
+                                                                                                 "code",
+                                                                                                 "analysis"
+                                                                                             ],
+                                                                            "parameterSize":  null,
+                                                                            "contextWindow":  128000,
+                                                                            "sizeGB":  null,
+                                                                            "inputCost":  0,
+                                                                            "tier":  "standard",
+                                                                            "requestsPerMinute":  999999,
+                                                                            "maxOutput":  8192
+                                                                        },
+                                                    "gemini-2.0-flash-lite":  {
+                                                                                  "tokensPerMinute":  999999,
+                                                                                  "outputCost":  0,
+                                                                                  "capabilities":  [
+                                                                                                       "vision",
+                                                                                                       "code",
+                                                                                                       "analysis"
+                                                                                                   ],
+                                                                                  "parameterSize":  null,
+                                                                                  "contextWindow":  128000,
+                                                                                  "sizeGB":  null,
+                                                                                  "inputCost":  0,
+                                                                                  "tier":  "standard",
+                                                                                  "requestsPerMinute":  999999,
+                                                                                  "maxOutput":  8192
+                                                                              },
+                                                    "gemini-2.0-flash-exp":  {
+                                                                                 "tokensPerMinute":  999999,
+                                                                                 "outputCost":  0,
+                                                                                 "capabilities":  [
+                                                                                                      "vision",
+                                                                                                      "code",
+                                                                                                      "analysis"
+                                                                                                  ],
+                                                                                 "parameterSize":  null,
+                                                                                 "contextWindow":  128000,
+                                                                                 "sizeGB":  null,
+                                                                                 "inputCost":  0,
+                                                                                 "tier":  "standard",
+                                                                                 "requestsPerMinute":  999999,
+                                                                                 "maxOutput":  8192
+                                                                             }
+                                                }
+                                 },
+                      "mistral":  {
+                                      "name":  "Mistral",
+                                      "baseUrl":  "https://api.mistral.ai/v1",
+                                      "apiKeyEnv":  "MISTRAL_API_KEY",
+                                      "priority":  4,
+                                      "enabled":  true,
+                                      "models":  {
+                                                     "mistral-large-latest":  {
+                                                                                  "tier":  "pro",
+                                                                                  "contextWindow":  128000,
+                                                                                  "maxOutput":  8192,
+                                                                                  "inputCost":  2.0,
+                                                                                  "outputCost":  6.0,
+                                                                                  "tokensPerMinute":  60000,
+                                                                                  "requestsPerMinute":  60,
+                                                                                  "capabilities":  [
+                                                                                                       "code",
+                                                                                                       "analysis"
+                                                                                                   ]
+                                                                              },
+                                                     "mistral-small-latest":  {
+                                                                                  "tier":  "lite",
+                                                                                  "contextWindow":  32000,
+                                                                                  "maxOutput":  8192,
+                                                                                  "inputCost":  0.2,
+                                                                                  "outputCost":  0.6,
+                                                                                  "tokensPerMinute":  120000,
+                                                                                  "requestsPerMinute":  120,
+                                                                                  "capabilities":  [
+                                                                                                       "code",
+                                                                                                       "analysis"
+                                                                                                   ]
+                                                                              }
+                                                 }
+                                  },
+                      "groq":  {
+                                   "name":  "Groq",
+                                   "baseUrl":  "https://api.groq.com/openai/v1",
+                                   "apiKeyEnv":  "GROQ_API_KEY",
+                                   "priority":  5,
+                                   "enabled":  true,
+                                   "models":  {
+                                                  "llama-3.1-8b-instant":  {
+                                                                               "tokensPerMinute":  999999,
+                                                                               "outputCost":  0,
+                                                                               "capabilities":  [
+                                                                                                    "code",
+                                                                                                    "analysis"
+                                                                                                ],
+                                                                               "parameterSize":  null,
+                                                                               "contextWindow":  128000,
+                                                                               "sizeGB":  null,
+                                                                               "inputCost":  0,
+                                                                               "tier":  "standard",
+                                                                               "requestsPerMinute":  999999,
+                                                                               "maxOutput":  8192
+                                                                           },
+                                                  "whisper-large-v3":  {
+                                                                           "tokensPerMinute":  999999,
+                                                                           "outputCost":  0,
+                                                                           "capabilities":  [
+                                                                                                "code",
+                                                                                                "analysis"
+                                                                                            ],
+                                                                           "parameterSize":  null,
+                                                                           "contextWindow":  128000,
+                                                                           "sizeGB":  null,
+                                                                           "inputCost":  0,
+                                                                           "tier":  "standard",
+                                                                           "requestsPerMinute":  999999,
+                                                                           "maxOutput":  8192
+                                                                       },
+                                                  "qwen/qwen3-32b":  {
+                                                                         "tokensPerMinute":  999999,
+                                                                         "outputCost":  0,
+                                                                         "capabilities":  [
+                                                                                              "code",
+                                                                                              "analysis"
+                                                                                          ],
+                                                                         "parameterSize":  null,
+                                                                         "contextWindow":  128000,
+                                                                         "sizeGB":  null,
+                                                                         "inputCost":  0,
+                                                                         "tier":  "standard",
+                                                                         "requestsPerMinute":  999999,
+                                                                         "maxOutput":  8192
+                                                                     },
+                                                  "openai/gpt-oss-120b":  {
+                                                                              "tokensPerMinute":  999999,
+                                                                              "outputCost":  0,
+                                                                              "capabilities":  [
+                                                                                                   "code",
+                                                                                                   "analysis"
+                                                                                               ],
+                                                                              "parameterSize":  null,
+                                                                              "contextWindow":  128000,
+                                                                              "sizeGB":  null,
+                                                                              "inputCost":  0,
+                                                                              "tier":  "standard",
+                                                                              "requestsPerMinute":  999999,
+                                                                              "maxOutput":  8192
+                                                                          },
+                                                  "openai/gpt-oss-20b":  {
+                                                                             "tokensPerMinute":  999999,
+                                                                             "outputCost":  0,
+                                                                             "capabilities":  [
+                                                                                                  "code",
+                                                                                                  "analysis"
+                                                                                              ],
+                                                                             "parameterSize":  null,
+                                                                             "contextWindow":  128000,
+                                                                             "sizeGB":  null,
+                                                                             "inputCost":  0,
+                                                                             "tier":  "standard",
+                                                                             "requestsPerMinute":  999999,
+                                                                             "maxOutput":  8192
+                                                                         },
+                                                  "meta-llama/llama-prompt-guard-2-86m":  {
+                                                                                              "tokensPerMinute":  999999,
+                                                                                              "outputCost":  0,
+                                                                                              "capabilities":  [
+                                                                                                                   "code",
+                                                                                                                   "analysis"
+                                                                                                               ],
+                                                                                              "parameterSize":  null,
+                                                                                              "contextWindow":  128000,
+                                                                                              "sizeGB":  null,
+                                                                                              "inputCost":  0,
+                                                                                              "tier":  "standard",
+                                                                                              "requestsPerMinute":  999999,
+                                                                                              "maxOutput":  8192
+                                                                                          },
+                                                  "openai/gpt-oss-safeguard-20b":  {
+                                                                                       "tokensPerMinute":  999999,
+                                                                                       "outputCost":  0,
+                                                                                       "capabilities":  [
+                                                                                                            "code",
+                                                                                                            "analysis"
+                                                                                                        ],
+                                                                                       "parameterSize":  null,
+                                                                                       "contextWindow":  128000,
+                                                                                       "sizeGB":  null,
+                                                                                       "inputCost":  0,
+                                                                                       "tier":  "standard",
+                                                                                       "requestsPerMinute":  999999,
+                                                                                       "maxOutput":  8192
+                                                                                   },
+                                                  "groq/compound":  {
+                                                                        "tokensPerMinute":  999999,
+                                                                        "outputCost":  0,
+                                                                        "capabilities":  [
+                                                                                             "code",
+                                                                                             "analysis"
+                                                                                         ],
+                                                                        "parameterSize":  null,
+                                                                        "contextWindow":  128000,
+                                                                        "sizeGB":  null,
+                                                                        "inputCost":  0,
+                                                                        "tier":  "standard",
+                                                                        "requestsPerMinute":  999999,
+                                                                        "maxOutput":  8192
+                                                                    },
+                                                  "meta-llama/llama-4-scout-17b-16e-instruct":  {
+                                                                                                    "tokensPerMinute":  999999,
+                                                                                                    "outputCost":  0,
+                                                                                                    "capabilities":  [
+                                                                                                                         "code",
+                                                                                                                         "analysis"
+                                                                                                                     ],
+                                                                                                    "parameterSize":  null,
+                                                                                                    "contextWindow":  128000,
+                                                                                                    "sizeGB":  null,
+                                                                                                    "inputCost":  0,
+                                                                                                    "tier":  "standard",
+                                                                                                    "requestsPerMinute":  999999,
+                                                                                                    "maxOutput":  8192
+                                                                                                },
+                                                  "allam-2-7b":  {
+                                                                     "tokensPerMinute":  999999,
+                                                                     "outputCost":  0,
+                                                                     "capabilities":  [
+                                                                                          "code",
+                                                                                          "analysis"
+                                                                                      ],
+                                                                     "parameterSize":  null,
+                                                                     "contextWindow":  128000,
+                                                                     "sizeGB":  null,
+                                                                     "inputCost":  0,
+                                                                     "tier":  "standard",
+                                                                     "requestsPerMinute":  999999,
+                                                                     "maxOutput":  8192
+                                                                 },
+                                                  "meta-llama/llama-prompt-guard-2-22m":  {
+                                                                                              "tokensPerMinute":  999999,
+                                                                                              "outputCost":  0,
+                                                                                              "capabilities":  [
+                                                                                                                   "code",
+                                                                                                                   "analysis"
+                                                                                                               ],
+                                                                                              "parameterSize":  null,
+                                                                                              "contextWindow":  128000,
+                                                                                              "sizeGB":  null,
+                                                                                              "inputCost":  0,
+                                                                                              "tier":  "standard",
+                                                                                              "requestsPerMinute":  999999,
+                                                                                              "maxOutput":  8192
+                                                                                          },
+                                                  "groq/compound-mini":  {
+                                                                             "tokensPerMinute":  999999,
+                                                                             "outputCost":  0,
+                                                                             "capabilities":  [
+                                                                                                  "code",
+                                                                                                  "analysis"
+                                                                                              ],
+                                                                             "parameterSize":  null,
+                                                                             "contextWindow":  128000,
+                                                                             "sizeGB":  null,
+                                                                             "inputCost":  0,
+                                                                             "tier":  "standard",
+                                                                             "requestsPerMinute":  999999,
+                                                                             "maxOutput":  8192
+                                                                         },
+                                                  "canopylabs/orpheus-v1-english":  {
+                                                                                        "tokensPerMinute":  999999,
+                                                                                        "outputCost":  0,
+                                                                                        "capabilities":  [
+                                                                                                             "code",
+                                                                                                             "analysis"
+                                                                                                         ],
+                                                                                        "parameterSize":  null,
+                                                                                        "contextWindow":  128000,
+                                                                                        "sizeGB":  null,
+                                                                                        "inputCost":  0,
+                                                                                        "tier":  "standard",
+                                                                                        "requestsPerMinute":  999999,
+                                                                                        "maxOutput":  8192
+                                                                                    },
+                                                  "canopylabs/orpheus-arabic-saudi":  {
+                                                                                          "tokensPerMinute":  999999,
+                                                                                          "outputCost":  0,
+                                                                                          "capabilities":  [
+                                                                                                               "code",
+                                                                                                               "analysis"
+                                                                                                           ],
+                                                                                          "parameterSize":  null,
+                                                                                          "contextWindow":  128000,
+                                                                                          "sizeGB":  null,
+                                                                                          "inputCost":  0,
+                                                                                          "tier":  "standard",
+                                                                                          "requestsPerMinute":  999999,
+                                                                                          "maxOutput":  8192
+                                                                                      },
+                                                  "moonshotai/kimi-k2-instruct":  {
+                                                                                      "tokensPerMinute":  999999,
+                                                                                      "outputCost":  0,
+                                                                                      "capabilities":  [
+                                                                                                           "code",
+                                                                                                           "analysis"
+                                                                                                       ],
+                                                                                      "parameterSize":  null,
+                                                                                      "contextWindow":  128000,
+                                                                                      "sizeGB":  null,
+                                                                                      "inputCost":  0,
+                                                                                      "tier":  "standard",
+                                                                                      "requestsPerMinute":  999999,
+                                                                                      "maxOutput":  8192
+                                                                                  },
+                                                  "llama-3.3-70b-versatile":  {
+                                                                                  "tokensPerMinute":  999999,
+                                                                                  "outputCost":  0,
+                                                                                  "capabilities":  [
+                                                                                                       "code",
+                                                                                                       "analysis"
+                                                                                                   ],
+                                                                                  "parameterSize":  null,
+                                                                                  "contextWindow":  128000,
+                                                                                  "sizeGB":  null,
+                                                                                  "inputCost":  0,
+                                                                                  "tier":  "pro",
+                                                                                  "requestsPerMinute":  999999,
+                                                                                  "maxOutput":  8192
+                                                                              },
+                                                  "meta-llama/llama-4-maverick-17b-128e-instruct":  {
+                                                                                                        "tokensPerMinute":  999999,
+                                                                                                        "outputCost":  0,
+                                                                                                        "capabilities":  [
+                                                                                                                             "code",
+                                                                                                                             "analysis"
+                                                                                                                         ],
+                                                                                                        "parameterSize":  null,
+                                                                                                        "contextWindow":  128000,
+                                                                                                        "sizeGB":  null,
+                                                                                                        "inputCost":  0,
+                                                                                                        "tier":  "standard",
+                                                                                                        "requestsPerMinute":  999999,
+                                                                                                        "maxOutput":  8192
+                                                                                                    },
+                                                  "whisper-large-v3-turbo":  {
+                                                                                 "tokensPerMinute":  999999,
+                                                                                 "outputCost":  0,
+                                                                                 "capabilities":  [
+                                                                                                      "code",
+                                                                                                      "analysis"
+                                                                                                  ],
+                                                                                 "parameterSize":  null,
+                                                                                 "contextWindow":  128000,
+                                                                                 "sizeGB":  null,
+                                                                                 "inputCost":  0,
+                                                                                 "tier":  "standard",
+                                                                                 "requestsPerMinute":  999999,
+                                                                                 "maxOutput":  8192
+                                                                             },
+                                                  "meta-llama/llama-guard-4-12b":  {
+                                                                                       "tokensPerMinute":  999999,
+                                                                                       "outputCost":  0,
+                                                                                       "capabilities":  [
+                                                                                                            "code",
+                                                                                                            "analysis"
+                                                                                                        ],
+                                                                                       "parameterSize":  null,
+                                                                                       "contextWindow":  128000,
+                                                                                       "sizeGB":  null,
+                                                                                       "inputCost":  0,
+                                                                                       "tier":  "standard",
+                                                                                       "requestsPerMinute":  999999,
+                                                                                       "maxOutput":  8192
+                                                                                   },
+                                                  "moonshotai/kimi-k2-instruct-0905":  {
+                                                                                           "tokensPerMinute":  999999,
+                                                                                           "outputCost":  0,
+                                                                                           "capabilities":  [
+                                                                                                                "code",
+                                                                                                                "analysis"
+                                                                                                            ],
+                                                                                           "parameterSize":  null,
+                                                                                           "contextWindow":  128000,
+                                                                                           "sizeGB":  null,
+                                                                                           "inputCost":  0,
+                                                                                           "tier":  "standard",
+                                                                                           "requestsPerMinute":  999999,
+                                                                                           "maxOutput":  8192
+                                                                                       }
+                                              }
+                               },
+                      "ollama":  {
+                                     "name":  "Ollama (Local)",
+                                     "baseUrl":  "http://localhost:11434/api",
+                                     "apiKeyEnv":  null,
+                                     "priority":  6,
+                                     "enabled":  true,
+                                     "models":  {
+                                                    "qwen2.5-coder:1.5b":  {
+                                                                               "tokensPerMinute":  999999,
+                                                                               "outputCost":  0,
+                                                                               "capabilities":  [
+                                                                                                    "code"
+                                                                                                ],
+                                                                               "parameterSize":  "1.5B",
+                                                                               "contextWindow":  128000,
+                                                                               "sizeGB":  0.92,
+                                                                               "inputCost":  0,
+                                                                               "tier":  "lite",
+                                                                               "requestsPerMinute":  999999,
+                                                                               "maxOutput":  4096
+                                                                           },
+                                                    "llama3.2:1b":  {
+                                                                        "tokensPerMinute":  999999,
+                                                                        "outputCost":  0,
+                                                                        "capabilities":  [
+                                                                                             "code",
+                                                                                             "analysis"
+                                                                                         ],
+                                                                        "parameterSize":  "1.2B",
+                                                                        "contextWindow":  128000,
+                                                                        "sizeGB":  1.23,
+                                                                        "inputCost":  0,
+                                                                        "tier":  "lite",
+                                                                        "requestsPerMinute":  999999,
+                                                                        "maxOutput":  4096
+                                                                    },
+                                                    "phi3:mini":  {
+                                                                      "tokensPerMinute":  999999,
+                                                                      "outputCost":  0,
+                                                                      "capabilities":  [
+                                                                                           "code",
+                                                                                           "analysis"
+                                                                                       ],
+                                                                      "parameterSize":  "3.8B",
+                                                                      "contextWindow":  128000,
+                                                                      "sizeGB":  2.03,
+                                                                      "inputCost":  0,
+                                                                      "tier":  "lite",
+                                                                      "requestsPerMinute":  999999,
+                                                                      "maxOutput":  4096
+                                                                  },
+                                                    "llama3.2:3b":  {
+                                                                        "tokensPerMinute":  999999,
+                                                                        "outputCost":  0,
+                                                                        "capabilities":  [
+                                                                                             "code",
+                                                                                             "analysis"
+                                                                                         ],
+                                                                        "parameterSize":  "3.2B",
+                                                                        "contextWindow":  128000,
+                                                                        "sizeGB":  1.88,
+                                                                        "inputCost":  0,
+                                                                        "tier":  "lite",
+                                                                        "requestsPerMinute":  999999,
+                                                                        "maxOutput":  4096
+                                                                    }
+                                                }
+                                 }
+                  },
+    "fallbackChain":  {
+                          "anthropic":  [
+                                            "claude-3-5-haiku-20241022",
+                                            "claude-3-5-sonnet-20241022",
+                                            "claude-opus-4-20250514",
+                                            "claude-sonnet-4-20250514"
+                                        ],
+                          "openai":  [
+                                         "gpt-3.5-turbo-16k",
+                                         "gpt-4o-mini-transcribe-2025-12-15",
+                                         "gpt-4o-search-preview-2025-03-11",
+                                         "gpt-4.1",
+                                         "gpt-4-turbo-preview",
+                                         "gpt-4o-mini-tts-2025-12-15",
+                                         "o3-2025-04-16",
+                                         "gpt-4o-mini-search-preview-2025-03-11",
+                                         "gpt-4o-transcribe-diarize",
+                                         "gpt-4-0125-preview",
+                                         "gpt-4o-mini",
+                                         "o3",
+                                         "gpt-4o-mini-tts",
+                                         "gpt-4-turbo-2024-04-09",
+                                         "gpt-4o-mini-transcribe-2025-03-20",
+                                         "gpt-4o-mini-tts-2025-03-20",
+                                         "gpt-4o-search-preview",
+                                         "gpt-4o",
+                                         "gpt-4.1-mini",
+                                         "gpt-4",
+                                         "gpt-4o-mini-transcribe",
+                                         "o3-mini-2025-01-31",
+                                         "gpt-4o-mini-search-preview",
+                                         "gpt-4o-2024-05-13",
+                                         "gpt-4.1-nano",
+                                         "o1-pro-2025-03-19",
+                                         "gpt-4.1-nano-2025-04-14",
+                                         "gpt-4-0613",
+                                         "o1",
+                                         "o1-pro",
+                                         "o1-2024-12-17",
+                                         "gpt-4-1106-preview",
+                                         "gpt-4-turbo",
+                                         "gpt-4o-2024-11-20",
+                                         "gpt-3.5-turbo-0125",
+                                         "o3-mini",
+                                         "gpt-4o-2024-08-06",
+                                         "gpt-3.5-turbo",
+                                         "gpt-4o-mini-2024-07-18",
+                                         "gpt-3.5-turbo-1106",
+                                         "gpt-4.1-mini-2025-04-14",
+                                         "gpt-4.1-2025-04-14",
+                                         "gpt-4o-transcribe"
+                                     ],
+                          "google":  [
+                                         "gemini-2.5-flash-preview-tts",
+                                         "gemini-2.0-flash-lite-001",
+                                         "gemini-2.5-pro-preview-tts",
+                                         "gemini-2.0-flash-lite-preview-02-05",
+                                         "gemini-embedding-001",
+                                         "gemini-flash-latest",
+                                         "gemini-2.5-flash",
+                                         "gemini-3-flash-preview",
+                                         "gemini-2.5-flash-lite",
+                                         "gemini-pro-latest",
+                                         "gemini-2.5-computer-use-preview-10-2025",
+                                         "gemini-2.5-flash-preview-09-2025",
+                                         "gemini-3-pro-image-preview",
+                                         "gemini-2.0-flash",
+                                         "gemini-2.5-flash-image-preview",
+                                         "gemini-2.5-pro",
+                                         "gemini-flash-lite-latest",
+                                         "gemini-robotics-er-1.5-preview",
+                                         "gemini-2.5-flash-lite-preview-09-2025",
+                                         "gemini-embedding-exp-03-07",
+                                         "gemini-embedding-exp",
+                                         "gemini-2.0-flash-lite-preview",
+                                         "gemini-3-pro-preview",
+                                         "gemini-2.5-flash-image",
+                                         "gemini-2.0-flash-001",
+                                         "gemini-exp-1206",
+                                         "gemini-2.0-flash-lite",
+                                         "gemini-2.0-flash-exp"
+                                     ],
+                          "mistral":  [
+                                          "mistral-large-latest",
+                                          "mistral-small-latest"
+                                      ],
+                          "groq":  [
+                                       "llama-3.1-8b-instant",
+                                       "whisper-large-v3",
+                                       "qwen/qwen3-32b",
+                                       "openai/gpt-oss-120b",
+                                       "openai/gpt-oss-20b",
+                                       "meta-llama/llama-prompt-guard-2-86m",
+                                       "openai/gpt-oss-safeguard-20b",
+                                       "groq/compound",
+                                       "meta-llama/llama-4-scout-17b-16e-instruct",
+                                       "allam-2-7b",
+                                       "meta-llama/llama-prompt-guard-2-22m",
+                                       "groq/compound-mini",
+                                       "canopylabs/orpheus-v1-english",
+                                       "canopylabs/orpheus-arabic-saudi",
+                                       "moonshotai/kimi-k2-instruct",
+                                       "llama-3.3-70b-versatile",
+                                       "meta-llama/llama-4-maverick-17b-128e-instruct",
+                                       "whisper-large-v3-turbo",
+                                       "meta-llama/llama-guard-4-12b",
+                                       "moonshotai/kimi-k2-instruct-0905"
+                                   ],
+                          "ollama":  [
+                                         "qwen2.5-coder:1.5b",
+                                         "llama3.2:1b",
+                                         "phi3:mini",
+                                         "llama3.2:3b"
+                                     ]
+                      },
+    "providerFallbackOrder":  [
+                                  "anthropic",
+                                  "openai",
+                                  "google",
+                                  "mistral",
+                                  "groq",
+                                  "ollama"
+                              ],
+    "settings":  {
+                     "costOptimization":  true,
+                     "ollamaDefaultModel":  "llama3.2:3b",
+                     "autoInstallOllama":  true,
+                     "maxRetries":  3,
+                     "autoFallback":  true,
+                     "logLevel":  "info",
+                     "logFormat":  "json",
+                     "preferLocal":  true,
+                     "rateLimitThreshold":  0.85,
+                     "streamResponses":  true,
+                     "outputTokenRatio":  0.5,
+                     "parallelExecution":  {
+                                               "maxConcurrent":  4,
+                                               "batchSize":  10,
+                                               "timeoutMs":  30000,
+                                               "enabled":  true
+                                           },
+                     "retryDelayMs":  1000,
+                     "modelDiscovery":  {
+                                            "enabled":  true,
+                                            "updateConfigOnStart":  true,
+                                            "parallel":  true,
+                                            "skipValidation":  false
+                                        },
+                     "advancedAI":  {
+                                        "selfCorrection":  {
+                                                               "enabled":  true,
+                                                               "validationModel":  "phi3:mini",
+                                                               "maxAttempts":  3
+                                                           },
+                                        "fewShotLearning":  {
+                                                                "enabled":  true,
+                                                                "maxExamples":  3,
+                                                                "maxHistoryEntries":  100
+                                                            },
+                                        "speculativeDecoding":  {
+                                                                    "enabled":  true,
+                                                                    "fastModel":  "llama3.2:1b",
+                                                                    "accurateModel":  "llama3.2:3b",
+                                                                    "codeModel":  "qwen2.5-coder:1.5b",
+                                                                    "timeoutMs":  30000
+                                                                },
+                                        "promptOptimizer":  {
+                                                                "enabled":  true,
+                                                                "autoOptimize":  true,
+                                                                "minClarityThreshold":  60,
+                                                                "showEnhancements":  true
+                                                            }
+                                    }
+                 },
+    "discovery":  {
+                      "summary":  {
+                                      "ollama":  {
+                                                     "Error":  "Nie można połączyć się z serwerem zdalnym",
+                                                     "Success":  false,
+                                                     "ModelCount":  0
+                                                 },
+                                      "mistral":  {
+                                                      "Error":  "API key not configured",
+                                                      "Success":  false,
+                                                      "ModelCount":  0
+                                                  },
+                                      "anthropic":  {
+                                                        "Error":  null,
+                                                        "Success":  true,
+                                                        "ModelCount":  4
+                                                    },
+                                      "google":  {
+                                                     "Error":  null,
+                                                     "Success":  true,
+                                                     "ModelCount":  28
+                                                 },
+                                      "openai":  {
+                                                     "Error":  null,
+                                                     "Success":  true,
+                                                     "ModelCount":  43
+                                                 },
+                                      "groq":  {
+                                                   "Error":  null,
+                                                   "Success":  true,
+                                                   "ModelCount":  20
+                                               }
+                                  },
+                      "totalModels":  95,
+                      "fetchDurationMs":  5507,
+                      "lastFetch":  "2026-01-13T17:37:13.7947208+01:00"
+                  }
 }

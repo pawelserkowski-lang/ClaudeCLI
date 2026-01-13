@@ -1,0 +1,65 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "mcp__windows-mcp__*",
+      "mcp__cursortouch__*",
+      "mcp__serena__*",
+      "mcp__desktop-commander__*",
+      "mcp__playwright__*",
+      "Write",
+      "Edit",
+      "Read",
+      "Glob",
+      "Grep",
+      "Skill",
+      "SlashCommand"
+    ]
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"[console]::beep(800,200)\""
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node C:\\Users\\BIURODOM\\.claude\\statusline.js"
+  },
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "claude-code",
+        "--project",
+        "C:\\Users\\BIURODOM\\Desktop\\ClaudeCLI"
+      ]
+    },
+    "desktop-commander": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@wonderwhy-er/desktop-commander"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@executeautomation/playwright-mcp-server"
+      ]
+    }
+  }
+}

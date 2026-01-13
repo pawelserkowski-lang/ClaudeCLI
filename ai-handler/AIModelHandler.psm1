@@ -595,6 +595,11 @@ function Get-OptimalModel {
         foreach ($modelName in $provider.models.Keys) {
             $model = $provider.models[$modelName]
 
+            # Skip embedding, image, and non-chat models
+            if ($modelName -match 'embedding|imagen|tts|whisper|dall-e|moderation') {
+                continue
+            }
+
             # Check capabilities
             $hasCapabilities = $true
             foreach ($cap in $RequiredCapabilities) {

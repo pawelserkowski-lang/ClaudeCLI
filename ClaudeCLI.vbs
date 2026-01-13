@@ -34,25 +34,21 @@ If objFSO.FileExists(healthCheckScript) Then
     objShell.Run "powershell.exe -ExecutionPolicy Bypass -File """ & healthCheckScript & """", 1, True
 End If
 
-' 3. LAUNCH - uruchom Claude CLI
-Dim tempPS1, psContent, objFile
-tempPS1 = strScriptPath & "\_launcher.ps1"
+' 3. LAUNCH - prefer Windows Terminal, fallback to PowerShell
+Dim launcherPS1, wtExe, useWT
+launcherPS1 = strScriptPath & "\_launcher.ps1"
 
-psContent = "Set-Location '" & strScriptPath & "'" & vbCrLf & _
-    "Write-Host 'Starting Claude CLI...' -ForegroundColor Cyan" & vbCrLf & _
-    "Write-Host 'Working directory: ' -NoNewline; Write-Host (Get-Location) -ForegroundColor Gray" & vbCrLf & _
-    "Write-Host ''" & vbCrLf & _
-    "try { claude } catch { Write-Host ('ERROR: ' + $_) -ForegroundColor Red }" & vbCrLf & _
-    "Write-Host ''" & vbCrLf & _
-    "Write-Host 'Claude exited. Press any key to close...' -ForegroundColor Yellow" & vbCrLf & _
-    "$null = $Host.UI.RawUI.ReadKey('NoEcho,IncludeKeyDown')"
+' Check if Windows Terminal is installed
+wtExe = userProfile & "\AppData\Local\Microsoft\WindowsApps\wt.exe"
+useWT = objFSO.FileExists(wtExe)
 
-Set objFile = objFSO.CreateTextFile(tempPS1, True)
-objFile.Write psContent
-objFile.Close
-
-' Uruchom przez PowerShell
-objShell.Run "powershell.exe -NoExit -ExecutionPolicy Bypass -Command ""Set-Location '" & strScriptPath & "'; $Host.UI.RawUI.WindowTitle = 'Claude CLI (Hydra)'; & '" & userProfile & "\AppData\Roaming\npm\claude.cmd'""", 1, False
+If useWT Then
+    ' Launch with Windows Terminal using custom profile (isolated from user profile)
+    objShell.Run "wt.exe -p ""Claude CLI (HYDRA)"" --title ""Claude CLI"" powershell.exe -NoProfile -NoExit -ExecutionPolicy Bypass -File """ & launcherPS1 & """", 1, False
+Else
+    ' Fallback to standard PowerShell (isolated from user profile)
+    objShell.Run "powershell.exe -NoProfile -NoExit -ExecutionPolicy Bypass -File """ & launcherPS1 & """", 1, False
+End If
 
 ' === FUNKCJE ===
 Sub CheckAndKillPort(portNum)
