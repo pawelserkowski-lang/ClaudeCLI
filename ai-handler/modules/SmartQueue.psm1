@@ -1,25 +1,32 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     HYDRA Smart Queue - Intelligent Prompt Queue with Parallel Execution
 .DESCRIPTION
     Advanced queue system that:
-    1. Classifies prompts using AI before queuing
+    1. Classifies prompts using pattern-based analysis (no TaskClassifier dependency)
     2. Prioritizes based on complexity and urgency
     3. Executes tasks in parallel (local + cloud simultaneously)
     4. Handles offline scenarios gracefully
     5. Provides real-time progress feedback
 .VERSION
-    1.0.0
+    2.0.0
 #>
 
 $script:ModulePath = Split-Path -Parent $PSScriptRoot
 
-# Import dependencies
-$classifierPath = Join-Path $PSScriptRoot "TaskClassifier.psm1"
+# Import utility modules
+$jsonIOPath = Join-Path $PSScriptRoot "AIUtil-JsonIO.psm1"
+$healthPath = Join-Path $PSScriptRoot "AIUtil-Health.psm1"
+$validationPath = Join-Path $PSScriptRoot "AIUtil-Validation.psm1"
+$promptOptimizerPath = Join-Path $PSScriptRoot "PromptOptimizer.psm1"
 $aiHandlerPath = Join-Path $script:ModulePath "AIModelHandler.psm1"
 
-if (Test-Path $classifierPath) { Import-Module $classifierPath -Force }
+# Import available modules
+if (Test-Path $jsonIOPath) { Import-Module $jsonIOPath -Force }
+if (Test-Path $healthPath) { Import-Module $healthPath -Force }
+if (Test-Path $validationPath) { Import-Module $validationPath -Force }
+if (Test-Path $promptOptimizerPath) { Import-Module $promptOptimizerPath -Force }
 if (Test-Path $aiHandlerPath) { Import-Module $aiHandlerPath -Force }
 
 # Queue Configuration
@@ -46,6 +53,240 @@ $script:QueueStats = @{
     CloudExecutions = 0
     StartTime = $null
 }
+
+#region Internal Health & Connection Functions
+# These provide fallbacks when AIUtil-Health.psm1 is not available
+
+function Get-ConnectionStatusInternal {
+    <#
+    .SYNOPSIS
+        Internal connection status check - uses AIUtil-Health when available
+    #>
+    [CmdletBinding()]
+    param()
+
+    # Try AIUtil-Health first
+    if (Get-Command Get-AIHealthStatus -ErrorAction SilentlyContinue) {
+        $health = Get-AIHealthStatus
+        return @{
+            LocalAvailable = $health.OllamaOnline
+            OllamaAvailable = $health.OllamaOnline
+            OllamaModels = $health.OllamaModels
+            InternetAvailable = $health.InternetOnline
+            Mode = $health.Mode
+            LocalModel = $health.PreferredLocalModel
+            Recommendation = if ($health.OllamaOnline) { "local" } elseif ($health.InternetOnline) { "cloud" } else { "pattern" }
+        }
+    }
+
+    # Fallback: inline implementation
+    $ollamaOnline = $false
+    $ollamaModels = @()
+    try {
+        $response = Invoke-RestMethod -Uri "http://localhost:11434/api/tags" -Method Get -TimeoutSec 2 -ErrorAction Stop
+        $ollamaOnline = $response.models.Count -gt 0
+        $ollamaModels = $response.models.name
+    } catch { }
+
+    $internetOnline = $false
+    try {
+        $tcp = New-Object System.Net.Sockets.TcpClient
+        $tcp.Connect('8.8.8.8', 53)
+        $internetOnline = $tcp.Connected
+        $tcp.Close()
+    } catch { }
+
+    $mode = if ($ollamaOnline -and $internetOnline) { "full" }
+            elseif ($ollamaOnline) { "offline-local" }
+            elseif ($internetOnline) { "cloud-only" }
+            else { "offline-pattern" }
+
+    $localModel = if ($ollamaOnline -and $ollamaModels.Count -gt 0) { $ollamaModels[0] } else { $null }
+
+    return @{
+        LocalAvailable = $ollamaOnline
+        OllamaAvailable = $ollamaOnline
+        OllamaModels = $ollamaModels
+        InternetAvailable = $internetOnline
+        Mode = $mode
+        LocalModel = $localModel
+        Recommendation = if ($ollamaOnline) { "local" } elseif ($internetOnline) { "cloud" } else { "pattern" }
+    }
+}
+
+function Get-AvailableLocalModelInternal {
+    <#
+    .SYNOPSIS
+        Gets best available local Ollama model - uses AIUtil-Health when available
+    #>
+    [CmdletBinding()]
+    param(
+        [string[]]$PreferredModels = @("llama3.2:3b", "phi3:mini", "llama3.2:1b")
+    )
+
+    # Try AIUtil-Health first
+    if (Get-Command Get-BestLocalModel -ErrorAction SilentlyContinue) {
+        return Get-BestLocalModel -PreferredModels $PreferredModels
+    }
+
+    # Fallback: inline implementation
+    try {
+        $response = Invoke-RestMethod -Uri "http://localhost:11434/api/tags" -Method Get -TimeoutSec 2 -ErrorAction Stop
+        $available = $response.models.name
+
+        foreach ($model in $PreferredModels) {
+            $match = $available | Where-Object { $_ -eq $model -or $_ -like "$model*" }
+            if ($match) { return $match | Select-Object -First 1 }
+        }
+
+        return $available | Select-Object -First 1
+    } catch {
+        return $null
+    }
+}
+
+function Get-InternalClassification {
+    <#
+    .SYNOPSIS
+        Pattern-based classification using Get-PromptCategory from PromptOptimizer
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$Prompt,
+        [switch]$ForQueue
+    )
+
+    # Use Get-PromptCategory from PromptOptimizer if available
+    $category = "general"
+    if (Get-Command Get-PromptCategory -ErrorAction SilentlyContinue) {
+        $category = Get-PromptCategory -Prompt $Prompt
+    } else {
+        # Inline fallback
+        $promptLower = $Prompt.ToLower()
+        if ($promptLower -match '(write|implement|function|code|script)') { $category = "code" }
+        elseif ($promptLower -match '(analyze|compare|explain)') { $category = "analysis" }
+        elseif ($promptLower -match '(sql|query|database)') { $category = "database" }
+        elseif ($promptLower -match '(what is|who|when|where)') { $category = "question" }
+    }
+
+    # Map category to tier and complexity
+    $tierMap = @{
+        code = @{ tier = "standard"; complexity = 5; localSuitable = $true }
+        debug = @{ tier = "standard"; complexity = 6; localSuitable = $true }
+        refactor = @{ tier = "standard"; complexity = 6; localSuitable = $true }
+        analysis = @{ tier = "standard"; complexity = 5; localSuitable = $true }
+        database = @{ tier = "standard"; complexity = 5; localSuitable = $true }
+        question = @{ tier = "lite"; complexity = 2; localSuitable = $true }
+        creative = @{ tier = "pro"; complexity = 7; localSuitable = $false }
+        general = @{ tier = "lite"; complexity = 3; localSuitable = $true }
+    }
+
+    $config = if ($tierMap.ContainsKey($category)) { $tierMap[$category] } else { $tierMap.general }
+
+    # Adjust complexity for length
+    $length = $Prompt.Length
+    $complexity = $config.complexity
+    if ($length -gt 1000) { $complexity = [Math]::Min(10, $complexity + 1) }
+    if ($length -gt 2000) { $complexity = [Math]::Min(10, $complexity + 1) }
+
+    $result = @{
+        Category = $category
+        Complexity = $complexity
+        Tier = $config.tier
+        LocalSuitable = $config.localSuitable
+        ParallelSafe = $true
+        EstimatedTokens = [int]($length / 4)
+        Reasoning = "Pattern-based (SmartQueue internal)"
+        ClassifierModel = "prompt-category"
+        IsLocalClassifier = $true
+        ClassifiedAt = Get-Date
+        FromCache = $false
+    }
+
+    if ($ForQueue) {
+        $result.QueuePriority = switch ($complexity) {
+            { $_ -ge 8 } { 1 }  # High priority
+            { $_ -ge 5 } { 2 }  # Normal
+            default { 3 }       # Low
+        }
+        $result.PreferredProvider = if ($config.localSuitable) { "ollama" } else { "cloud" }
+    }
+
+    return $result
+}
+
+function Get-OptimalExecutionModelInternal {
+    <#
+    .SYNOPSIS
+        Selects optimal execution model based on classification
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$Classification,
+        [switch]$PreferLocal = $true
+    )
+
+    $tier = if ($Classification.Tier) { $Classification.Tier } else { "standard" }
+    $localSuitable = if ($null -ne $Classification.LocalSuitable) { $Classification.LocalSuitable } else { $true }
+
+    $tierModels = @{
+        lite = @{ local = @("llama3.2:1b", "phi3:mini"); cloud = @("claude-3-5-haiku-20241022", "gpt-4o-mini") }
+        standard = @{ local = @("llama3.2:3b", "qwen2.5-coder:1.5b"); cloud = @("claude-sonnet-4-5-20250929", "gpt-4o") }
+        pro = @{ local = @("llama3.3:70b", "qwen2.5:32b"); cloud = @("claude-opus-4-5-20251101", "gpt-4o") }
+    }
+
+    $tierConfig = if ($tierModels.ContainsKey($tier)) { $tierModels[$tier] } else { $tierModels.standard }
+
+    # Try local first
+    if ($PreferLocal -and $localSuitable) {
+        $localModel = Get-AvailableLocalModelInternal -PreferredModels $tierConfig.local
+        if ($localModel) {
+            return @{
+                Provider = "ollama"
+                Model = $localModel
+                IsLocal = $true
+                Tier = $tier
+                Cost = 0
+            }
+        }
+    }
+
+    # Fall back to cloud
+    $connStatus = Get-ConnectionStatusInternal
+    if ($connStatus.InternetAvailable) {
+        foreach ($cloudModel in $tierConfig.cloud) {
+            $provider = if ($cloudModel -match 'claude') { "anthropic" } elseif ($cloudModel -match 'gpt') { "openai" } else { continue }
+            $keyVar = if ($provider -eq "anthropic") { "ANTHROPIC_API_KEY" } else { "OPENAI_API_KEY" }
+            if ([Environment]::GetEnvironmentVariable($keyVar)) {
+                return @{
+                    Provider = $provider
+                    Model = $cloudModel
+                    IsLocal = $false
+                    Tier = $tier
+                    Cost = 0.001
+                }
+            }
+        }
+    }
+
+    # Last resort: any local model
+    $anyLocal = Get-AvailableLocalModelInternal -PreferredModels @("llama3.2:1b", "phi3:mini")
+    if ($anyLocal) {
+        return @{
+            Provider = "ollama"
+            Model = $anyLocal
+            IsLocal = $true
+            Tier = "lite"
+            Cost = 0
+        }
+    }
+
+    return $null
+}
+
+#endregion
 
 #region Auto Prompt Optimization
 
@@ -229,11 +470,11 @@ function Add-ToSmartQueue {
             default { 0 }  # 0 means use classification-based priority
         }
 
-        # Classify prompt
+        # Classify prompt using internal classification (uses Get-PromptCategory from PromptOptimizer)
         $classification = $null
-        if (-not $SkipClassification -and (Get-Command Invoke-TaskClassification -ErrorAction SilentlyContinue)) {
+        if (-not $SkipClassification) {
             Write-Host "[Queue] Classifying prompt $id..." -ForegroundColor Cyan
-            $classification = Invoke-TaskClassification -Prompt $Prompt -ForQueue -PreferLocal
+            $classification = Get-InternalClassification -Prompt $Prompt -ForQueue
         }
 
         # Build queue item
@@ -377,8 +618,8 @@ function Start-QueueProcessor {
     $script:QueueStats.StartTime = Get-Date
     Write-Host "[Queue] Starting processor (max parallel: $MaxParallel)..." -ForegroundColor Cyan
     
-    # Check connection status
-    $connStatus = Get-ConnectionStatus
+    # Check connection status using internal function
+    $connStatus = Get-ConnectionStatusInternal
     Write-Host "[Queue] Mode: $($connStatus.Mode) | Ollama: $($connStatus.OllamaAvailable) | Internet: $($connStatus.InternetAvailable)" -ForegroundColor Gray
     
     # If current prompt provided, add it with highest priority
@@ -423,15 +664,15 @@ function Start-QueueProcessor {
                 $item = $null
                 if (-not $script:Queue.TryDequeue([ref]$item)) { break }
                 
-                # Determine execution model
+                # Determine execution model using internal functions
                 $execModel = $null
                 if ($item.Classification) {
-                    $execModel = Get-OptimalExecutionModel -Classification $item.Classification -PreferLocal
+                    $execModel = Get-OptimalExecutionModelInternal -Classification $item.Classification -PreferLocal
                 }
-                
+
                 if (-not $execModel) {
-                    # Fallback model selection
-                    $localModel = Get-AvailableLocalModel
+                    # Fallback model selection using internal function
+                    $localModel = Get-AvailableLocalModelInternal
                     if ($localModel) {
                         $execModel = @{ Provider = "ollama"; Model = $localModel; IsLocal = $true }
                     } elseif ($connStatus.InternetAvailable) {
@@ -612,65 +853,112 @@ function Start-QueueProcessor {
 function Invoke-ParallelClassification {
     <#
     .SYNOPSIS
-        Classifies multiple prompts in parallel
+        Classifies multiple prompts in parallel using internal classification
     #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)]
         [string[]]$Prompts,
-        
+
         [int]$MaxParallel = 4
     )
-    
+
     Write-Host "[Queue] Classifying $($Prompts.Count) prompts in parallel..." -ForegroundColor Cyan
-    
+
     $results = [System.Collections.ArrayList]::new()
-    
+
     # Use runspace pool for parallel classification
     $iss = [System.Management.Automation.Runspaces.InitialSessionState]::CreateDefault()
     $runspacePool = [runspacefactory]::CreateRunspacePool(1, $MaxParallel)
     $runspacePool.Open()
-    
+
     $jobs = @()
-    
+
+    # Get paths for modules needed in runspaces
+    $promptOptimizerPathLocal = $promptOptimizerPath
+
     try {
         foreach ($prompt in $Prompts) {
             $ps = [powershell]::Create()
             $ps.RunspacePool = $runspacePool
-            
+
+            # Use inline classification with Get-PromptCategory from PromptOptimizer
             [void]$ps.AddScript({
-                param($ClassifierPath, $Prompt)
-                Import-Module $ClassifierPath -Force
-                Invoke-TaskClassification -Prompt $Prompt -ForQueue -PreferLocal
+                param($PromptOptimizerPath, $Prompt)
+
+                # Import PromptOptimizer for Get-PromptCategory
+                if (Test-Path $PromptOptimizerPath) {
+                    Import-Module $PromptOptimizerPath -Force
+                }
+
+                # Classify using Get-PromptCategory
+                $category = "general"
+                if (Get-Command Get-PromptCategory -ErrorAction SilentlyContinue) {
+                    $category = Get-PromptCategory -Prompt $Prompt
+                } else {
+                    $promptLower = $Prompt.ToLower()
+                    if ($promptLower -match '(write|implement|function|code|script)') { $category = "code" }
+                    elseif ($promptLower -match '(analyze|compare|explain)') { $category = "analysis" }
+                    elseif ($promptLower -match '(sql|query|database)') { $category = "database" }
+                    elseif ($promptLower -match '(what is|who|when|where)') { $category = "question" }
+                }
+
+                # Map category to tier and complexity
+                $tierMap = @{
+                    code = @{ tier = "standard"; complexity = 5; localSuitable = $true }
+                    debug = @{ tier = "standard"; complexity = 6; localSuitable = $true }
+                    analysis = @{ tier = "standard"; complexity = 5; localSuitable = $true }
+                    database = @{ tier = "standard"; complexity = 5; localSuitable = $true }
+                    question = @{ tier = "lite"; complexity = 2; localSuitable = $true }
+                    creative = @{ tier = "pro"; complexity = 7; localSuitable = $false }
+                    general = @{ tier = "lite"; complexity = 3; localSuitable = $true }
+                }
+
+                $config = if ($tierMap.ContainsKey($category)) { $tierMap[$category] } else { $tierMap.general }
+                $length = $Prompt.Length
+                $complexity = $config.complexity
+                if ($length -gt 1000) { $complexity = [Math]::Min(10, $complexity + 1) }
+
+                @{
+                    Category = $category
+                    Complexity = $complexity
+                    Tier = $config.tier
+                    LocalSuitable = $config.localSuitable
+                    ParallelSafe = $true
+                    EstimatedTokens = [int]($length / 4)
+                    QueuePriority = switch ($complexity) { { $_ -ge 8 } { 1 }; { $_ -ge 5 } { 2 }; default { 3 } }
+                    PreferredProvider = if ($config.localSuitable) { "ollama" } else { "cloud" }
+                    ClassifiedAt = Get-Date
+                }
             })
-            [void]$ps.AddParameter("ClassifierPath", $classifierPath)
+            [void]$ps.AddParameter("PromptOptimizerPath", $promptOptimizerPathLocal)
             [void]$ps.AddParameter("Prompt", $prompt)
-            
+
             $jobs += @{
                 PowerShell = $ps
                 Handle = $ps.BeginInvoke()
                 Prompt = $prompt
             }
         }
-        
+
         # Collect results
         foreach ($job in $jobs) {
             try {
                 $result = $job.PowerShell.EndInvoke($job.Handle)
                 [void]$results.Add($result)
             } catch {
-                # Fallback classification
-                [void]$results.Add((Get-PatternBasedClassification -Prompt $job.Prompt -ForQueue))
+                # Fallback classification using internal function
+                [void]$results.Add((Get-InternalClassification -Prompt $job.Prompt -ForQueue))
             } finally {
                 $job.PowerShell.Dispose()
             }
         }
-        
+
     } finally {
         $runspacePool.Close()
         $runspacePool.Dispose()
     }
-    
+
     return $results
 }
 
@@ -744,6 +1032,19 @@ function Get-SmartQueueStatus {
     Get-QueueStatus
 }
 
+function Get-QueueConnectionStatus {
+    <#
+    .SYNOPSIS
+        Returns connection status for queue operations
+    .DESCRIPTION
+        Public wrapper for internal connection status check.
+        Uses AIUtil-Health.psm1 when available, falls back to inline implementation.
+    #>
+    [CmdletBinding()]
+    param()
+    Get-ConnectionStatusInternal
+}
+
 #endregion
 
 Export-ModuleMember -Function @(
@@ -753,6 +1054,7 @@ Export-ModuleMember -Function @(
     'Add-BatchToSmartQueue',
     'Get-QueueStatus',
     'Get-SmartQueueStatus',
+    'Get-QueueConnectionStatus',
     'Start-QueueProcessor',
     'Invoke-ParallelClassification',
     'Get-QueueResults',

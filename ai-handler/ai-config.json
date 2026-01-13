@@ -1241,51 +1241,21 @@
                                    "priority":  5,
                                    "enabled":  true,
                                    "models":  {
-                                                  "llama-3.1-8b-instant":  {
-                                                                               "tokensPerMinute":  999999,
-                                                                               "outputCost":  0,
-                                                                               "capabilities":  [
-                                                                                                    "code",
-                                                                                                    "analysis"
-                                                                                                ],
-                                                                               "parameterSize":  null,
-                                                                               "contextWindow":  128000,
-                                                                               "sizeGB":  null,
-                                                                               "inputCost":  0,
-                                                                               "tier":  "standard",
-                                                                               "requestsPerMinute":  999999,
-                                                                               "maxOutput":  8192
-                                                                           },
-                                                  "whisper-large-v3":  {
-                                                                           "tokensPerMinute":  999999,
-                                                                           "outputCost":  0,
-                                                                           "capabilities":  [
-                                                                                                "code",
-                                                                                                "analysis"
-                                                                                            ],
-                                                                           "parameterSize":  null,
-                                                                           "contextWindow":  128000,
-                                                                           "sizeGB":  null,
-                                                                           "inputCost":  0,
-                                                                           "tier":  "standard",
-                                                                           "requestsPerMinute":  999999,
-                                                                           "maxOutput":  8192
-                                                                       },
-                                                  "qwen/qwen3-32b":  {
-                                                                         "tokensPerMinute":  999999,
-                                                                         "outputCost":  0,
-                                                                         "capabilities":  [
-                                                                                              "code",
-                                                                                              "analysis"
-                                                                                          ],
-                                                                         "parameterSize":  null,
-                                                                         "contextWindow":  128000,
-                                                                         "sizeGB":  null,
-                                                                         "inputCost":  0,
-                                                                         "tier":  "standard",
-                                                                         "requestsPerMinute":  999999,
-                                                                         "maxOutput":  8192
-                                                                     },
+                                                  "canopylabs/orpheus-arabic-saudi":  {
+                                                                                          "tokensPerMinute":  999999,
+                                                                                          "outputCost":  0,
+                                                                                          "capabilities":  [
+                                                                                                               "code",
+                                                                                                               "analysis"
+                                                                                                           ],
+                                                                                          "parameterSize":  null,
+                                                                                          "contextWindow":  128000,
+                                                                                          "sizeGB":  null,
+                                                                                          "inputCost":  0,
+                                                                                          "tier":  "standard",
+                                                                                          "requestsPerMinute":  999999,
+                                                                                          "maxOutput":  8192
+                                                                                      },
                                                   "openai/gpt-oss-120b":  {
                                                                               "tokensPerMinute":  999999,
                                                                               "outputCost":  0,
@@ -1301,6 +1271,51 @@
                                                                               "requestsPerMinute":  999999,
                                                                               "maxOutput":  8192
                                                                           },
+                                                  "qwen/qwen3-32b":  {
+                                                                         "tokensPerMinute":  999999,
+                                                                         "outputCost":  0,
+                                                                         "capabilities":  [
+                                                                                              "code",
+                                                                                              "analysis"
+                                                                                          ],
+                                                                         "parameterSize":  null,
+                                                                         "contextWindow":  128000,
+                                                                         "sizeGB":  null,
+                                                                         "inputCost":  0,
+                                                                         "tier":  "standard",
+                                                                         "requestsPerMinute":  999999,
+                                                                         "maxOutput":  8192
+                                                                     },
+                                                  "llama-3.1-8b-instant":  {
+                                                                               "tokensPerMinute":  999999,
+                                                                               "outputCost":  0,
+                                                                               "capabilities":  [
+                                                                                                    "code",
+                                                                                                    "analysis"
+                                                                                                ],
+                                                                               "parameterSize":  null,
+                                                                               "contextWindow":  128000,
+                                                                               "sizeGB":  null,
+                                                                               "inputCost":  0,
+                                                                               "tier":  "standard",
+                                                                               "requestsPerMinute":  999999,
+                                                                               "maxOutput":  8192
+                                                                           },
+                                                  "moonshotai/kimi-k2-instruct-0905":  {
+                                                                                           "tokensPerMinute":  999999,
+                                                                                           "outputCost":  0,
+                                                                                           "capabilities":  [
+                                                                                                                "code",
+                                                                                                                "analysis"
+                                                                                                            ],
+                                                                                           "parameterSize":  null,
+                                                                                           "contextWindow":  128000,
+                                                                                           "sizeGB":  null,
+                                                                                           "inputCost":  0,
+                                                                                           "tier":  "standard",
+                                                                                           "requestsPerMinute":  999999,
+                                                                                           "maxOutput":  8192
+                                                                                       },
                                                   "openai/gpt-oss-20b":  {
                                                                              "tokensPerMinute":  999999,
                                                                              "outputCost":  0,
@@ -1316,21 +1331,21 @@
                                                                              "requestsPerMinute":  999999,
                                                                              "maxOutput":  8192
                                                                          },
-                                                  "meta-llama/llama-prompt-guard-2-86m":  {
-                                                                                              "tokensPerMinute":  999999,
-                                                                                              "outputCost":  0,
-                                                                                              "capabilities":  [
-                                                                                                                   "code",
-                                                                                                                   "analysis"
-                                                                                                               ],
-                                                                                              "parameterSize":  null,
-                                                                                              "contextWindow":  128000,
-                                                                                              "sizeGB":  null,
-                                                                                              "inputCost":  0,
-                                                                                              "tier":  "standard",
-                                                                                              "requestsPerMinute":  999999,
-                                                                                              "maxOutput":  8192
-                                                                                          },
+                                                  "whisper-large-v3-turbo":  {
+                                                                                 "tokensPerMinute":  999999,
+                                                                                 "outputCost":  0,
+                                                                                 "capabilities":  [
+                                                                                                      "code",
+                                                                                                      "analysis"
+                                                                                                  ],
+                                                                                 "parameterSize":  null,
+                                                                                 "contextWindow":  128000,
+                                                                                 "sizeGB":  null,
+                                                                                 "inputCost":  0,
+                                                                                 "tier":  "standard",
+                                                                                 "requestsPerMinute":  999999,
+                                                                                 "maxOutput":  8192
+                                                                             },
                                                   "openai/gpt-oss-safeguard-20b":  {
                                                                                        "tokensPerMinute":  999999,
                                                                                        "outputCost":  0,
@@ -1346,6 +1361,21 @@
                                                                                        "requestsPerMinute":  999999,
                                                                                        "maxOutput":  8192
                                                                                    },
+                                                  "meta-llama/llama-4-maverick-17b-128e-instruct":  {
+                                                                                                        "tokensPerMinute":  999999,
+                                                                                                        "outputCost":  0,
+                                                                                                        "capabilities":  [
+                                                                                                                             "code",
+                                                                                                                             "analysis"
+                                                                                                                         ],
+                                                                                                        "parameterSize":  null,
+                                                                                                        "contextWindow":  128000,
+                                                                                                        "sizeGB":  null,
+                                                                                                        "inputCost":  0,
+                                                                                                        "tier":  "standard",
+                                                                                                        "requestsPerMinute":  999999,
+                                                                                                        "maxOutput":  8192
+                                                                                                    },
                                                   "groq/compound":  {
                                                                         "tokensPerMinute":  999999,
                                                                         "outputCost":  0,
@@ -1436,21 +1466,21 @@
                                                                                         "requestsPerMinute":  999999,
                                                                                         "maxOutput":  8192
                                                                                     },
-                                                  "canopylabs/orpheus-arabic-saudi":  {
-                                                                                          "tokensPerMinute":  999999,
-                                                                                          "outputCost":  0,
-                                                                                          "capabilities":  [
-                                                                                                               "code",
-                                                                                                               "analysis"
-                                                                                                           ],
-                                                                                          "parameterSize":  null,
-                                                                                          "contextWindow":  128000,
-                                                                                          "sizeGB":  null,
-                                                                                          "inputCost":  0,
-                                                                                          "tier":  "standard",
-                                                                                          "requestsPerMinute":  999999,
-                                                                                          "maxOutput":  8192
-                                                                                      },
+                                                  "whisper-large-v3":  {
+                                                                           "tokensPerMinute":  999999,
+                                                                           "outputCost":  0,
+                                                                           "capabilities":  [
+                                                                                                "code",
+                                                                                                "analysis"
+                                                                                            ],
+                                                                           "parameterSize":  null,
+                                                                           "contextWindow":  128000,
+                                                                           "sizeGB":  null,
+                                                                           "inputCost":  0,
+                                                                           "tier":  "standard",
+                                                                           "requestsPerMinute":  999999,
+                                                                           "maxOutput":  8192
+                                                                       },
                                                   "moonshotai/kimi-k2-instruct":  {
                                                                                       "tokensPerMinute":  999999,
                                                                                       "outputCost":  0,
@@ -1481,36 +1511,21 @@
                                                                                   "requestsPerMinute":  999999,
                                                                                   "maxOutput":  8192
                                                                               },
-                                                  "meta-llama/llama-4-maverick-17b-128e-instruct":  {
-                                                                                                        "tokensPerMinute":  999999,
-                                                                                                        "outputCost":  0,
-                                                                                                        "capabilities":  [
-                                                                                                                             "code",
-                                                                                                                             "analysis"
-                                                                                                                         ],
-                                                                                                        "parameterSize":  null,
-                                                                                                        "contextWindow":  128000,
-                                                                                                        "sizeGB":  null,
-                                                                                                        "inputCost":  0,
-                                                                                                        "tier":  "standard",
-                                                                                                        "requestsPerMinute":  999999,
-                                                                                                        "maxOutput":  8192
-                                                                                                    },
-                                                  "whisper-large-v3-turbo":  {
-                                                                                 "tokensPerMinute":  999999,
-                                                                                 "outputCost":  0,
-                                                                                 "capabilities":  [
-                                                                                                      "code",
-                                                                                                      "analysis"
-                                                                                                  ],
-                                                                                 "parameterSize":  null,
-                                                                                 "contextWindow":  128000,
-                                                                                 "sizeGB":  null,
-                                                                                 "inputCost":  0,
-                                                                                 "tier":  "standard",
-                                                                                 "requestsPerMinute":  999999,
-                                                                                 "maxOutput":  8192
-                                                                             },
+                                                  "meta-llama/llama-prompt-guard-2-86m":  {
+                                                                                              "tokensPerMinute":  999999,
+                                                                                              "outputCost":  0,
+                                                                                              "capabilities":  [
+                                                                                                                   "code",
+                                                                                                                   "analysis"
+                                                                                                               ],
+                                                                                              "parameterSize":  null,
+                                                                                              "contextWindow":  128000,
+                                                                                              "sizeGB":  null,
+                                                                                              "inputCost":  0,
+                                                                                              "tier":  "standard",
+                                                                                              "requestsPerMinute":  999999,
+                                                                                              "maxOutput":  8192
+                                                                                          },
                                                   "meta-llama/llama-guard-4-12b":  {
                                                                                        "tokensPerMinute":  999999,
                                                                                        "outputCost":  0,
@@ -1525,22 +1540,7 @@
                                                                                        "tier":  "standard",
                                                                                        "requestsPerMinute":  999999,
                                                                                        "maxOutput":  8192
-                                                                                   },
-                                                  "moonshotai/kimi-k2-instruct-0905":  {
-                                                                                           "tokensPerMinute":  999999,
-                                                                                           "outputCost":  0,
-                                                                                           "capabilities":  [
-                                                                                                                "code",
-                                                                                                                "analysis"
-                                                                                                            ],
-                                                                                           "parameterSize":  null,
-                                                                                           "contextWindow":  128000,
-                                                                                           "sizeGB":  null,
-                                                                                           "inputCost":  0,
-                                                                                           "tier":  "standard",
-                                                                                           "requestsPerMinute":  999999,
-                                                                                           "maxOutput":  8192
-                                                                                       }
+                                                                                   }
                                               }
                                },
                       "ollama":  {
@@ -1699,26 +1699,26 @@
                                           "mistral-small-latest"
                                       ],
                           "groq":  [
-                                       "llama-3.1-8b-instant",
-                                       "whisper-large-v3",
-                                       "qwen/qwen3-32b",
+                                       "canopylabs/orpheus-arabic-saudi",
                                        "openai/gpt-oss-120b",
+                                       "qwen/qwen3-32b",
+                                       "llama-3.1-8b-instant",
+                                       "moonshotai/kimi-k2-instruct-0905",
                                        "openai/gpt-oss-20b",
-                                       "meta-llama/llama-prompt-guard-2-86m",
+                                       "whisper-large-v3-turbo",
                                        "openai/gpt-oss-safeguard-20b",
+                                       "meta-llama/llama-4-maverick-17b-128e-instruct",
                                        "groq/compound",
                                        "meta-llama/llama-4-scout-17b-16e-instruct",
                                        "allam-2-7b",
                                        "meta-llama/llama-prompt-guard-2-22m",
                                        "groq/compound-mini",
                                        "canopylabs/orpheus-v1-english",
-                                       "canopylabs/orpheus-arabic-saudi",
+                                       "whisper-large-v3",
                                        "moonshotai/kimi-k2-instruct",
                                        "llama-3.3-70b-versatile",
-                                       "meta-llama/llama-4-maverick-17b-128e-instruct",
-                                       "whisper-large-v3-turbo",
-                                       "meta-llama/llama-guard-4-12b",
-                                       "moonshotai/kimi-k2-instruct-0905"
+                                       "meta-llama/llama-prompt-guard-2-86m",
+                                       "meta-llama/llama-guard-4-12b"
                                    ],
                           "ollama":  [
                                          "qwen2.5-coder:1.5b",
@@ -1789,9 +1789,9 @@
     "discovery":  {
                       "summary":  {
                                       "ollama":  {
-                                                     "Error":  "Nie można połączyć się z serwerem zdalnym",
-                                                     "Success":  false,
-                                                     "ModelCount":  0
+                                                     "Error":  null,
+                                                     "Success":  true,
+                                                     "ModelCount":  4
                                                  },
                                       "mistral":  {
                                                       "Error":  "API key not configured",
@@ -1819,8 +1819,8 @@
                                                    "ModelCount":  20
                                                }
                                   },
-                      "totalModels":  95,
-                      "fetchDurationMs":  5507,
-                      "lastFetch":  "2026-01-13T17:37:13.7947208+01:00"
+                      "totalModels":  99,
+                      "fetchDurationMs":  1570,
+                      "lastFetch":  "2026-01-13T21:22:15.6110180+01:00"
                   }
 }

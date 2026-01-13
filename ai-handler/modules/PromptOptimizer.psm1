@@ -1,12 +1,21 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     HYDRA Prompt Optimizer - Automatic prompt enhancement before AI calls
 .DESCRIPTION
-    Analyzes and improves prompts for better AI responses
+    Analyzes and improves prompts for better AI responses.
+    Uses AIUtil-Validation for category detection, clarity scoring, and language detection.
 .VERSION
-    1.0.0
+    1.1.0
 #>
+
+# Import validation utilities
+$utilPath = Join-Path (Split-Path $PSScriptRoot -Parent) 'utils\AIUtil-Validation.psm1'
+if (Test-Path $utilPath) {
+    Import-Module $utilPath -Force -ErrorAction SilentlyContinue
+} else {
+    Write-Warning "AIUtil-Validation.psm1 not found at: $utilPath"
+}
 
 $script:PromptPatterns = @{
     # === CODING ===
@@ -262,121 +271,50 @@ $script:ModelOptimizations = @{
     'gpt-4o' = @{ maxTokens = 8192; style = 'detailed'; prefix = '' }
 }
 
-function Get-PromptCategory {
+# Get-PromptCategory is now provided by AIUtil-Validation.psm1
+# The function categorizes prompts by intent (code, analysis, creative, task, question, summary, general)
+
+# Get-PromptClarity is now provided by AIUtil-Validation.psm1
+# The function scores prompt clarity from 0-100 with optional detailed breakdown
+
+# Helper function to get clarity with legacy format compatibility
+function Get-PromptClarityLegacy {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Prompt)
 
-    $promptLower = $Prompt.ToLower()
-    $candidates = @()
+    # Use the utility function with detailed output
+    $result = Get-PromptClarity -Prompt $Prompt -Detailed
 
-    foreach ($category in $script:PromptPatterns.Keys) {
-        $matchCount = 0
-        foreach ($keyword in $script:PromptPatterns[$category].keywords) {
-            if ($promptLower -match [regex]::Escape($keyword)) {
-                $matchCount++
-            }
-        }
-        if ($matchCount -gt 0) {
-            $priority = if ($script:PromptPatterns[$category].priority) { $script:PromptPatterns[$category].priority } else { 5 }
-            $candidates += @{
-                Category = $category
-                Matches = $matchCount
-                Priority = $priority
-                Score = ($matchCount * 10) + $priority
-            }
-        }
+    # Convert to legacy format expected by Optimize-Prompt
+    $quality = switch ($result.Score) {
+        { $_ -ge 80 } { 'Good' }
+        { $_ -ge 60 } { 'Fair' }
+        { $_ -ge 40 } { 'Needs improvement' }
+        default { 'Poor' }
     }
-
-    if ($candidates.Count -eq 0) { return 'general' }
-
-    # Sort by: matches first, then priority
-    $best = $candidates | Sort-Object { $_.Score } -Descending | Select-Object -First 1
-    return $best.Category
-}
-
-function Get-PromptClarity {
-    [CmdletBinding()]
-    param([Parameter(Mandatory)][string]$Prompt)
-
-    $score = 100
-    $issues = @()
-    $suggestions = @()
-
-    if ($Prompt.Length -lt 10) {
-        $score -= 30
-        $issues += 'Too short'
-        $suggestions += 'Add more context or details'
-    } elseif ($Prompt.Length -lt 30) {
-        $score -= 15
-        $issues += 'Brief prompt'
-        $suggestions += 'Consider adding specifics'
-    }
-
-    $vagueWords = @('something', 'stuff', 'thing', 'it', 'this', 'that', 'etc', 'whatever')
-    foreach ($word in $vagueWords) {
-        if ($Prompt -match "\b$word\b") {
-            $score -= 5
-            $issues += "Vague term: '$word'"
-        }
-    }
-
-    $specificIndicators = @('specifically', 'exactly', 'must', 'should', 'using', 'with', 'in')
-    foreach ($indicator in $specificIndicators) {
-        if ($Prompt -match "\b$indicator\b") {
-            $score += 3
-        }
-    }
-
-    if ($Prompt -notmatch '(for|to|because|since|using|with|in)\s+\w+') {
-        $score -= 10
-        $suggestions += 'Add context (for what purpose, using what)'
-    }
-
-    if ($Prompt -notmatch '(format|output|return|show|display|as|like)') {
-        $suggestions += 'Consider specifying desired output format'
-    }
-
-    $score = [Math]::Max(0, [Math]::Min(100, $score))
 
     return @{
-        Score = $score
-        Issues = $issues
-        Suggestions = $suggestions
-        Quality = switch ($score) {
-            { $_ -ge 80 } { 'Good' }
-            { $_ -ge 60 } { 'Fair' }
-            { $_ -ge 40 } { 'Needs improvement' }
-            default { 'Poor' }
-        }
+        Score = $result.Score
+        Issues = $result.Issues
+        Suggestions = $result.Suggestions
+        Quality = $quality
     }
 }
 
+# Get-PromptLanguage - wrapper around Get-CodeLanguage from AIUtil-Validation
+# Detects programming language from prompt text
 function Get-PromptLanguage {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Prompt)
 
-    $languages = @{
-        'python' = @('python', 'py', 'pip', 'pandas', 'numpy', 'django', 'flask')
-        'javascript' = @('javascript', 'js', 'node', 'npm', 'react', 'vue', 'angular')
-        'typescript' = @('typescript', 'ts', 'tsx')
-        'powershell' = @('powershell', 'ps1', 'pwsh', 'cmdlet')
-        'rust' = @('rust', 'cargo', 'rustc')
-        'go' = @('golang', 'go ')
-        'csharp' = @('c#', 'csharp', 'dotnet', '.net')
-        'java' = @('java ', 'jvm', 'maven', 'gradle')
-        'sql' = @('sql', 'query', 'select', 'database', 'mysql', 'postgres')
-        'bash' = @('bash', 'shell', 'sh ', 'linux')
-    }
+    # Use the utility function for language detection
+    $detected = Get-CodeLanguage -Code $Prompt
 
-    $promptLower = $Prompt.ToLower()
-    foreach ($lang in $languages.Keys) {
-        foreach ($keyword in $languages[$lang]) {
-            if ($promptLower -match "\b$([regex]::Escape($keyword))\b") {
-                return $lang
-            }
-        }
+    # Return null if 'text' (unknown), otherwise return the language
+    if ($detected -eq 'text') {
+        return $null
     }
-    return $null
+    return $detected
 }
 
 function Optimize-Prompt {
@@ -401,10 +339,13 @@ function Optimize-Prompt {
     )
 
     if ($Category -eq 'auto') {
+        # Use utility function for category detection
         $Category = Get-PromptCategory -Prompt $Prompt
     }
 
-    $clarity = Get-PromptClarity -Prompt $Prompt
+    # Use legacy helper for clarity (maintains backwards compatibility)
+    $clarity = Get-PromptClarityLegacy -Prompt $Prompt
+    # Use wrapper for language detection (uses Get-CodeLanguage internally)
     $language = Get-PromptLanguage -Prompt $Prompt
 
     $enhanced = $Prompt
@@ -469,8 +410,11 @@ function Test-PromptQuality {
     [CmdletBinding()]
     param([Parameter(Mandatory)][string]$Prompt)
 
-    $clarity = Get-PromptClarity -Prompt $Prompt
+    # Use legacy helper for clarity (maintains hashtable format with Quality field)
+    $clarity = Get-PromptClarityLegacy -Prompt $Prompt
+    # Use utility function for category detection
     $category = Get-PromptCategory -Prompt $Prompt
+    # Use wrapper for language detection
     $language = Get-PromptLanguage -Prompt $Prompt
 
     Write-Host "`n[Prompt Quality Report]" -ForegroundColor Cyan
@@ -494,11 +438,11 @@ function Test-PromptQuality {
     return $clarity
 }
 
+# Note: Get-PromptCategory, Get-PromptClarity, Get-CodeLanguage are now provided by AIUtil-Validation.psm1
+# This module exports optimization functions that build on those utilities
 Export-ModuleMember -Function @(
-    'Get-PromptCategory',
-    'Get-PromptClarity',
-    'Get-PromptLanguage',
-    'Optimize-Prompt',
-    'Get-BetterPrompt',
-    'Test-PromptQuality'
+    'Get-PromptLanguage',      # Wrapper for Get-CodeLanguage (returns null instead of 'text')
+    'Optimize-Prompt',          # Main prompt optimization function
+    'Get-BetterPrompt',         # Quick one-liner enhancement
+    'Test-PromptQuality'        # Visual quality report
 )

@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     HYDRA Task Classifier v2 - Local-First AI Task Routing
@@ -9,10 +9,26 @@
     3. Automatic offline detection and fallback
     4. Queue integration for parallel execution
 .VERSION
-    2.0.0
+    2.1.0
+.NOTES
+    Uses consolidated utility modules:
+    - AIUtil-Health.psm1: Ollama availability, system metrics
+    - AIUtil-Validation.psm1: Prompt category detection
 #>
 
 $script:ModulePath = Split-Path -Parent $PSScriptRoot
+
+# Import utility modules from utils folder
+$utilsPath = Join-Path $script:ModulePath "utils"
+$healthUtilPath = Join-Path $utilsPath "AIUtil-Health.psm1"
+$validationUtilPath = Join-Path $utilsPath "AIUtil-Validation.psm1"
+
+if (Test-Path $healthUtilPath) {
+    Import-Module $healthUtilPath -Force -Global
+}
+if (Test-Path $validationUtilPath) {
+    Import-Module $validationUtilPath -Force -Global
+}
 
 # Import AI Handler for Invoke-AIRequest
 $aiHandlerPath = Join-Path $script:ModulePath "AIModelHandler.psm1"
@@ -75,7 +91,7 @@ function Test-NetworkConnectivity {
     #>
     [CmdletBinding()]
     param([switch]$Force)
-    
+
     # Use cached result if recent (5 seconds)
     if (-not $Force -and $script:NetworkStatus.LastCheck) {
         $age = ((Get-Date) - $script:NetworkStatus.LastCheck).TotalSeconds
@@ -83,7 +99,7 @@ function Test-NetworkConnectivity {
             return $script:NetworkStatus.Online
         }
     }
-    
+
     try {
         $result = Test-Connection -ComputerName "8.8.8.8" -Count 1 -Quiet -ErrorAction SilentlyContinue
         $script:NetworkStatus.Online = $result
@@ -99,19 +115,27 @@ function Test-NetworkConnectivity {
 function Test-OllamaAvailability {
     <#
     .SYNOPSIS
-        Tests if Ollama is running and has models
+        Tests if Ollama is running and has models.
+        Wrapper around Test-OllamaAvailable from AIUtil-Health module.
     #>
     [CmdletBinding()]
     param([switch]$Force)
-    
-    # Use cached result if recent (10 seconds)
-    if (-not $Force -and $script:NetworkStatus.OllamaCheck) {
-        $age = ((Get-Date) - $script:NetworkStatus.OllamaCheck).TotalSeconds
-        if ($age -lt 10) {
-            return $script:NetworkStatus.OllamaAvailable
+
+    # Use Test-OllamaAvailable from AIUtil-Health module if available
+    if (Get-Command -Name 'Test-OllamaAvailable' -ErrorAction SilentlyContinue) {
+        $result = Test-OllamaAvailable -IncludeModels -NoCache:$Force
+
+        # Update local cache for compatibility with existing code
+        $script:NetworkStatus.OllamaAvailable = $result.Available
+        if ($result.Models) {
+            $script:NetworkStatus.OllamaModels = $result.Models
         }
+        $script:NetworkStatus.OllamaCheck = Get-Date
+
+        return $result.Available
     }
-    
+
+    # Fallback to direct check if utility module not available
     try {
         $response = Invoke-RestMethod -Uri "http://localhost:11434/api/tags" -Method Get -TimeoutSec 2 -ErrorAction Stop
         $hasModels = $response.models.Count -gt 0
@@ -379,64 +403,62 @@ parallel_safe: true if task is independent (no shared state)
 function Get-PatternBasedClassification {
     <#
     .SYNOPSIS
-        Offline pattern-based classification fallback
+        Offline pattern-based classification fallback.
+        Uses Get-PromptCategory from AIUtil-Validation module when available.
     #>
     [CmdletBinding()]
     param(
         [Parameter(Mandatory)][string]$Prompt,
         [switch]$ForQueue
     )
-    
-    $promptLower = $Prompt.ToLower()
+
     $length = $Prompt.Length
-    
-    # Pattern definitions with local suitability
-    $patterns = @{
-        code = @{
-            keywords = @('write', 'implement', 'function', 'code', 'script', 'debug', 'fix', 'class', 'api')
-            tier = "standard"; complexity = 5; localSuitable = $true; parallelSafe = $true
-        }
-        analysis = @{
-            keywords = @('analyze', 'compare', 'evaluate', 'explain', 'why', 'how does', 'research')
-            tier = "standard"; complexity = 6; localSuitable = $true; parallelSafe = $true
-        }
-        creative = @{
-            keywords = @('write story', 'brainstorm', 'imagine', 'create', 'design', 'invent')
-            tier = "pro"; complexity = 7; localSuitable = $false; parallelSafe = $true
-        }
-        complex = @{
-            keywords = @('architect', 'design system', 'plan', 'strategy', 'migrate', 'refactor')
-            tier = "pro"; complexity = 8; localSuitable = $false; parallelSafe = $false
-        }
-        data = @{
-            keywords = @('csv', 'json', 'data', 'parse', 'sql', 'query', 'database', 'extract')
-            tier = "standard"; complexity = 5; localSuitable = $true; parallelSafe = $true
-        }
-        simple = @{
-            keywords = @('what is', 'who is', 'when', 'where', 'translate', 'list', 'define')
-            tier = "lite"; complexity = 2; localSuitable = $true; parallelSafe = $true
+
+    # Category configuration for tier/complexity mapping
+    $categoryConfig = @{
+        code     = @{ tier = "standard"; complexity = 5; localSuitable = $true;  parallelSafe = $true  }
+        analysis = @{ tier = "standard"; complexity = 6; localSuitable = $true;  parallelSafe = $true  }
+        creative = @{ tier = "pro";      complexity = 7; localSuitable = $false; parallelSafe = $true  }
+        task     = @{ tier = "standard"; complexity = 5; localSuitable = $true;  parallelSafe = $true  }
+        question = @{ tier = "lite";     complexity = 2; localSuitable = $true;  parallelSafe = $true  }
+        summary  = @{ tier = "lite";     complexity = 3; localSuitable = $true;  parallelSafe = $true  }
+        general  = @{ tier = "lite";     complexity = 2; localSuitable = $true;  parallelSafe = $true  }
+    }
+
+    # Use Get-PromptCategory from AIUtil-Validation if available
+    $matched = "general"
+    if (Get-Command -Name 'Get-PromptCategory' -ErrorAction SilentlyContinue) {
+        $matched = Get-PromptCategory -Prompt $Prompt
+    } else {
+        # Fallback: simple keyword detection if utility module not available
+        $promptLower = $Prompt.ToLower()
+        if ($promptLower -match '\b(write|implement|function|code|script|debug|fix)\b') {
+            $matched = "code"
+        } elseif ($promptLower -match '\b(analyze|compare|evaluate|explain|why|how does)\b') {
+            $matched = "analysis"
+        } elseif ($promptLower -match '\b(brainstorm|imagine|creative|ideas)\b') {
+            $matched = "creative"
+        } elseif ($promptLower -match '\b(do|execute|setup|configure|how to)\b') {
+            $matched = "task"
+        } elseif ($promptLower -match '\b(what is|who is|when|where|\?$)\b') {
+            $matched = "question"
+        } elseif ($promptLower -match '\b(summarize|summary|brief|tldr)\b') {
+            $matched = "summary"
         }
     }
-    
-    $matched = "simple"
-    $config = $patterns.simple
-    
-    foreach ($cat in $patterns.Keys) {
-        foreach ($kw in $patterns[$cat].keywords) {
-            if ($promptLower -match [regex]::Escape($kw)) {
-                $matched = $cat
-                $config = $patterns[$cat]
-                break
-            }
-        }
-        if ($matched -ne "simple") { break }
+
+    # Get configuration for matched category (default to general if not found)
+    $config = if ($categoryConfig.ContainsKey($matched)) {
+        $categoryConfig[$matched]
+    } else {
+        $categoryConfig['general']
     }
-    
-    # Adjust for length
+
+    # Adjust complexity for length
     $complexity = $config.complexity
     if ($length -gt 1000) { $complexity = [Math]::Min(10, $complexity + 1) }
     if ($length -gt 2000) { $complexity = [Math]::Min(10, $complexity + 1) }
-    
+
     $result = @{
         Category = $matched
         Complexity = $complexity
@@ -445,12 +467,12 @@ function Get-PatternBasedClassification {
         ParallelSafe = $config.parallelSafe
         EstimatedTokens = [int]($length / 4)
         Reasoning = "Pattern-based (offline)"
-        ClassifierModel = "pattern-matcher"
+        ClassifierModel = "AIUtil-Validation"
         IsLocalClassifier = $true
         ClassifiedAt = Get-Date
         FromCache = $false
     }
-    
+
     if ($ForQueue) {
         $result.QueuePriority = switch ($complexity) {
             { $_ -ge 8 } { 1 }
@@ -459,7 +481,7 @@ function Get-PatternBasedClassification {
         }
         $result.PreferredProvider = if ($config.localSuitable) { "ollama" } else { "cloud" }
     }
-    
+
     return $result
 }
 

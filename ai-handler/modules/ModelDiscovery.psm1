@@ -1,14 +1,48 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     HYDRA 10.0 - Model Discovery Module
 .DESCRIPTION
     Fetches available models from AI providers (Anthropic, OpenAI, Google, Mistral, Groq, Ollama)
-    at startup based on API keys
+    at startup based on API keys.
+
+    Uses utility modules for:
+    - JSON I/O operations (AIUtil-JsonIO)
+    - Provider health checks (AIUtil-Health)
+    - Provider-specific API calls (providers/*.psm1)
 .NOTES
     Author: HYDRA System
-    Version: 1.0.0
+    Version: 1.1.0
 #>
+
+# === Import Utility Modules ===
+$script:ModuleRoot = Split-Path -Parent $PSScriptRoot
+
+# Import AIUtil-JsonIO for JSON operations
+$jsonIOPath = Join-Path $PSScriptRoot "..\utils\AIUtil-JsonIO.psm1"
+if (Test-Path $jsonIOPath) {
+    Import-Module $jsonIOPath -Force -ErrorAction SilentlyContinue
+} else {
+    # Fallback to core location
+    $jsonIOPathAlt = Join-Path $PSScriptRoot "..\core\AIUtil-JsonIO.psm1"
+    if (Test-Path $jsonIOPathAlt) {
+        Import-Module $jsonIOPathAlt -Force -ErrorAction SilentlyContinue
+    }
+}
+
+# Import AIUtil-Health for provider connectivity checks
+$healthPath = Join-Path $PSScriptRoot "..\utils\AIUtil-Health.psm1"
+if (Test-Path $healthPath) {
+    Import-Module $healthPath -Force -ErrorAction SilentlyContinue
+}
+
+# Import provider modules for provider-specific model discovery
+$providersPath = Join-Path $PSScriptRoot "..\providers"
+if (Test-Path $providersPath) {
+    Get-ChildItem -Path $providersPath -Filter "*.psm1" -ErrorAction SilentlyContinue | ForEach-Object {
+        Import-Module $_.FullName -Force -ErrorAction SilentlyContinue
+    }
+}
 
 # Module-level variables
 $script:ModelCache = @{}
@@ -25,6 +59,8 @@ function Get-AnthropicModels {
         Anthropic API key (defaults to env var)
     .PARAMETER Force
         Bypass cache and fetch fresh data
+    .NOTES
+        Uses Test-ApiKeyPresent and Test-ProviderConnectivity from AIUtil-Health
     #>
     [CmdletBinding()]
     param(
@@ -33,7 +69,20 @@ function Get-AnthropicModels {
         [switch]$SkipValidation
     )
 
-    if (-not $ApiKey) {
+    # Use AIUtil-Health to check API key presence
+    $apiKeyCheck = $null
+    if (Get-Command -Name 'Test-ApiKeyPresent' -ErrorAction SilentlyContinue) {
+        $apiKeyCheck = Test-ApiKeyPresent -Provider "anthropic"
+        if (-not $apiKeyCheck.Present) {
+            Write-Verbose "No Anthropic API key found (via AIUtil-Health)"
+            return @{
+                Success = $false
+                Provider = "anthropic"
+                Error = "API key not configured"
+                Models = @()
+            }
+        }
+    } elseif (-not $ApiKey) {
         Write-Verbose "No Anthropic API key found"
         return @{
             Success = $false
@@ -51,6 +100,19 @@ function Get-AnthropicModels {
 
     try {
         Write-Verbose "Fetching Anthropic models..."
+
+        # Use AIUtil-Health for connectivity check if available
+        if (-not $SkipValidation -and (Get-Command -Name 'Test-ProviderConnectivity' -ErrorAction SilentlyContinue)) {
+            $connectivityCheck = Test-ProviderConnectivity -Provider "anthropic" -NoCache:$Force
+            if (-not $connectivityCheck.Reachable) {
+                return @{
+                    Success = $false
+                    Provider = "anthropic"
+                    Error = "API endpoint not reachable: $($connectivityCheck.Error)"
+                    Models = @()
+                }
+            }
+        }
 
         # Anthropic doesn't have a public /models endpoint yet
         # We'll use a known models list and verify with a test request
@@ -177,6 +239,8 @@ function Get-OpenAIModels {
         OpenAI API key (defaults to env var)
     .PARAMETER Force
         Bypass cache and fetch fresh data
+    .NOTES
+        Uses Test-ApiKeyPresent and Test-ProviderConnectivity from AIUtil-Health
     #>
     [CmdletBinding()]
     param(
@@ -184,7 +248,19 @@ function Get-OpenAIModels {
         [switch]$Force
     )
 
-    if (-not $ApiKey) {
+    # Use AIUtil-Health to check API key presence
+    if (Get-Command -Name 'Test-ApiKeyPresent' -ErrorAction SilentlyContinue) {
+        $apiKeyCheck = Test-ApiKeyPresent -Provider "openai"
+        if (-not $apiKeyCheck.Present) {
+            Write-Verbose "No OpenAI API key found (via AIUtil-Health)"
+            return @{
+                Success = $false
+                Provider = "openai"
+                Error = "API key not configured"
+                Models = @()
+            }
+        }
+    } elseif (-not $ApiKey) {
         Write-Verbose "No OpenAI API key found"
         return @{
             Success = $false
@@ -202,6 +278,19 @@ function Get-OpenAIModels {
 
     try {
         Write-Verbose "Fetching OpenAI models..."
+
+        # Use AIUtil-Health for connectivity check if available
+        if (Get-Command -Name 'Test-ProviderConnectivity' -ErrorAction SilentlyContinue) {
+            $connectivityCheck = Test-ProviderConnectivity -Provider "openai" -NoCache:$Force
+            if (-not $connectivityCheck.Reachable) {
+                return @{
+                    Success = $false
+                    Provider = "openai"
+                    Error = "API endpoint not reachable: $($connectivityCheck.Error)"
+                    Models = @()
+                }
+            }
+        }
 
         $headers = @{
             "Authorization" = "Bearer $ApiKey"
@@ -328,6 +417,8 @@ function Get-GoogleModels {
         Google API key (defaults to env var)
     .PARAMETER Force
         Bypass cache and fetch fresh data
+    .NOTES
+        Uses Test-ApiKeyPresent and Test-ProviderConnectivity from AIUtil-Health
     #>
     [CmdletBinding()]
     param(
@@ -335,7 +426,19 @@ function Get-GoogleModels {
         [switch]$Force
     )
 
-    if (-not $ApiKey) {
+    # Use AIUtil-Health to check API key presence
+    if (Get-Command -Name 'Test-ApiKeyPresent' -ErrorAction SilentlyContinue) {
+        $apiKeyCheck = Test-ApiKeyPresent -Provider "google"
+        if (-not $apiKeyCheck.Present) {
+            Write-Verbose "No Google API key found (via AIUtil-Health)"
+            return @{
+                Success = $false
+                Provider = "google"
+                Error = "API key not configured"
+                Models = @()
+            }
+        }
+    } elseif (-not $ApiKey) {
         Write-Verbose "No Google API key found"
         return @{
             Success = $false
@@ -351,6 +454,19 @@ function Get-GoogleModels {
     }
 
     try {
+        # Use AIUtil-Health for connectivity check if available
+        if (Get-Command -Name 'Test-ProviderConnectivity' -ErrorAction SilentlyContinue) {
+            $connectivityCheck = Test-ProviderConnectivity -Provider "google" -NoCache:$Force
+            if (-not $connectivityCheck.Reachable) {
+                return @{
+                    Success = $false
+                    Provider = "google"
+                    Error = "API endpoint not reachable: $($connectivityCheck.Error)"
+                    Models = @()
+                }
+            }
+        }
+
         $response = Invoke-RestMethod -Uri "https://generativelanguage.googleapis.com/v1beta/models?key=$ApiKey" `
             -Method Get -ErrorAction Stop
 
@@ -397,6 +513,8 @@ function Get-MistralModels {
     <#
     .SYNOPSIS
         Fetches available models from Mistral API
+    .NOTES
+        Uses Test-ApiKeyPresent and Test-ProviderConnectivity from AIUtil-Health
     #>
     [CmdletBinding()]
     param(
@@ -404,7 +522,19 @@ function Get-MistralModels {
         [switch]$Force
     )
 
-    if (-not $ApiKey) {
+    # Use AIUtil-Health to check API key presence
+    if (Get-Command -Name 'Test-ApiKeyPresent' -ErrorAction SilentlyContinue) {
+        $apiKeyCheck = Test-ApiKeyPresent -Provider "mistral"
+        if (-not $apiKeyCheck.Present) {
+            Write-Verbose "No Mistral API key found (via AIUtil-Health)"
+            return @{
+                Success = $false
+                Provider = "mistral"
+                Error = "API key not configured"
+                Models = @()
+            }
+        }
+    } elseif (-not $ApiKey) {
         Write-Verbose "No Mistral API key found"
         return @{
             Success = $false
@@ -420,6 +550,19 @@ function Get-MistralModels {
     }
 
     try {
+        # Use AIUtil-Health for connectivity check if available
+        if (Get-Command -Name 'Test-ProviderConnectivity' -ErrorAction SilentlyContinue) {
+            $connectivityCheck = Test-ProviderConnectivity -Provider "mistral" -NoCache:$Force
+            if (-not $connectivityCheck.Reachable) {
+                return @{
+                    Success = $false
+                    Provider = "mistral"
+                    Error = "API endpoint not reachable: $($connectivityCheck.Error)"
+                    Models = @()
+                }
+            }
+        }
+
         $headers = @{
             "Authorization" = "Bearer $ApiKey"
             "Content-Type" = "application/json"
@@ -470,6 +613,8 @@ function Get-GroqModels {
     <#
     .SYNOPSIS
         Fetches available models from Groq API
+    .NOTES
+        Uses Test-ApiKeyPresent and Test-ProviderConnectivity from AIUtil-Health
     #>
     [CmdletBinding()]
     param(
@@ -477,7 +622,19 @@ function Get-GroqModels {
         [switch]$Force
     )
 
-    if (-not $ApiKey) {
+    # Use AIUtil-Health to check API key presence
+    if (Get-Command -Name 'Test-ApiKeyPresent' -ErrorAction SilentlyContinue) {
+        $apiKeyCheck = Test-ApiKeyPresent -Provider "groq"
+        if (-not $apiKeyCheck.Present) {
+            Write-Verbose "No Groq API key found (via AIUtil-Health)"
+            return @{
+                Success = $false
+                Provider = "groq"
+                Error = "API key not configured"
+                Models = @()
+            }
+        }
+    } elseif (-not $ApiKey) {
         Write-Verbose "No Groq API key found"
         return @{
             Success = $false
@@ -493,6 +650,19 @@ function Get-GroqModels {
     }
 
     try {
+        # Use AIUtil-Health for connectivity check if available
+        if (Get-Command -Name 'Test-ProviderConnectivity' -ErrorAction SilentlyContinue) {
+            $connectivityCheck = Test-ProviderConnectivity -Provider "groq" -NoCache:$Force
+            if (-not $connectivityCheck.Reachable) {
+                return @{
+                    Success = $false
+                    Provider = "groq"
+                    Error = "API endpoint not reachable: $($connectivityCheck.Error)"
+                    Models = @()
+                }
+            }
+        }
+
         $headers = @{
             "Authorization" = "Bearer $ApiKey"
             "Content-Type" = "application/json"
@@ -548,6 +718,8 @@ function Get-OllamaModels {
         Ollama API base URL (default: http://localhost:11434)
     .PARAMETER Force
         Bypass cache and fetch fresh data
+    .NOTES
+        Uses Test-OllamaAvailable from AIUtil-Health for availability checks
     #>
     [CmdletBinding()]
     param(
@@ -559,6 +731,20 @@ function Get-OllamaModels {
     if (-not $Force -and $script:ModelCache['ollama'] -and $script:CacheExpiry['ollama'] -gt (Get-Date)) {
         Write-Verbose "Returning cached Ollama models"
         return $script:ModelCache['ollama']
+    }
+
+    # Use AIUtil-Health for Ollama availability check if available
+    if (Get-Command -Name 'Test-OllamaAvailable' -ErrorAction SilentlyContinue) {
+        $ollamaCheck = Test-OllamaAvailable -NoCache:$Force
+        if (-not $ollamaCheck.Available) {
+            return @{
+                Success = $false
+                Provider = "ollama"
+                Error = "Ollama not running. Start with: ollama serve"
+                Models = @()
+                BaseUrl = $BaseUrl
+            }
+        }
     }
 
     try {
@@ -739,6 +925,8 @@ function Update-ModelConfig {
         Path to ai-config.json
     .PARAMETER BackupOriginal
         Create backup before updating
+    .NOTES
+        Uses Read-JsonFile and Write-JsonFile from AIUtil-JsonIO for atomic JSON operations
     #>
     [CmdletBinding()]
     param(
@@ -762,8 +950,14 @@ function Update-ModelConfig {
         Write-Host "[ModelDiscovery] Backup created: $backupPath" -ForegroundColor Gray
     }
 
-    # Load current config
-    $config = Get-Content $ConfigPath -Raw | ConvertFrom-Json
+    # Load current config using AIUtil-JsonIO if available
+    $config = $null
+    if (Get-Command -Name 'Read-JsonFile' -ErrorAction SilentlyContinue) {
+        $config = Read-JsonFile -Path $ConfigPath -Default @{}
+        Write-Verbose "Config loaded via AIUtil-JsonIO"
+    } else {
+        $config = Get-Content $ConfigPath -Raw | ConvertFrom-Json
+    }
 
     foreach ($providerName in $discovery.Summary.Keys) {
         if (-not $discovery.Summary[$providerName].Success) { continue }
@@ -800,8 +994,17 @@ function Update-ModelConfig {
         fetchDurationMs = $discovery.FetchDurationMs
     }
 
-    # Save updated config
-    $config | ConvertTo-Json -Depth 10 | Set-Content $ConfigPath -Encoding UTF8
+    # Save updated config using AIUtil-JsonIO if available (atomic write)
+    $writeSuccess = $false
+    if (Get-Command -Name 'Write-JsonFile' -ErrorAction SilentlyContinue) {
+        $writeSuccess = Write-JsonFile -Path $ConfigPath -Data $config -Depth 10
+        Write-Verbose "Config saved via AIUtil-JsonIO (atomic write)"
+    }
+
+    if (-not $writeSuccess) {
+        # Fallback to standard write
+        $config | ConvertTo-Json -Depth 10 | Set-Content $ConfigPath -Encoding UTF8
+    }
 
     Write-Host "[ModelDiscovery] Config updated with $($discovery.TotalModels) models" -ForegroundColor Green
 

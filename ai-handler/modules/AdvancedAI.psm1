@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Advanced AI Module - Unified Interface for Self-Correction, Few-Shot, and Speculation
@@ -10,12 +10,28 @@
 
     Use this module for the most advanced AI generation capabilities.
 .VERSION
-    1.0.0
+    1.1.0
 .AUTHOR
     HYDRA System
 #>
 
 $script:ModulePath = Split-Path -Parent $PSScriptRoot
+
+#region Utility Module Imports
+
+# Import health utilities (Test-OllamaAvailable, Get-SystemMetrics)
+$healthUtilPath = Join-Path $script:ModulePath "utils\AIUtil-Health.psm1"
+if (Test-Path $healthUtilPath) {
+    Import-Module $healthUtilPath -Force -DisableNameChecking -ErrorAction SilentlyContinue
+}
+
+# Import Ollama provider (Get-OllamaModels)
+$ollamaProviderPath = Join-Path $script:ModulePath "providers\OllamaProvider.psm1"
+if (Test-Path $ollamaProviderPath) {
+    Import-Module $ollamaProviderPath -Force -DisableNameChecking -ErrorAction SilentlyContinue
+}
+
+#endregion
 
 #region Module Loading
 
@@ -28,6 +44,32 @@ function Initialize-AdvancedAI {
     param()
 
     $modulesPath = Join-Path $script:ModulePath "modules"
+    $utilsPath = Join-Path $script:ModulePath "utils"
+    $providersPath = Join-Path $script:ModulePath "providers"
+
+    # Load utility modules first (health checks, etc.)
+    $utilModules = @(
+        @{ Path = (Join-Path $utilsPath "AIUtil-Health.psm1"); Name = "AIUtil-Health" }
+    )
+
+    foreach ($util in $utilModules) {
+        if (Test-Path $util.Path) {
+            Import-Module $util.Path -Force -Global -DisableNameChecking
+            Write-Host "[AdvancedAI] Loaded utility: $($util.Name)" -ForegroundColor DarkGray
+        }
+    }
+
+    # Load provider modules (Ollama, etc.)
+    $providerModules = @(
+        @{ Path = (Join-Path $providersPath "OllamaProvider.psm1"); Name = "OllamaProvider" }
+    )
+
+    foreach ($provider in $providerModules) {
+        if (Test-Path $provider.Path) {
+            Import-Module $provider.Path -Force -Global -DisableNameChecking
+            Write-Host "[AdvancedAI] Loaded provider: $($provider.Name)" -ForegroundColor DarkGray
+        }
+    }
 
     # Load all submodules (order matters - no dependencies first)
     $modules = @(
@@ -414,28 +456,37 @@ function Get-AdvancedAIStatus {
     <#
     .SYNOPSIS
         Get status of all advanced AI modules
+    .DESCRIPTION
+        Uses utility modules for health checks:
+        - Test-OllamaAvailable from AIUtil-Health.psm1
+        - Get-SystemMetrics from AIUtil-Health.psm1
+        - Get-OllamaModels from OllamaProvider.psm1
     #>
     [CmdletBinding()]
     param()
 
-    # Local Ollama check function
-    function Test-OllamaRunningLocal {
+    Write-Host "`n=== Advanced AI Status ===" -ForegroundColor Cyan
+
+    # Check Ollama using utility module (with caching)
+    $ollamaCheck = $null
+    $ollamaRunning = $false
+    try {
+        # Use Test-OllamaAvailable from AIUtil-Health
+        $ollamaCheck = Test-OllamaAvailable -IncludeModels
+        $ollamaRunning = $ollamaCheck.Available
+    } catch {
+        # Fallback if utility module not loaded
         try {
             $request = [System.Net.WebRequest]::Create("http://localhost:11434/api/tags")
             $request.Method = "GET"
             $request.Timeout = 3000
             $response = $request.GetResponse()
             $response.Close()
-            return $true
+            $ollamaRunning = $true
         } catch {
-            return $false
+            $ollamaRunning = $false
         }
     }
-
-    Write-Host "`n=== Advanced AI Status ===" -ForegroundColor Cyan
-
-    # Check Ollama first
-    $ollamaRunning = Test-OllamaRunningLocal
 
     # Check module status
     $modules = @{
@@ -466,27 +517,50 @@ function Get-AdvancedAIStatus {
         Write-Host "  [Not initialized]" -ForegroundColor Gray
     }
 
-    # System load
+    # System load - use Get-SystemMetrics from AIUtil-Health
     Write-Host "`n--- System Load ---" -ForegroundColor Cyan
+    $systemMetrics = $null
     try {
-        $load = Get-SystemLoad
-        Write-Host "  CPU: $($load.CpuPercent)%"
-        Write-Host "  Memory: $($load.MemoryPercent)%"
-        Write-Host "  Recommendation: $($load.Recommendation)"
+        # Try AIUtil-Health's Get-SystemMetrics first
+        $systemMetrics = Get-SystemMetrics
+        Write-Host "  CPU: $($systemMetrics.CpuPercent)%"
+        Write-Host "  Memory: $($systemMetrics.MemoryPercent)%"
+        Write-Host "  Available Memory: $($systemMetrics.MemoryAvailableGB) GB"
+        Write-Host "  Recommendation: $($systemMetrics.Recommendation)"
+        if ($systemMetrics.Cached) {
+            Write-Host "  (cached: $($systemMetrics.CacheAgeSeconds)s ago)" -ForegroundColor DarkGray
+        }
     } catch {
-        Write-Host "  [Load balancer not available]" -ForegroundColor Gray
+        # Fallback to LoadBalancer's Get-SystemLoad if available
+        try {
+            $load = Get-SystemLoad
+            Write-Host "  CPU: $($load.CpuPercent)%"
+            Write-Host "  Memory: $($load.MemoryPercent)%"
+            Write-Host "  Recommendation: $($load.Recommendation)"
+            $systemMetrics = $load
+        } catch {
+            Write-Host "  [System metrics not available]" -ForegroundColor Gray
+            $systemMetrics = @{CpuPercent=0; MemoryPercent=0; Recommendation="unknown"}
+        }
     }
 
-    # Ollama status
+    # Ollama status - use Get-OllamaModels from OllamaProvider
     Write-Host "`n--- Local Models (Ollama) ---" -ForegroundColor Cyan
     if ($ollamaRunning) {
         try {
-            $response = Invoke-RestMethod -Uri "http://localhost:11434/api/tags" -Method Get -ErrorAction Stop
-            if ($response.models) {
-                foreach ($m in $response.models) {
-                    $sizeGB = [math]::Round($m.size / 1GB, 1)
-                    Write-Host "  $($m.name) ($sizeGB GB)" -ForegroundColor Green
+            # Try using OllamaProvider's Get-OllamaModels
+            $models = Get-OllamaModels
+            if ($models -and $models.Count -gt 0) {
+                foreach ($m in $models) {
+                    Write-Host "  $($m.Name) ($($m.Size) GB)" -ForegroundColor Green
                 }
+            } elseif ($ollamaCheck -and $ollamaCheck.Models) {
+                # Use cached models from health check
+                foreach ($modelName in $ollamaCheck.Models) {
+                    Write-Host "  $modelName" -ForegroundColor Green
+                }
+            } else {
+                Write-Host "  [No models installed]" -ForegroundColor Yellow
             }
         } catch {
             Write-Host "  [Ollama running but models unknown]" -ForegroundColor Yellow
@@ -500,12 +574,13 @@ function Get-AdvancedAIStatus {
     # Return status object
     return @{
         OllamaRunning = $ollamaRunning
+        OllamaResponseTimeMs = if ($ollamaCheck) { $ollamaCheck.ResponseTimeMs } else { $null }
         SelfCorrectionEnabled = (Get-Module SelfCorrection) -ne $null
         FewShotEnabled = (Get-Module FewShotLearning) -ne $null
         SpeculativeEnabled = (Get-Module SpeculativeDecoding) -ne $null
         LoadBalancerEnabled = (Get-Module LoadBalancer) -ne $null
         SemanticMappingEnabled = (Get-Module SemanticFileMapping) -ne $null
-        SystemLoad = $(try { Get-SystemLoad } catch { @{CpuPercent=0; MemoryPercent=0; Recommendation="unknown"} })
+        SystemMetrics = $systemMetrics
     }
 }
 

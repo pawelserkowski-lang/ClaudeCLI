@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Speculative Decoding Module - Parallel Multi-Model Speculation
@@ -10,15 +10,182 @@
     The system returns whichever response passes validation first, or the
     more accurate one if both complete. This optimizes for both speed and quality.
 .VERSION
-    1.0.0
+    1.1.0
 .AUTHOR
     HYDRA System
+.NOTES
+    Updated to use centralized utility modules:
+    - AIUtil-Health.psm1 for Test-OllamaAvailable, Get-SystemMetrics
+    - OllamaProvider.psm1 for Get-OllamaModels
 #>
 
 $script:ModulePath = Split-Path -Parent $PSScriptRoot
 $script:FastModel = "llama3.2:1b"
 $script:AccurateModel = "llama3.2:3b"
 $script:CodeModel = "qwen2.5-coder:1.5b"
+
+#region Module Imports
+
+# Import AIUtil-Health for centralized health checks
+$healthModule = Join-Path $script:ModulePath "utils\AIUtil-Health.psm1"
+if (Test-Path $healthModule) {
+    Import-Module $healthModule -Force -ErrorAction SilentlyContinue
+}
+
+# Import OllamaProvider for model operations
+$ollamaModule = Join-Path $script:ModulePath "providers\OllamaProvider.psm1"
+if (Test-Path $ollamaModule) {
+    Import-Module $ollamaModule -Force -ErrorAction SilentlyContinue
+}
+
+#endregion
+
+#region Load-Aware Model Selection
+
+function Get-LoadAwareModels {
+    <#
+    .SYNOPSIS
+        Select models based on current system load using Get-SystemMetrics.
+    .DESCRIPTION
+        Uses the centralized Get-SystemMetrics function to determine optimal
+        fast and accurate models based on CPU and memory utilization.
+    .PARAMETER PreferSpeed
+        If true, prioritizes faster/lighter models even at normal load.
+    .OUTPUTS
+        Hashtable with FastModel, AccurateModel, and LoadInfo.
+    #>
+    [CmdletBinding()]
+    param(
+        [switch]$PreferSpeed
+    )
+
+    $result = @{
+        FastModel     = $script:FastModel
+        AccurateModel = $script:AccurateModel
+        LoadInfo      = $null
+        Adjusted      = $false
+    }
+
+    # Use centralized Get-SystemMetrics if available
+    if (Get-Command Get-SystemMetrics -ErrorAction SilentlyContinue) {
+        try {
+            $metrics = Get-SystemMetrics
+
+            $result.LoadInfo = @{
+                CpuPercent       = $metrics.CpuPercent
+                MemoryPercent    = $metrics.MemoryPercent
+                Recommendation   = $metrics.Recommendation
+            }
+
+            # Adjust models based on system load
+            switch ($metrics.Recommendation) {
+                "cloud" {
+                    # High load: use lightest models
+                    $result.FastModel     = "llama3.2:1b"
+                    $result.AccurateModel = "llama3.2:1b"  # Both use light model
+                    $result.Adjusted      = $true
+                    Write-Verbose "[Speculative] High load ($($metrics.CpuPercent)% CPU) - using lighter models"
+                }
+                "hybrid" {
+                    # Medium load: fast stays light, accurate uses medium
+                    $result.FastModel     = "llama3.2:1b"
+                    $result.AccurateModel = "llama3.2:3b"
+                    $result.Adjusted      = $true
+                    Write-Verbose "[Speculative] Medium load ($($metrics.CpuPercent)% CPU) - using balanced models"
+                }
+                default {
+                    # Normal load: use standard models unless speed preferred
+                    if ($PreferSpeed) {
+                        $result.FastModel     = "llama3.2:1b"
+                        $result.AccurateModel = "llama3.2:1b"
+                        $result.Adjusted      = $true
+                    }
+                }
+            }
+        }
+        catch {
+            Write-Verbose "[Speculative] Failed to get system metrics: $($_.Exception.Message)"
+        }
+    }
+
+    return $result
+}
+
+function Test-OllamaReady {
+    <#
+    .SYNOPSIS
+        Check if Ollama is available using centralized health check.
+    .DESCRIPTION
+        Wrapper that uses Test-OllamaAvailable from AIUtil-Health if available,
+        otherwise falls back to basic check.
+    .OUTPUTS
+        Boolean indicating Ollama availability.
+    #>
+    [CmdletBinding()]
+    [OutputType([bool])]
+    param()
+
+    # Try centralized health check first
+    if (Get-Command Test-OllamaAvailable -ErrorAction SilentlyContinue) {
+        $check = Test-OllamaAvailable
+        if ($check -is [hashtable]) {
+            return $check.Available
+        }
+        return $check
+    }
+
+    # Fallback: basic TCP check
+    try {
+        $tcp = New-Object System.Net.Sockets.TcpClient
+        $result = $tcp.BeginConnect('localhost', 11434, $null, $null)
+        $success = $result.AsyncWaitHandle.WaitOne(2000, $false)
+        if ($success -and $tcp.Connected) {
+            $tcp.EndConnect($result)
+            $tcp.Close()
+            return $true
+        }
+        $tcp.Close()
+        return $false
+    }
+    catch {
+        return $false
+    }
+}
+
+function Get-AvailableModelsForSpeculation {
+    <#
+    .SYNOPSIS
+        Get list of available Ollama models for speculation.
+    .DESCRIPTION
+        Uses Get-OllamaModels from OllamaProvider if available.
+    .OUTPUTS
+        Array of model names.
+    #>
+    [CmdletBinding()]
+    [OutputType([array])]
+    param()
+
+    # Try centralized function first
+    if (Get-Command Get-OllamaModels -ErrorAction SilentlyContinue) {
+        $models = Get-OllamaModels
+        if ($models) {
+            return $models | ForEach-Object {
+                if ($_ -is [hashtable]) { $_.Name } else { $_ }
+            }
+        }
+    }
+
+    # Fallback: direct API call
+    try {
+        $response = Invoke-RestMethod -Uri "http://localhost:11434/api/tags" -Method Get -TimeoutSec 5
+        return $response.models | ForEach-Object { $_.name }
+    }
+    catch {
+        return @()
+    }
+}
+
+#endregion
 
 #region Parallel Speculation
 
@@ -42,6 +209,8 @@ function Invoke-SpeculativeDecoding {
         If true, returns fast model result immediately if valid
     .PARAMETER TimeoutMs
         Timeout for speculation in milliseconds
+    .PARAMETER LoadAware
+        If true, adjusts model selection based on current system load
     #>
     [CmdletBinding()]
     param(
@@ -60,13 +229,37 @@ function Invoke-SpeculativeDecoding {
 
         [string]$SystemPrompt,
 
-        [int]$MaxTokens = 2048
+        [int]$MaxTokens = 2048,
+
+        [switch]$LoadAware
     )
+
+    # Check Ollama availability using centralized health check
+    if (-not (Test-OllamaReady)) {
+        Write-Warning "[Speculative] Ollama is not available"
+        return @{
+            Content = $null
+            Error = "Ollama not available"
+            ElapsedSeconds = 0
+        }
+    }
 
     # Import main module
     $mainModule = Join-Path $script:ModulePath "AIModelHandler.psm1"
     if (-not (Get-Module AIModelHandler)) {
         Import-Module $mainModule -Force
+    }
+
+    # Adjust models based on system load if LoadAware is enabled
+    $loadInfo = $null
+    if ($LoadAware) {
+        $loadAwareResult = Get-LoadAwareModels -PreferSpeed:$PreferFast
+        if ($loadAwareResult.Adjusted) {
+            $FastModel = $loadAwareResult.FastModel
+            $AccurateModel = $loadAwareResult.AccurateModel
+            $loadInfo = $loadAwareResult.LoadInfo
+            Write-Host "[Speculative] Load-aware adjustment: CPU=$($loadInfo.CpuPercent)% → $($loadInfo.Recommendation)" -ForegroundColor Yellow
+        }
     }
 
     Write-Host "[Speculative] Starting parallel speculation..." -ForegroundColor Cyan
@@ -234,7 +427,7 @@ function Invoke-SpeculativeDecoding {
         Write-Host "[Speculative] Selected: $($selectedResult.ModelType) model ($selectionReason)" -ForegroundColor Green
         Write-Host "[Speculative] Total time: $([math]::Round($totalElapsed, 2))s" -ForegroundColor Gray
 
-        return @{
+        $result = @{
             Content = $selectedResult.Content
             Model = $selectedResult.Model
             ModelType = $selectedResult.ModelType
@@ -245,15 +438,28 @@ function Invoke-SpeculativeDecoding {
             Tokens = $selectedResult.Tokens
         }
 
+        # Include load info if LoadAware was used
+        if ($loadInfo) {
+            $result.LoadInfo = $loadInfo
+        }
+
+        return $result
+
     } else {
         Write-Warning "[Speculative] Both models failed or timed out"
-        return @{
+        $result = @{
             Content = $null
             Error = "Speculation failed"
             FastResult = $fastResult
             AccurateResult = $accurateResult
             ElapsedSeconds = $totalElapsed
         }
+
+        if ($loadInfo) {
+            $result.LoadInfo = $loadInfo
+        }
+
+        return $result
     }
 }
 
@@ -456,8 +662,37 @@ function Invoke-ModelRace {
 
         [string]$SystemPrompt,
 
-        [int]$MaxTokens = 1024
+        [int]$MaxTokens = 1024,
+
+        [switch]$FilterAvailable
     )
+
+    # Check Ollama availability using centralized health check
+    if (-not (Test-OllamaReady)) {
+        Write-Warning "[Race] Ollama is not available"
+        return @{
+            Content = $null
+            Error = "Ollama not available"
+            ElapsedSeconds = 0
+        }
+    }
+
+    # Optionally filter to only available models
+    if ($FilterAvailable) {
+        $availableModels = Get-AvailableModelsForSpeculation
+        if ($availableModels.Count -gt 0) {
+            $Models = $Models | Where-Object { $_ -in $availableModels }
+            if ($Models.Count -eq 0) {
+                Write-Warning "[Race] No requested models are available locally"
+                return @{
+                    Content = $null
+                    Error = "No requested models available"
+                    AvailableModels = $availableModels
+                    ElapsedSeconds = 0
+                }
+            }
+        }
+    }
 
     # Import main module
     $mainModule = Join-Path $script:ModulePath "AIModelHandler.psm1"
@@ -723,12 +958,21 @@ function Get-TextSimilarity {
 #region Exports
 
 Export-ModuleMember -Function @(
+    # Core speculation functions
     'Invoke-SpeculativeDecoding',
     'Invoke-CodeSpeculation',
     'Invoke-AnalysisSpeculation',
     'Invoke-ModelRace',
     'Invoke-ConsensusGeneration',
-    'Test-ResponseValidity'
+
+    # Utility functions
+    'Test-ResponseValidity',
+    'Get-TextSimilarity',
+
+    # Load-aware helpers (use centralized utility modules)
+    'Get-LoadAwareModels',
+    'Test-OllamaReady',
+    'Get-AvailableModelsForSpeculation'
 )
 
 #endregion

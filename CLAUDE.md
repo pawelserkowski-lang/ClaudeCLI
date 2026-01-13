@@ -1,15 +1,69 @@
-# HYDRA 10.0 - System Instructions
+# HYDRA 10.1 - System Instructions
 
 **Status**: Active | **Mode**: MCP Orchestration | **Project**: ClaudeCLI
 **Path**: `C:\Users\BIURODOM\Desktop\ClaudeCLI`
+**Config**: `hydra-config.json`
 
 ## MCP Tools
 
 | Tool | Port | Funkcja |
 |------|------|---------|
-| **Serena** | - | Symbolic code analysis |
+| **Serena** | 9000 | Symbolic code analysis |
 | **Desktop Commander** | 8100 | System operations |
 | **Playwright** | 5200 | Browser automation |
+
+---
+
+## Slash Commands (Quick Reference)
+
+### Core AI Commands
+
+| Command | Description | Cost |
+|---------|-------------|------|
+| `/ai <query>` | Quick local AI query | $0 |
+| `/ai-batch` | Parallel batch queries | $0 |
+| `/ai-status` | Check all providers | - |
+| `/ai-config` | Configure settings | - |
+
+### Advanced AI Commands
+
+| Command | Description | Module |
+|---------|-------------|--------|
+| `/self-correct <code task>` | Code with auto-validation | SelfCorrection |
+| `/speculate <query>` | Model racing (fastest wins) | SpeculativeDecoding |
+| `/semantic-query <file> <question>` | Deep RAG with imports | SemanticFileMapping |
+| `/few-shot <task>` | Learn from history | FewShotLearning |
+| `/load-balance` | CPU-aware provider | LoadBalancer |
+| `/optimize-prompt <text>` | Enhance prompt quality | PromptOptimizer |
+
+### Orchestration
+
+| Command | Description |
+|---------|-------------|
+| `/hydra` | Three-Headed Beast workflow |
+| `/serena-commander` | Serena + DC hybrid skill |
+
+### Usage Examples
+
+```powershell
+# Generate validated code
+/self-correct Write Python function to parse JSON safely
+
+# Fastest response (model race)
+/speculate What is the capital of France?
+
+# Query with full dependency context
+/semantic-query src/auth.py How does login work?
+
+# SQL with history examples
+/few-shot Write SQL to get active users from last 30 days
+
+# Check system load and get provider
+/load-balance
+
+# Improve vague prompt
+/optimize-prompt do something with the stuff
+```
 
 ---
 
@@ -151,7 +205,8 @@ C:\Users\BIURODOM\Desktop\ClaudeCLI\
 ├── mcp-health-check.ps1 # MCP diagnostics
 └── ClaudeCLI.vbs        # Windows shortcut helper
 ├── ai-handler/          # 🤖 AI Model Handler with auto-fallback
-│   ├── AIModelHandler.psm1      # Main module
+│   ├── AIFacade.psm1            # 🎯 ENTRY POINT - Unified interface (NEW)
+│   ├── AIModelHandler.psm1      # Legacy main module (still works)
 │   ├── ai-config.json           # Provider/model configuration
 │   ├── ai-state.json            # Runtime state (auto-generated)
 │   ├── Invoke-AI.ps1            # Quick CLI wrapper
@@ -159,14 +214,37 @@ C:\Users\BIURODOM\Desktop\ClaudeCLI\
 │   ├── Initialize-AdvancedAI.ps1 # Advanced AI loader
 │   ├── Demo-AdvancedAI.ps1      # Advanced features demo
 │   ├── cache/                   # Few-shot learning cache
-│   └── modules/                 # 🧠 Advanced AI Modules
+│   ├── utils/                   # 📦 Layer 1: Utilities (NEW)
+│   │   ├── AIUtil-JsonIO.psm1       # Atomic JSON read/write
+│   │   ├── AIUtil-Health.psm1       # System & provider health checks
+│   │   ├── AIUtil-Validation.psm1   # Prompt/code validation
+│   │   └── AIErrorHandler.psm1      # Centralized error handling
+│   ├── core/                    # 📦 Layer 2: Core (NEW)
+│   │   ├── AIConstants.psm1         # System constants
+│   │   ├── AIConfig.psm1            # Configuration management
+│   │   └── AIState.psm1             # Runtime state management
+│   ├── rate-limiting/           # 📦 Layer 3: Rate limiting (NEW)
+│   │   └── RateLimiter.psm1         # Token/request rate limiting
+│   ├── model-selection/         # 📦 Layer 3: Model selection (NEW)
+│   │   └── ModelSelector.psm1       # Intelligent model selection
+│   ├── providers/               # 📦 Layer 4: Providers (NEW)
+│   │   ├── OllamaProvider.psm1      # Local Ollama integration
+│   │   ├── AnthropicProvider.psm1   # Anthropic Claude API
+│   │   └── OpenAIProvider.psm1      # OpenAI GPT API
+│   └── modules/                 # 🧠 Advanced AI Modules (Layer 6)
 │       ├── SelfCorrection.psm1      # Agentic self-correction
 │       ├── FewShotLearning.psm1     # Dynamic few-shot learning
 │       ├── SpeculativeDecoding.psm1 # Parallel multi-model
 │       ├── LoadBalancer.psm1        # CPU-aware load balancing
 │       ├── SemanticFileMapping.psm1 # Deep RAG with imports
 │       ├── AdvancedAI.psm1          # Unified interface
-│       └── PromptOptimizer.psm1     # 🆕 Auto prompt enhancement
+│       ├── PromptOptimizer.psm1     # Auto prompt enhancement
+│       ├── TaskClassifier.psm1      # Task type classification
+│       ├── SmartQueue.psm1          # Prompt queue management
+│       ├── ModelDiscovery.psm1      # Dynamic model discovery
+│       ├── SemanticGitCommit.psm1   # AI-powered git commits
+│       ├── AICodeReview.psm1        # Code review module
+│       └── PredictiveAutocomplete.psm1 # Autocomplete suggestions
 ├── parallel/            # ⚡ Parallel execution system
 │   ├── modules/
 │   │   └── ParallelUtils.psm1    # Core parallel functions
@@ -184,6 +262,221 @@ C:\Users\BIURODOM\Desktop\ClaudeCLI\
 │   │   └── Start-ParallelBrowsers.ps1   # Playwright parallel helper
 │   └── Initialize-Parallel.ps1   # Module loader
 ```
+
+---
+
+## 4.1 Refactored AI Handler Architecture (🏗️ NEW)
+
+The AI Handler system has been refactored into a modular, layered architecture with dependency injection and proper separation of concerns. This replaces the monolithic `AIModelHandler.psm1` design.
+
+### New Directory Structure
+
+```
+ai-handler/
+├── AIFacade.psm1              # 🎯 ENTRY POINT - Unified interface
+├── AIModelHandler.psm1        # Legacy module (still works)
+├── ai-config.json             # Provider/model configuration
+├── ai-state.json              # Runtime state (auto-generated)
+│
+├── utils/                     # 📦 Layer 1: Utilities (no dependencies)
+│   ├── AIUtil-JsonIO.psm1     # Atomic JSON read/write
+│   ├── AIUtil-Health.psm1     # System & provider health checks
+│   ├── AIUtil-Validation.psm1 # Prompt/code validation
+│   └── AIErrorHandler.psm1    # Centralized error handling
+│
+├── core/                      # 📦 Layer 2: Core (depends on utils)
+│   ├── AIConstants.psm1       # System constants
+│   ├── AIConfig.psm1          # Configuration management
+│   └── AIState.psm1           # Runtime state management
+│
+├── rate-limiting/             # 📦 Layer 3: Infrastructure
+│   └── RateLimiter.psm1       # Token/request rate limiting
+│
+├── model-selection/           # 📦 Layer 3: Infrastructure
+│   └── ModelSelector.psm1     # Optimal model selection
+│
+├── providers/                 # 📦 Layer 4: Providers
+│   ├── OllamaProvider.psm1    # Local Ollama integration
+│   ├── AnthropicProvider.psm1 # Anthropic Claude API
+│   └── OpenAIProvider.psm1    # OpenAI GPT API
+│
+├── fallback/                  # 📦 Layer 5: Fallback logic
+│   └── (fallback orchestration)
+│
+└── modules/                   # 📦 Layer 6: Advanced features
+    ├── SelfCorrection.psm1
+    ├── FewShotLearning.psm1
+    ├── SpeculativeDecoding.psm1
+    ├── LoadBalancer.psm1
+    ├── SemanticFileMapping.psm1
+    ├── PromptOptimizer.psm1
+    ├── AdvancedAI.psm1
+    └── ... (other advanced modules)
+```
+
+### Layer Descriptions
+
+| Layer | Directory | Responsibility | Dependencies |
+|-------|-----------|----------------|--------------|
+| **1. Utils** | `utils/` | Zero-dependency utilities | None |
+| **2. Core** | `core/` | Configuration, constants, state | Utils |
+| **3. Infrastructure** | `rate-limiting/`, `model-selection/` | Rate limiting, model selection | Core |
+| **4. Providers** | `providers/` | API integrations | Infrastructure |
+| **5. Fallback** | `fallback/` | Cross-provider fallback | Providers |
+| **6. Advanced** | `modules/` | Optional advanced features | All above |
+
+### AIFacade.psm1 - The Entry Point
+
+`AIFacade.psm1` is the **recommended entry point** for all AI operations. It provides:
+
+1. **Dependency Injection Container** - Manages module loading order
+2. **Phased Loading** - Prevents circular dependencies
+3. **Unified Interface** - Single `Invoke-AI` function for all operations
+
+```powershell
+# Initialize the AI System (loads all modules in correct order)
+Import-Module "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\AIFacade.psm1"
+$result = Initialize-AISystem
+
+# Check system status
+Get-AISystemStatus -Detailed -CheckProviders
+
+# Unified AI invocation
+Invoke-AI "What is 2+2?" -Mode fast
+Invoke-AI "Write Python function to sort list" -Mode code
+Invoke-AI "Explain async/await" -Mode analysis
+
+# Get dependency container
+Get-AIDependencies -Category "Providers"
+
+# Reset and reinitialize
+Reset-AISystem -Reinitialize
+```
+
+### Key Module Responsibilities
+
+| Module | Functions | Description |
+|--------|-----------|-------------|
+| **AIUtil-JsonIO** | `Read-JsonFile`, `Write-JsonFile`, `ConvertTo-Hashtable` | Atomic JSON I/O with PS 5.1 compatibility |
+| **AIUtil-Health** | `Test-OllamaAvailable`, `Get-SystemMetrics`, `Test-ProviderConnectivity` | Cached health checks (30s TTL) |
+| **AIUtil-Validation** | `Get-PromptCategory`, `Get-ClarityScore`, `Test-CodeLanguage` | Prompt/code analysis |
+| **AIErrorHandler** | `Get-ErrorCategory`, `Test-ErrorRecoverable`, `Get-RetryStrategy` | Error classification & recovery |
+| **AIConfig** | `Get-AIConfig`, `Save-AIConfig`, `Merge-Config`, `Test-ConfigValid` | Configuration CRUD |
+| **AIState** | `Get-AIState`, `Save-AIState`, `Update-AIState` | Runtime state management |
+| **RateLimiter** | `Update-UsageTracking`, `Get-RateLimitStatus`, `Test-RateLimitAvailable` | Per-minute rate limiting |
+| **ModelSelector** | `Get-OptimalModel`, `Get-FallbackModel`, `Test-ModelAvailable` | Intelligent model selection |
+| **OllamaProvider** | `Test-OllamaAvailable`, `Get-OllamaModels`, `Invoke-OllamaAPI` | Local AI via Ollama |
+| **AnthropicProvider** | `Invoke-AnthropicAPI`, `Test-AnthropicAvailable` | Claude API integration |
+| **OpenAIProvider** | `Invoke-OpenAIAPI`, `Test-OpenAIAvailable` | GPT API integration |
+
+### Migration Guide: Old vs New
+
+**OLD (Monolithic)**:
+```powershell
+# Single file import
+Import-Module "ai-handler\AIModelHandler.psm1"
+Invoke-AIRequest -Messages @(@{role="user"; content="..."})
+```
+
+**NEW (Modular via Facade)**:
+```powershell
+# Facade handles all dependencies
+Import-Module "ai-handler\AIFacade.psm1"
+Initialize-AISystem
+
+# Unified interface with mode selection
+Invoke-AI "Your prompt" -Mode auto
+
+# Or use individual modules if needed
+$status = Get-RateLimitStatus -Provider "anthropic" -Model "claude-sonnet-4-5-20250929"
+$optimal = Get-OptimalModel -Task "code" -PreferCheapest
+```
+
+**Backward Compatibility**: `AIModelHandler.psm1` still works as before. The new architecture is additive.
+
+### Loading Phases (Initialize-AISystem)
+
+```
+Phase 1: Utils          → AIUtil-JsonIO, AIUtil-Health, AIUtil-Validation
+Phase 2: Core           → AIConstants, AIConfig, AIState
+Phase 3: Infrastructure → RateLimiter, ModelSelector, ErrorLogger, SecureStorage
+Phase 4: Providers      → OllamaProvider, AnthropicProvider, OpenAIProvider
+Phase 5: Advanced       → SelfCorrection, FewShotLearning, SpeculativeDecoding, ...
+```
+
+### Utility Functions Quick Reference
+
+#### AIUtil-JsonIO (Atomic JSON Operations)
+
+```powershell
+# Read JSON with default fallback
+$config = Read-JsonFile -Path "config.json" -Default @{ setting = "value" }
+
+# Write JSON atomically (temp file + rename)
+Write-JsonFile -Path "state.json" -Data $state -Depth 10
+
+# Convert PSObject to Hashtable (PS 5.1 compatibility)
+$hashtable = $jsonObject | ConvertTo-Hashtable
+```
+
+#### AIUtil-Health (Cached Health Checks)
+
+```powershell
+# Check Ollama (cached 30s)
+$ollama = Test-OllamaAvailable -IncludeModels
+# Returns: @{ Available = $true; Models = @('llama3.2:3b'); ResponseTimeMs = 15 }
+
+# Force fresh check
+Test-OllamaAvailable -NoCache
+
+# Get system metrics (cached 10s)
+$metrics = Get-SystemMetrics
+# Returns: @{ CpuPercent = 25; MemoryPercent = 60; ... }
+```
+
+#### AIUtil-Validation (Prompt Analysis)
+
+```powershell
+# Detect prompt category
+Get-PromptCategory -Prompt "Write Python function to sort"
+# Returns: "code"
+
+# Get clarity score (0-100)
+Get-ClarityScore -Prompt "do something with the stuff"
+# Returns: 35 (low - vague terms detected)
+
+# Detect programming language in code
+Test-CodeLanguage -Code "def hello(): print('world')"
+# Returns: "python"
+```
+
+#### AIErrorHandler (Error Classification)
+
+```powershell
+# Classify error
+$category = Get-ErrorCategory -ErrorMessage "rate limit exceeded"
+# Returns: "RateLimit"
+
+# Check if recoverable
+Test-ErrorRecoverable -Category "RateLimit"
+# Returns: $true
+
+# Get retry strategy
+Get-RetryStrategy -Category "Overloaded"
+# Returns: @{ RetryAfter = 30000; Fallback = "SwitchModel" }
+```
+
+### Benefits of New Architecture
+
+| Benefit | Description |
+|---------|-------------|
+| **No Circular Dependencies** | Phased loading ensures correct order |
+| **Testability** | Individual modules can be unit tested |
+| **Maintainability** | Single responsibility per module |
+| **Caching** | Health checks cached to reduce redundancy |
+| **Backward Compatible** | Old code still works unchanged |
+| **Dependency Injection** | Easy to swap implementations |
+| **Error Isolation** | Failures in optional modules don't break core |
 
 ---
 

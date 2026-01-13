@@ -3,12 +3,21 @@
 .SYNOPSIS
     Initialize Advanced AI Modules for ClaudeCLI
 .DESCRIPTION
-    Loads and initializes all advanced AI capabilities:
+    Loads and initializes all advanced AI capabilities using the AIFacade system:
     - Agentic Self-Correction
     - Dynamic Few-Shot Learning
     - Speculative Decoding
+    - Load Balancing
+    - Semantic File Mapping (RAG)
+    - Prompt Optimizer
+    - Task Classifier
+    - Smart Queue
+    - Model Discovery
+    - Semantic Git Commit
+    - AI Code Review
+    - Predictive Autocomplete
 
-    Run this script to enable advanced AI features.
+    Uses AIFacade.psm1 for dependency injection and phased module loading.
 .EXAMPLE
     . .\Initialize-AdvancedAI.ps1
 .EXAMPLE
@@ -18,61 +27,71 @@
 $ErrorActionPreference = "Stop"
 
 $script:AIHandlerPath = $PSScriptRoot
-$script:ModulesPath = Join-Path $PSScriptRoot "modules"
 
 Write-Host @"
 
     _       _                               _      _    ___
    / \   __| |_   ____ _ _ __   ___ ___  __| |    / \  |_ _|
-  / _ \ / _` \ \ / / _` | '_ \ / __/ _ \/ _` |   / _ \  | |
+  / _ \ / _`| \ \ / / _`| | '_ \ / __/ _ \/ _`| |   / _ \  | |
  / ___ \ (_| |\ V / (_| | | | | (_|  __/ (_| |  / ___ \ | |
 /_/   \_\__,_| \_/ \__,_|_| |_|\___\___|\__,_| /_/   \_\___|
 
-        HYDRA Advanced AI System v2.0
-        Self-Correction | Few-Shot | Speculation | Load Balancing | Semantic RAG
+        HYDRA Advanced AI System v3.0
+        Modular Architecture with AIFacade
 
 "@ -ForegroundColor Cyan
 
-# Load main AI Handler
-Write-Host "[Init] Loading AIModelHandler..." -ForegroundColor Gray
-$mainModule = Join-Path $script:AIHandlerPath "AIModelHandler.psm1"
-if (Test-Path $mainModule) {
-    Import-Module $mainModule -Force -Global
-    Write-Host "[OK] AIModelHandler loaded" -ForegroundColor Green
-} else {
-    Write-Error "AIModelHandler.psm1 not found at $mainModule"
-}
+# ============================================================================
+# LOAD AI FACADE (Single Entry Point)
+# ============================================================================
 
-# Load advanced modules
-$advancedModules = @(
-    @{ Name = "SelfCorrection"; Desc = "Agentic Self-Correction" }
-    @{ Name = "FewShotLearning"; Desc = "Dynamic Few-Shot Learning" }
-    @{ Name = "SpeculativeDecoding"; Desc = "Speculative Decoding" }
-    @{ Name = "LoadBalancer"; Desc = "Dynamic Load Balancing" }
-    @{ Name = "SemanticFileMapping"; Desc = "Semantic File Mapping (RAG)" }
-    @{ Name = "AdvancedAI"; Desc = "Unified Advanced AI Interface" }
-)
+Write-Host "[Init] Loading AIFacade..." -ForegroundColor Gray
+$facadeModule = Join-Path $script:AIHandlerPath "AIFacade.psm1"
 
-foreach ($mod in $advancedModules) {
-    $path = Join-Path $script:ModulesPath "$($mod.Name).psm1"
-    Write-Host "[Init] Loading $($mod.Desc)..." -ForegroundColor Gray
-
-    if (Test-Path $path) {
-        try {
-            Import-Module $path -Force -Global
-            Write-Host "[OK] $($mod.Name) loaded" -ForegroundColor Green
-        } catch {
-            Write-Warning "[WARN] Failed to load $($mod.Name): $($_.Exception.Message)"
-        }
-    } else {
-        Write-Warning "[WARN] Module not found: $path"
+if (Test-Path $facadeModule) {
+    try {
+        Import-Module $facadeModule -Force -Global -ErrorAction Stop
+        Write-Host "[OK] AIFacade loaded" -ForegroundColor Green
+    }
+    catch {
+        Write-Error "Failed to load AIFacade.psm1: $($_.Exception.Message)"
+        return
     }
 }
+else {
+    Write-Error "AIFacade.psm1 not found at $facadeModule"
+    return
+}
 
-# Check Ollama availability
+# ============================================================================
+# INITIALIZE AI SYSTEM (Phased Module Loading)
+# ============================================================================
+
+Write-Host "`n[Init] Initializing AI System (5-phase loading)..." -ForegroundColor Gray
+
+$initResult = Initialize-AISystem -Force
+
+if ($initResult.Status -eq "Initialized") {
+    Write-Host "[OK] AI System initialized in $([math]::Round($initResult.Duration, 2))s" -ForegroundColor Green
+    Write-Host "[OK] Loaded $($initResult.TotalLoaded) modules" -ForegroundColor Green
+
+    if ($initResult.TotalFailed -gt 0) {
+        Write-Host "[WARN] $($initResult.TotalFailed) modules failed to load" -ForegroundColor Yellow
+        foreach ($failed in $initResult.FailedModules) {
+            Write-Host "       - $($failed.Name): $($failed.Error)" -ForegroundColor Yellow
+        }
+    }
+}
+else {
+    Write-Warning "AI System initialization returned status: $($initResult.Status)"
+}
+
+# ============================================================================
+# CHECK OLLAMA AVAILABILITY
+# ============================================================================
+
 Write-Host "`n[Init] Checking Ollama..." -ForegroundColor Gray
 
-# Define local check function to avoid scope issues
 function Test-OllamaRunning {
     try {
         $request = [System.Net.WebRequest]::Create("http://localhost:11434/api/tags")
@@ -81,7 +100,8 @@ function Test-OllamaRunning {
         $response = $request.GetResponse()
         $response.Close()
         return $true
-    } catch {
+    }
+    catch {
         return $false
     }
 }
@@ -95,10 +115,12 @@ if (Test-OllamaRunning) {
             $modelNames = $response.models | ForEach-Object { $_.name }
             Write-Host "[OK] Available models: $($modelNames -join ', ')" -ForegroundColor Green
         }
-    } catch {
+    }
+    catch {
         Write-Host "[OK] Ollama running (could not list models)" -ForegroundColor Green
     }
-} else {
+}
+else {
     Write-Host "[WARN] Ollama is not running. Starting..." -ForegroundColor Yellow
     $ollamaExe = "$env:LOCALAPPDATA\Programs\Ollama\ollama.exe"
     if (Test-Path $ollamaExe) {
@@ -107,12 +129,16 @@ if (Test-OllamaRunning) {
         if (Test-OllamaRunning) {
             Write-Host "[OK] Ollama started successfully" -ForegroundColor Green
         }
-    } else {
+    }
+    else {
         Write-Host "[INFO] Ollama not installed. Run Install-Ollama.ps1 to install." -ForegroundColor Yellow
     }
 }
 
-# Initialize cache
+# ============================================================================
+# INITIALIZE CACHE DIRECTORY
+# ============================================================================
+
 Write-Host "`n[Init] Initializing Few-Shot cache..." -ForegroundColor Gray
 $cachePath = Join-Path $script:AIHandlerPath "cache"
 if (-not (Test-Path $cachePath)) {
@@ -120,16 +146,72 @@ if (-not (Test-Path $cachePath)) {
 }
 Write-Host "[OK] Cache ready at $cachePath" -ForegroundColor Green
 
+# ============================================================================
+# DISPLAY SYSTEM STATUS
+# ============================================================================
+
+Write-Host "`n[Init] Getting system status..." -ForegroundColor Gray
+$status = Get-AISystemStatus -Detailed -CheckProviders
+
+# Display provider status
+Write-Host "`n=== Provider Status ===" -ForegroundColor Cyan
+if ($status.ProviderStatus) {
+    foreach ($provider in $status.ProviderStatus.Keys) {
+        $providerInfo = $status.ProviderStatus[$provider]
+        if ($providerInfo.Available) {
+            Write-Host "  [OK] $provider" -ForegroundColor Green -NoNewline
+            if ($providerInfo.Models) {
+                Write-Host " ($($providerInfo.Models.Count) models)" -ForegroundColor Gray
+            }
+            else {
+                Write-Host ""
+            }
+        }
+        else {
+            Write-Host "  [--] $provider" -ForegroundColor Yellow -NoNewline
+            if ($providerInfo.Error) {
+                Write-Host " (not running)" -ForegroundColor Yellow
+            }
+            elseif (-not $providerInfo.KeySet) {
+                Write-Host " (no API key)" -ForegroundColor Yellow
+            }
+            else {
+                Write-Host ""
+            }
+        }
+    }
+}
+
+# Display module categories
+Write-Host "`n=== Loaded Modules by Category ===" -ForegroundColor Cyan
+foreach ($category in $status.Categories.Keys | Sort-Object) {
+    $count = $status.Categories[$category]
+    if ($count -gt 0) {
+        Write-Host "  $category`: $count functions" -ForegroundColor Gray
+    }
+}
+
+# ============================================================================
+# HELP TEXT
+# ============================================================================
+
 Write-Host @"
 
 === Advanced AI Ready ===
 
-Unified Interface:
-  Invoke-AdvancedAI    - Unified AI generation with all features
-  New-AICode           - Quick code generation with self-correction
-  Get-AIAnalysis       - Analysis with speculative decoding
-  Get-AIQuick          - Fastest response using model racing
-  Get-AdvancedAIStatus - Check system status
+Unified Interface (via AIFacade):
+  Invoke-AI              - Single entry point for all AI requests
+  Initialize-AISystem    - Load all modules (already done)
+  Get-AISystemStatus     - Check system status
+  Get-AIDependencies     - Access dependency container
+  Reset-AISystem         - Reset and reinitialize
+
+Advanced AI Functions:
+  Invoke-AdvancedAI      - Unified AI generation with all features
+  New-AICode             - Quick code generation with self-correction
+  Get-AIAnalysis         - Analysis with speculative decoding
+  Get-AIQuick            - Fastest response using model racing
+  Get-AdvancedAIStatus   - Check advanced module status
 
 Self-Correction:
   Invoke-SelfCorrection       - Validate code
@@ -159,8 +241,15 @@ Semantic File Mapping:
   Invoke-SemanticQuery        - Query about file with full context
   Get-ProjectStructure        - Analyze project structure
 
+Prompt Optimization:
+  Optimize-Prompt             - Analyze and enhance prompts
+  Get-BetterPrompt            - Quick one-liner enhancement
+  Test-PromptQuality          - Visual quality report
+
 Examples:
-  Invoke-AdvancedAI "Write Python merge sort" -Mode code
+  Invoke-AI "Explain async/await" -Mode auto
+  Invoke-AI "Write Python sort function" -Mode code
+  Invoke-AI "2+2?" -Mode fast
   Invoke-LoadBalancedBatch -Prompts @("Q1","Q2","Q3") -AdaptiveBalancing
   Invoke-SemanticQuery -FilePath "app.py" -Query "How does auth work?" -IncludeRelated
 

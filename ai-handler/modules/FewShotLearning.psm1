@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Dynamic Few-Shot Learning Module - Contextual Learning from History
@@ -8,12 +8,28 @@
     the system searches for previously accepted solutions and includes them
     as few-shot examples to improve output quality.
 .VERSION
-    1.0.0
+    1.1.0
 .AUTHOR
     HYDRA System
 #>
 
 $script:ModulePath = Split-Path -Parent $PSScriptRoot
+
+# Import utility modules
+$jsonIOPath = Join-Path (Split-Path $PSScriptRoot -Parent) 'utils\AIUtil-JsonIO.psm1'
+$validationPath = Join-Path (Split-Path $PSScriptRoot -Parent) 'utils\AIUtil-Validation.psm1'
+
+if (Test-Path $jsonIOPath) {
+    Import-Module $jsonIOPath -Force -ErrorAction SilentlyContinue
+} else {
+    Write-Warning "AIUtil-JsonIO.psm1 not found at: $jsonIOPath"
+}
+
+if (Test-Path $validationPath) {
+    Import-Module $validationPath -Force -ErrorAction SilentlyContinue
+} else {
+    Write-Warning "AIUtil-Validation.psm1 not found at: $validationPath"
+}
 $script:CachePath = Join-Path $script:ModulePath "cache"
 $script:SuccessHistoryFile = Join-Path $script:CachePath "success_history.json"
 $script:MaxHistoryEntries = 100
@@ -36,11 +52,12 @@ function Initialize-FewShotCache {
 
     # Initialize history file if not exists
     if (-not (Test-Path $script:SuccessHistoryFile)) {
-        @{
+        $initialData = @{
             version = "1.0"
             entries = @()
             lastUpdated = (Get-Date).ToString("o")
-        } | ConvertTo-Json -Depth 10 | Set-Content $script:SuccessHistoryFile -Encoding UTF8
+        }
+        Write-JsonFile -Path $script:SuccessHistoryFile -Data $initialData | Out-Null
     }
 
     Write-Host "[FewShot] Cache initialized at $script:CachePath" -ForegroundColor Gray
@@ -58,13 +75,13 @@ function Get-SuccessHistory {
         Initialize-FewShotCache
     }
 
-    try {
-        $data = Get-Content $script:SuccessHistoryFile -Raw | ConvertFrom-Json
+    $defaultData = @{ version = "1.0"; entries = @(); lastUpdated = (Get-Date).ToString("o") }
+    $data = Read-JsonFile -Path $script:SuccessHistoryFile -Default $defaultData
+
+    if ($data.entries) {
         return $data.entries
-    } catch {
-        Write-Warning "[FewShot] Failed to load history: $($_.Exception.Message)"
-        return @()
     }
+    return @()
 }
 
 function Save-SuccessfulResponse {
@@ -102,9 +119,9 @@ function Save-SuccessfulResponse {
 
     Initialize-FewShotCache
 
-    # Auto-detect category if not provided
+    # Auto-detect category if not provided (using AIUtil-Validation)
     if (-not $Category) {
-        $Category = Get-ContentCategory -Text "$Prompt $Response"
+        $Category = Get-PromptCategory -Prompt "$Prompt $Response"
     }
 
     # Auto-detect language if not provided
@@ -129,7 +146,8 @@ function Save-SuccessfulResponse {
     }
 
     # Load existing data
-    $data = Get-Content $script:SuccessHistoryFile -Raw | ConvertFrom-Json
+    $defaultData = @{ version = "1.0"; entries = @(); lastUpdated = (Get-Date).ToString("o") }
+    $data = Read-JsonFile -Path $script:SuccessHistoryFile -Default $defaultData
 
     # Convert entries to proper array
     $entries = @()
@@ -148,54 +166,17 @@ function Save-SuccessfulResponse {
         $entries = $entries | Sort-Object { $_.rating * 10 + $_.useCount } -Descending | Select-Object -First $script:MaxHistoryEntries
     }
 
-    $data.entries = $entries
-    $data.lastUpdated = (Get-Date).ToString("o")
+    $dataToSave = @{
+        version = if ($data.version) { $data.version } else { "1.0" }
+        entries = $entries
+        lastUpdated = (Get-Date).ToString("o")
+    }
 
-    $data | ConvertTo-Json -Depth 10 | Set-Content $script:SuccessHistoryFile -Encoding UTF8
+    Write-JsonFile -Path $script:SuccessHistoryFile -Data $dataToSave | Out-Null
 
     Write-Host "[FewShot] Saved successful response (category: $Category)" -ForegroundColor Green
 
     return $entry.id
-}
-
-function Get-ContentCategory {
-    <#
-    .SYNOPSIS
-        Auto-detect content category from text
-    #>
-    param([string]$Text)
-
-    $categories = @{
-        "sql" = @("SELECT", "INSERT", "UPDATE", "DELETE", "CREATE TABLE", "JOIN", "WHERE", "GROUP BY", "database", "query")
-        "api" = @("endpoint", "REST", "HTTP", "GET", "POST", "PUT", "request", "response", "JSON", "API", "fetch", "axios")
-        "ui" = @("button", "form", "input", "component", "render", "style", "CSS", "HTML", "React", "Vue", "Angular")
-        "data" = @("array", "list", "dictionary", "hash", "sort", "filter", "map", "reduce", "transform", "parse")
-        "file" = @("read", "write", "file", "path", "directory", "folder", "save", "load", "stream")
-        "auth" = @("login", "authentication", "password", "token", "JWT", "OAuth", "session", "credential")
-        "test" = @("test", "unit", "mock", "assert", "expect", "describe", "it", "should")
-        "config" = @("config", "setting", "environment", "variable", "parameter", "option")
-    }
-
-    $textLower = $Text.ToLower()
-    $scores = @{}
-
-    foreach ($category in $categories.Keys) {
-        $score = 0
-        foreach ($keyword in $categories[$category]) {
-            if ($textLower -match [regex]::Escape($keyword.ToLower())) {
-                $score++
-            }
-        }
-        $scores[$category] = $score
-    }
-
-    $best = $scores.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First 1
-
-    if ($best.Value -gt 0) {
-        return $best.Key
-    }
-
-    return "general"
 }
 
 function Get-CodeLanguageFromContent {
@@ -290,9 +271,9 @@ function Get-SuccessfulExamples {
         return @()
     }
 
-    # Auto-detect category if not provided
+    # Auto-detect category if not provided (using AIUtil-Validation)
     if (-not $Category) {
-        $Category = Get-ContentCategory -Text $Query
+        $Category = Get-PromptCategory -Prompt $Query
     }
 
     # Extract query keywords
@@ -351,9 +332,14 @@ function Get-SuccessfulExamples {
             }
         }
         # Save updated counts
-        $data = Get-Content $script:SuccessHistoryFile -Raw | ConvertFrom-Json
-        $data.entries = $history
-        $data | ConvertTo-Json -Depth 10 | Set-Content $script:SuccessHistoryFile -Encoding UTF8
+        $defaultData = @{ version = "1.0"; entries = @(); lastUpdated = (Get-Date).ToString("o") }
+        $data = Read-JsonFile -Path $script:SuccessHistoryFile -Default $defaultData
+        $dataToSave = @{
+            version = if ($data.version) { $data.version } else { "1.0" }
+            entries = $history
+            lastUpdated = (Get-Date).ToString("o")
+        }
+        Write-JsonFile -Path $script:SuccessHistoryFile -Data $dataToSave | Out-Null
     }
 
     return $best | ForEach-Object { $_.entry }
@@ -604,11 +590,12 @@ function Clear-FewShotHistory {
         }
     }
 
-    @{
+    $emptyData = @{
         version = "1.0"
         entries = @()
         lastUpdated = (Get-Date).ToString("o")
-    } | ConvertTo-Json -Depth 10 | Set-Content $script:SuccessHistoryFile -Encoding UTF8
+    }
+    Write-JsonFile -Path $script:SuccessHistoryFile -Data $emptyData | Out-Null
 
     Write-Host "[FewShot] History cleared" -ForegroundColor Green
 }

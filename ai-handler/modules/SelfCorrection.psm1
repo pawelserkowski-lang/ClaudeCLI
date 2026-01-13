@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Agentic Self-Correction Module - Automated Code Review Loop
@@ -7,15 +7,35 @@
     validated by a fast, lightweight model (phi3:mini) before being presented
     to the user. If issues are found, the system regenerates with corrections.
 .VERSION
-    1.0.0
+    1.1.0
 .AUTHOR
     HYDRA System
+.NOTES
+    Updated to use unified utility modules:
+    - AIUtil-Validation.psm1 for Get-CodeLanguage
+    - AIUtil-Health.psm1 for Test-OllamaAvailable
 #>
 
 $script:ModulePath = Split-Path -Parent $PSScriptRoot
 $script:CachePath = Join-Path $script:ModulePath "cache"
 $script:ValidationModel = "phi3:mini"
 $script:MaxCorrectionAttempts = 3
+
+#region Utility Module Imports
+
+# Import AIUtil-Validation for Get-CodeLanguage
+$script:ValidationUtilPath = Join-Path $script:ModulePath "utils\AIUtil-Validation.psm1"
+if (Test-Path $script:ValidationUtilPath) {
+    Import-Module $script:ValidationUtilPath -Force -ErrorAction SilentlyContinue
+}
+
+# Import AIUtil-Health for Test-OllamaAvailable
+$script:HealthUtilPath = Join-Path $script:ModulePath "utils\AIUtil-Health.psm1"
+if (Test-Path $script:HealthUtilPath) {
+    Import-Module $script:HealthUtilPath -Force -ErrorAction SilentlyContinue
+}
+
+#endregion
 
 #region Validation Functions
 
@@ -39,10 +59,51 @@ function Test-CodeSyntax {
         [string]$Language = "auto"
     )
 
-    # Import main module if not loaded
+    # Try AIFacade first for dependency injection, fall back to direct module import
+    $facadePath = Join-Path $script:ModulePath "AIFacade.psm1"
     $mainModule = Join-Path $script:ModulePath "AIModelHandler.psm1"
-    if (-not (Get-Module AIModelHandler)) {
-        Import-Module $mainModule -Force
+
+    if (-not (Get-Command 'Invoke-AIRequest' -ErrorAction SilentlyContinue)) {
+        if (Test-Path $facadePath) {
+            Import-Module $facadePath -Force -ErrorAction SilentlyContinue
+            if (Get-Command 'Initialize-AISystem' -ErrorAction SilentlyContinue) {
+                Initialize-AISystem -SkipAdvanced | Out-Null
+            }
+        }
+
+        if (-not (Get-Command 'Invoke-AIRequest' -ErrorAction SilentlyContinue)) {
+            if (-not (Get-Module AIModelHandler)) {
+                Import-Module $mainModule -Force
+            }
+        }
+    }
+
+    # Check Ollama availability using utility function
+    $ollamaAvailable = $false
+    if (Get-Command 'Test-OllamaAvailable' -ErrorAction SilentlyContinue) {
+        $healthCheck = Test-OllamaAvailable
+        $ollamaAvailable = $healthCheck.Available
+    } else {
+        # Fallback: simple TCP check
+        try {
+            $tcp = New-Object System.Net.Sockets.TcpClient
+            $asyncResult = $tcp.BeginConnect('localhost', 11434, $null, $null)
+            $ollamaAvailable = $asyncResult.AsyncWaitHandle.WaitOne(2000, $false) -and $tcp.Connected
+            $tcp.Close()
+        } catch {
+            $ollamaAvailable = $false
+        }
+    }
+
+    if (-not $ollamaAvailable) {
+        Write-Warning "[SelfCorrection] Ollama not available for validation. Skipping syntax check."
+        return @{
+            Valid = $true  # Fail open - don't block when validation unavailable
+            Issues = @()
+            Language = if ($Language -eq "auto") { "text" } else { $Language }
+            Skipped = $true
+            Reason = "Ollama not available"
+        }
     }
 
     # Auto-detect language
@@ -89,44 +150,50 @@ $Code
     }
 }
 
-function Get-CodeLanguage {
-    <#
-    .SYNOPSIS
-        Auto-detect programming language from code
-    #>
-    param([string]$Code)
+# Get-CodeLanguage is now provided by AIUtil-Validation.psm1
+# Fallback implementation if utility module is not available
+if (-not (Get-Command 'Get-CodeLanguage' -ErrorAction SilentlyContinue)) {
+    function Get-CodeLanguage {
+        <#
+        .SYNOPSIS
+            Auto-detect programming language from code (fallback implementation)
+        .NOTES
+            This is a fallback. Prefer using AIUtil-Validation.psm1 for the full implementation.
+        #>
+        param([string]$Code)
 
-    $patterns = @{
-        "powershell" = @('^\s*function\s+\w+', '\$\w+\s*=', '\|\s*ForEach-Object', 'Write-Host', 'param\s*\(', '\[CmdletBinding\(\)\]')
-        "python" = @('^\s*def\s+\w+', '^\s*import\s+', '^\s*from\s+\w+\s+import', 'print\s*\(', '^\s*class\s+\w+:', '__init__')
-        "javascript" = @('^\s*const\s+', '^\s*let\s+', '^\s*function\s+\w+\s*\(', '=>\s*\{', 'console\.log', '\.then\s*\(')
-        "typescript" = @(':\s*(string|number|boolean|any)\b', '^\s*interface\s+', '^\s*type\s+\w+\s*=', '<\w+>')
-        "rust" = @('^\s*fn\s+\w+', '^\s*let\s+mut\s+', '^\s*impl\s+', '^\s*struct\s+', '^\s*enum\s+', '&str', 'Vec<')
-        "go" = @('^\s*func\s+', '^\s*package\s+', ':=', 'fmt\.Print')
-        "sql" = @('^\s*SELECT\s+', '^\s*INSERT\s+', '^\s*UPDATE\s+', '^\s*CREATE\s+TABLE', '^\s*FROM\s+')
-        "csharp" = @('^\s*using\s+System', '^\s*namespace\s+', '^\s*public\s+class', '^\s*private\s+', '^\s*void\s+', 'Console\.Write')
-        "java" = @('^\s*public\s+class', '^\s*import\s+java\.', '^\s*private\s+', 'System\.out\.print', '^\s*package\s+\w+;')
-        "html" = @('^\s*<!DOCTYPE', '<html', '<head>', '<body>', '<div', '<script', '<style')
-        "css" = @('^\s*\.\w+\s*\{', '^\s*#\w+\s*\{', 'font-size:', 'background-color:', 'margin:', 'padding:')
-    }
+        $patterns = @{
+            "powershell" = @('^\s*function\s+\w+', '\$\w+\s*=', '\|\s*ForEach-Object', 'Write-Host', 'param\s*\(', '\[CmdletBinding\(\)\]')
+            "python" = @('^\s*def\s+\w+', '^\s*import\s+', '^\s*from\s+\w+\s+import', 'print\s*\(', '^\s*class\s+\w+:', '__init__')
+            "javascript" = @('^\s*const\s+', '^\s*let\s+', '^\s*function\s+\w+\s*\(', '=>\s*\{', 'console\.log', '\.then\s*\(')
+            "typescript" = @(':\s*(string|number|boolean|any)\b', '^\s*interface\s+', '^\s*type\s+\w+\s*=', '<\w+>')
+            "rust" = @('^\s*fn\s+\w+', '^\s*let\s+mut\s+', '^\s*impl\s+', '^\s*struct\s+', '^\s*enum\s+', '&str', 'Vec<')
+            "go" = @('^\s*func\s+', '^\s*package\s+', ':=', 'fmt\.Print')
+            "sql" = @('^\s*SELECT\s+', '^\s*INSERT\s+', '^\s*UPDATE\s+', '^\s*CREATE\s+TABLE', '^\s*FROM\s+')
+            "csharp" = @('^\s*using\s+System', '^\s*namespace\s+', '^\s*public\s+class', '^\s*private\s+', '^\s*void\s+', 'Console\.Write')
+            "java" = @('^\s*public\s+class', '^\s*import\s+java\.', '^\s*private\s+', 'System\.out\.print', '^\s*package\s+\w+;')
+            "html" = @('^\s*<!DOCTYPE', '<html', '<head>', '<body>', '<div', '<script', '<style')
+            "css" = @('^\s*\.\w+\s*\{', '^\s*#\w+\s*\{', 'font-size:', 'background-color:', 'margin:', 'padding:')
+        }
 
-    $scores = @{}
-    foreach ($lang in $patterns.Keys) {
-        $scores[$lang] = 0
-        foreach ($pattern in $patterns[$lang]) {
-            if ($Code -match $pattern) {
-                $scores[$lang]++
+        $scores = @{}
+        foreach ($lang in $patterns.Keys) {
+            $scores[$lang] = 0
+            foreach ($pattern in $patterns[$lang]) {
+                if ($Code -match $pattern) {
+                    $scores[$lang]++
+                }
             }
         }
+
+        $detected = $scores.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First 1
+
+        if ($detected.Value -gt 0) {
+            return $detected.Key
+        }
+
+        return "text"  # Default fallback
     }
-
-    $detected = $scores.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First 1
-
-    if ($detected.Value -gt 0) {
-        return $detected.Key
-    }
-
-    return "text"  # Default fallback
 }
 
 function Parse-ValidationResponse {
@@ -237,10 +304,23 @@ function Invoke-CodeWithSelfCorrection {
         [int]$MaxTokens = 2048
     )
 
-    # Import main module
+    # Try AIFacade first for dependency injection, fall back to direct module import
+    $facadePath = Join-Path $script:ModulePath "AIFacade.psm1"
     $mainModule = Join-Path $script:ModulePath "AIModelHandler.psm1"
-    if (-not (Get-Module AIModelHandler)) {
-        Import-Module $mainModule -Force
+
+    if (-not (Get-Command 'Invoke-AIRequest' -ErrorAction SilentlyContinue)) {
+        if (Test-Path $facadePath) {
+            Import-Module $facadePath -Force -ErrorAction SilentlyContinue
+            if (Get-Command 'Initialize-AISystem' -ErrorAction SilentlyContinue) {
+                Initialize-AISystem -SkipAdvanced | Out-Null
+            }
+        }
+
+        if (-not (Get-Command 'Invoke-AIRequest' -ErrorAction SilentlyContinue)) {
+            if (-not (Get-Module AIModelHandler)) {
+                Import-Module $mainModule -Force
+            }
+        }
     }
 
     $attempt = 0
@@ -368,9 +448,44 @@ function Test-QuickSyntax {
         [string]$Code
     )
 
+    # Try AIFacade first for dependency injection, fall back to direct module import
+    $facadePath = Join-Path $script:ModulePath "AIFacade.psm1"
     $mainModule = Join-Path $script:ModulePath "AIModelHandler.psm1"
-    if (-not (Get-Module AIModelHandler)) {
-        Import-Module $mainModule -Force
+
+    if (-not (Get-Command 'Invoke-AIRequest' -ErrorAction SilentlyContinue)) {
+        if (Test-Path $facadePath) {
+            Import-Module $facadePath -Force -ErrorAction SilentlyContinue
+            if (Get-Command 'Initialize-AISystem' -ErrorAction SilentlyContinue) {
+                Initialize-AISystem -SkipAdvanced | Out-Null
+            }
+        }
+
+        if (-not (Get-Command 'Invoke-AIRequest' -ErrorAction SilentlyContinue)) {
+            if (-not (Get-Module AIModelHandler)) {
+                Import-Module $mainModule -Force
+            }
+        }
+    }
+
+    # Check Ollama availability using utility function
+    $ollamaAvailable = $false
+    if (Get-Command 'Test-OllamaAvailable' -ErrorAction SilentlyContinue) {
+        $healthCheck = Test-OllamaAvailable
+        $ollamaAvailable = $healthCheck.Available
+    } else {
+        # Fallback: simple TCP check
+        try {
+            $tcp = New-Object System.Net.Sockets.TcpClient
+            $asyncResult = $tcp.BeginConnect('localhost', 11434, $null, $null)
+            $ollamaAvailable = $asyncResult.AsyncWaitHandle.WaitOne(2000, $false) -and $tcp.Connected
+            $tcp.Close()
+        } catch {
+            $ollamaAvailable = $false
+        }
+    }
+
+    if (-not $ollamaAvailable) {
+        return $true  # Fail open - assume valid when Ollama unavailable
     }
 
     $prompt = "Is this code syntactically correct? Answer only YES or NO:`n$Code"
@@ -390,12 +505,22 @@ function Test-QuickSyntax {
 
 #region Exports
 
-Export-ModuleMember -Function @(
+# Export core self-correction functions
+# Note: Get-CodeLanguage is now primarily provided by AIUtil-Validation.psm1
+# We only export our fallback version if the utility module is not available
+$exportFunctions = @(
     'Test-CodeSyntax',
-    'Get-CodeLanguage',
     'Invoke-SelfCorrection',
     'Invoke-CodeWithSelfCorrection',
     'Test-QuickSyntax'
 )
+
+# Add Get-CodeLanguage to exports only if we defined the fallback
+# (i.e., AIUtil-Validation was not loaded)
+if (Get-Command 'Get-CodeLanguage' -Module $MyInvocation.MyCommand.Module.Name -ErrorAction SilentlyContinue) {
+    $exportFunctions += 'Get-CodeLanguage'
+}
+
+Export-ModuleMember -Function $exportFunctions
 
 #endregion

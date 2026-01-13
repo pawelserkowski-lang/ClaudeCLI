@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Semantic File Mapping Module - Deep RAG with Relationship Analysis
@@ -14,14 +14,38 @@
     - Automatic context expansion for AI queries
     - Project structure understanding
 .VERSION
-    1.0.0
+    1.1.0
 .AUTHOR
     HYDRA System
+.NOTES
+    Updated to use shared utility modules:
+    - AIUtil-Validation.psm1 for language detection
+    - AIUtil-JsonIO.psm1 for JSON operations
 #>
 
 $script:ModulePath = Split-Path -Parent $PSScriptRoot
 $script:CachePath = Join-Path (Split-Path -Parent $PSScriptRoot) "cache"
 $script:GraphCacheFile = Join-Path $script:CachePath "file_graph.json"
+
+#region Module Imports
+
+# Import utility modules
+$script:UtilValidationPath = Join-Path $PSScriptRoot "AIUtil-Validation.psm1"
+$script:UtilJsonIOPath = Join-Path $PSScriptRoot "AIUtil-JsonIO.psm1"
+
+if (Test-Path $script:UtilValidationPath) {
+    Import-Module $script:UtilValidationPath -Force -DisableNameChecking
+} else {
+    Write-Warning "[SemanticMap] AIUtil-Validation.psm1 not found at: $script:UtilValidationPath"
+}
+
+if (Test-Path $script:UtilJsonIOPath) {
+    Import-Module $script:UtilJsonIOPath -Force -DisableNameChecking
+} else {
+    Write-Warning "[SemanticMap] AIUtil-JsonIO.psm1 not found at: $script:UtilJsonIOPath"
+}
+
+#endregion
 
 # Supported languages and their import patterns
 $script:LanguagePatterns = @{
@@ -141,22 +165,28 @@ $script:LanguagePatterns = @{
 
 #region File Analysis
 
-function Get-FileLanguage {
-    <#
-    .SYNOPSIS
-        Detect programming language from file extension
-    #>
-    param([string]$FilePath)
+# NOTE: Get-FileLanguage is now imported from AIUtil-Validation.psm1
+# The function detects programming language from file extension.
+# Fallback implementation provided if utility module is not available.
 
-    $ext = [System.IO.Path]::GetExtension($FilePath).ToLower()
+if (-not (Get-Command Get-FileLanguage -ErrorAction SilentlyContinue)) {
+    function Get-FileLanguage {
+        <#
+        .SYNOPSIS
+            Detect programming language from file extension (fallback)
+        #>
+        param([string]$FilePath)
 
-    foreach ($lang in $script:LanguagePatterns.Keys) {
-        if ($ext -in $script:LanguagePatterns[$lang].Extensions) {
-            return $lang
+        $ext = [System.IO.Path]::GetExtension($FilePath).ToLower()
+
+        foreach ($lang in $script:LanguagePatterns.Keys) {
+            if ($ext -in $script:LanguagePatterns[$lang].Extensions) {
+                return $lang
+            }
         }
-    }
 
-    return "unknown"
+        return "unknown"
+    }
 }
 
 function Get-FileImports {
@@ -407,11 +437,26 @@ function Build-DependencyGraph {
         [switch]$Force
     )
 
-    # Check cache
-    if (-not $Force -and (Test-Path $script:GraphCacheFile)) {
-        $cached = Get-Content $script:GraphCacheFile -Raw | ConvertFrom-Json
-        if ($cached.ProjectRoot -eq $ProjectRoot -and
-            ((Get-Date) - [DateTime]::Parse($cached.Timestamp)).TotalHours -lt 24) {
+    # Check cache using utility module (with fallback)
+    if (-not $Force) {
+        $cacheValid = $false
+        if (Get-Command Test-CacheValid -ErrorAction SilentlyContinue) {
+            $cacheValid = Test-CacheValid -Path $script:GraphCacheFile -MaxAgeHours 24 -MatchKey "ProjectRoot" -MatchValue $ProjectRoot
+        } elseif (Test-Path $script:GraphCacheFile) {
+            # Fallback: manual cache check
+            try {
+                $cached = Get-Content $script:GraphCacheFile -Raw | ConvertFrom-Json
+                $cacheValid = ($cached.ProjectRoot -eq $ProjectRoot -and
+                    ((Get-Date) - [DateTime]::Parse($cached.Timestamp)).TotalHours -lt 24)
+            } catch { $cacheValid = $false }
+        }
+
+        if ($cacheValid) {
+            if (Get-Command Read-JsonFile -ErrorAction SilentlyContinue) {
+                $cached = Read-JsonFile -Path $script:GraphCacheFile
+            } else {
+                $cached = Get-Content $script:GraphCacheFile -Raw | ConvertFrom-Json
+            }
             Write-Host "[SemanticMap] Using cached dependency graph" -ForegroundColor Gray
             return $cached
         }
@@ -477,11 +522,19 @@ function Build-DependencyGraph {
         }
     }
 
-    # Save to cache
-    if (-not (Test-Path $script:CachePath)) {
-        New-Item -ItemType Directory -Path $script:CachePath -Force | Out-Null
+    # Save to cache using utility module (with fallback)
+    if (Get-Command Write-JsonFile -ErrorAction SilentlyContinue) {
+        $writeResult = Write-JsonFile -Path $script:GraphCacheFile -Data $graph -Depth 10
+        if (-not $writeResult) {
+            Write-Warning "[SemanticMap] Failed to write cache file"
+        }
+    } else {
+        # Fallback: manual JSON write
+        if (-not (Test-Path $script:CachePath)) {
+            New-Item -ItemType Directory -Path $script:CachePath -Force | Out-Null
+        }
+        $graph | ConvertTo-Json -Depth 10 | Set-Content $script:GraphCacheFile -Encoding UTF8
     }
-    $graph | ConvertTo-Json -Depth 10 | Set-Content $script:GraphCacheFile -Encoding UTF8
 
     Write-Host "[SemanticMap] Graph built: $($graph.Stats.TotalFiles) files, $($graph.Stats.TotalImports) imports" -ForegroundColor Green
 

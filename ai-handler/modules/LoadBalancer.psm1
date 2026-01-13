@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     Dynamic Load Balancing Module - CPU-Aware Task Distribution
@@ -8,28 +8,43 @@
     cloud providers (OpenAI, Anthropic) based on CPU utilization.
 
     Key Features:
-    - Real-time CPU monitoring
+    - Real-time CPU monitoring (via AIUtil-Health with caching)
     - Automatic failover to cloud when local resources are stressed
     - Smart batch splitting for optimal performance
     - Memory and GPU monitoring (when available)
+    - Uses centralized thresholds from AIConstants
 .VERSION
-    1.0.0
+    1.1.0
 .AUTHOR
     HYDRA System
+.NOTES
+    Updated to use AIUtil-Health.psm1 for cached system metrics
+    and AIConstants.psm1 for centralized threshold values.
 #>
 
 $script:ModulePath = Split-Path -Parent $PSScriptRoot
 
-# Load balancing thresholds
+# Import utility modules
+$utilsPath = Join-Path $script:ModulePath "utils\AIUtil-Health.psm1"
+$corePath = Join-Path $script:ModulePath "core\AIConstants.psm1"
+
+if (Test-Path $utilsPath) {
+    Import-Module $utilsPath -Force -ErrorAction SilentlyContinue
+}
+if (Test-Path $corePath) {
+    Import-Module $corePath -Force -ErrorAction SilentlyContinue
+}
+
+# Load balancing thresholds - use AIConstants if available, else defaults
 $script:Config = @{
-    CpuThresholdHigh = 90      # Switch to cloud above this
-    CpuThresholdMedium = 70    # Reduce local concurrency above this
+    CpuThresholdHigh = if ($script:Thresholds.CpuHybridThreshold) { $script:Thresholds.CpuHybridThreshold } else { 90 }
+    CpuThresholdMedium = if ($script:Thresholds.CpuLocalThreshold) { $script:Thresholds.CpuLocalThreshold } else { 70 }
     CpuThresholdLow = 50       # Full local capacity below this
     MemoryThresholdPercent = 85 # Switch to cloud if memory > 85%
     CheckIntervalMs = 1000      # How often to check resources
     CloudFallbackProvider = "openai"
     CloudFallbackModel = "gpt-4o-mini"
-    LocalBatchSize = 4          # Max concurrent local requests
+    LocalBatchSize = if ($script:Thresholds.MaxConcurrent) { $script:Thresholds.MaxConcurrent } else { 4 }
     CloudBatchSize = 10         # Max concurrent cloud requests
 }
 
@@ -39,18 +54,44 @@ function Get-SystemLoad {
     <#
     .SYNOPSIS
         Get current system load metrics
+    .DESCRIPTION
+        Wrapper around Get-SystemMetrics from AIUtil-Health that provides
+        cached system metrics with configurable thresholds.
     .RETURNS
         Hashtable with CPU, Memory, and recommendation
     #>
     [CmdletBinding()]
     param()
 
+    # Use cached Get-SystemMetrics if available from AIUtil-Health
+    if (Get-Command 'Get-SystemMetrics' -ErrorAction SilentlyContinue) {
+        $healthMetrics = Get-SystemMetrics `
+            -CpuThresholdHigh $script:Config.CpuThresholdHigh `
+            -CpuThresholdMedium $script:Config.CpuThresholdMedium `
+            -MemoryThreshold $script:Config.MemoryThresholdPercent
+
+        # Map to expected LoadBalancer format
+        return @{
+            Timestamp = $healthMetrics.Timestamp
+            CpuPercent = $healthMetrics.CpuPercent
+            MemoryPercent = $healthMetrics.MemoryPercent
+            MemoryAvailableGB = $healthMetrics.MemoryAvailableGB
+            Recommendation = $healthMetrics.Recommendation
+            Cached = $healthMetrics.Cached
+            Details = @{
+                TotalMemoryGB = $healthMetrics.MemoryTotalGB
+            }
+        }
+    }
+
+    # Fallback: inline implementation if AIUtil-Health not available
     $metrics = @{
         Timestamp = Get-Date
         CpuPercent = 0
         MemoryPercent = 0
         MemoryAvailableGB = 0
         Recommendation = "local"
+        Cached = $false
         Details = @{}
     }
 
@@ -58,13 +99,7 @@ function Get-SystemLoad {
         # CPU - using WMI for compatibility
         $cpu = Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average
         $metrics.CpuPercent = [math]::Round($cpu.Average, 1)
-
-        # Alternative: Performance Counter (more accurate but slower)
-        # $cpu = (Get-Counter '\Processor(_Total)\% Processor Time' -ErrorAction SilentlyContinue).CounterSamples.CookedValue
-        # $metrics.CpuPercent = [math]::Round($cpu, 1)
-
     } catch {
-        # Fallback: estimate from process
         $metrics.CpuPercent = 50  # Default assumption
         $metrics.Details.CpuError = $_.Exception.Message
     }
@@ -79,7 +114,6 @@ function Get-SystemLoad {
         $metrics.MemoryPercent = [math]::Round(($usedMemory / $totalMemory) * 100, 1)
         $metrics.MemoryAvailableGB = [math]::Round($freeMemory, 2)
         $metrics.Details.TotalMemoryGB = [math]::Round($totalMemory, 2)
-
     } catch {
         $metrics.MemoryPercent = 50
         $metrics.Details.MemoryError = $_.Exception.Message
@@ -101,11 +135,21 @@ function Get-SystemLoad {
 function Get-CpuLoad {
     <#
     .SYNOPSIS
-        Quick CPU load check (lightweight)
+        Quick CPU load check (lightweight, cached)
+    .DESCRIPTION
+        Returns cached CPU percentage from Get-SystemMetrics if available,
+        otherwise performs direct WMI query.
     #>
     [CmdletBinding()]
     param()
 
+    # Use cached Get-SystemMetrics if available
+    if (Get-Command 'Get-SystemMetrics' -ErrorAction SilentlyContinue) {
+        $metrics = Get-SystemMetrics
+        return $metrics.CpuPercent
+    }
+
+    # Fallback: direct WMI query
     try {
         $cpu = Get-WmiObject Win32_Processor | Measure-Object -Property LoadPercentage -Average
         return [math]::Round($cpu.Average, 1)
@@ -511,6 +555,9 @@ function Get-LoadBalancerStatus {
     Write-Host "  CPU: $($load.CpuPercent)%" -ForegroundColor $cpuColor
     Write-Host "  Memory: $($load.MemoryPercent)% ($($load.MemoryAvailableGB) GB free)" -ForegroundColor $memColor
     Write-Host "  Recommendation: $($load.Recommendation)" -ForegroundColor $(if ($load.Recommendation -eq "cloud") { "Yellow" } else { "Green" })
+    if ($load.Cached) {
+        Write-Host "  (Cached metrics)" -ForegroundColor DarkGray
+    }
 
     Write-Host "`nThresholds:" -ForegroundColor White
     Write-Host "  CPU High (→ cloud): $($config.CpuThresholdHigh)%"

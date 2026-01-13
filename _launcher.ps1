@@ -3,15 +3,27 @@
 # Enhanced GUI with status monitoring
 # ═══════════════════════════════════════════════════════════════════════════════
 
-Set-Location 'C:\Users\BIURODOM\Desktop\ClaudeCLI'
+$script:ProjectRoot = 'C:\Users\BIURODOM\Desktop\ClaudeCLI'
+Set-Location $script:ProjectRoot
 $Host.UI.RawUI.WindowTitle = 'Claude CLI (HYDRA 10.0)'
 
-# Load GUI module
-$guiModule = Join-Path $PSScriptRoot 'modules\GUI-Utils.psm1'
-if (Test-Path $guiModule) { Import-Module $guiModule -Force }
+# Use explicit path since $PSScriptRoot can be empty when dot-sourced
+$scriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { $script:ProjectRoot }
+
+# Load GUI module (REQUIRED - contains all display functions)
+$guiModule = Join-Path $scriptDir 'modules\GUI-Utils.psm1'
+if (Test-Path $guiModule) {
+    try {
+        Import-Module $guiModule -Force -Global -ErrorAction Stop
+    } catch {
+        Write-Host "ERROR: Failed to load GUI-Utils.psm1: $_" -ForegroundColor Red
+    }
+} else {
+    Write-Host "ERROR: GUI module not found at: $guiModule" -ForegroundColor Red
+}
 
 # Load custom profile
-$customProfile = Join-Path $PSScriptRoot 'profile.ps1'
+$customProfile = Join-Path $scriptDir 'profile.ps1'
 if (Test-Path $customProfile) { . $customProfile }
 
 # === CLEAR & SHOW LOGO ===
@@ -52,14 +64,20 @@ foreach ($srv in $servers) {
 Write-Separator -Width 55
 
 # === ERROR LOGGER ===
-$errorLogModule = Join-Path $PSScriptRoot 'ai-handler\modules\ErrorLogger.psm1'
+$errorLogModule = Join-Path $scriptDir 'ai-handler\modules\ErrorLogger.psm1'
 if (Test-Path $errorLogModule) {
-    Import-Module $errorLogModule -Force -Global -ErrorAction SilentlyContinue
-    Initialize-ErrorLogger | Out-Null
+    try {
+        Import-Module $errorLogModule -Force -Global -ErrorAction Stop
+        if (Get-Command Initialize-ErrorLogger -ErrorAction SilentlyContinue) {
+            Initialize-ErrorLogger | Out-Null
+        }
+    } catch {
+        # Silently continue if ErrorLogger fails to load
+    }
 }
 
 # === SMART QUEUE ===
-$smartQueueModule = Join-Path $PSScriptRoot 'ai-handler\modules\SmartQueue.psm1'
+$smartQueueModule = Join-Path $scriptDir 'ai-handler\modules\SmartQueue.psm1'
 if (Test-Path $smartQueueModule) {
     Import-Module $smartQueueModule -Force -Global -ErrorAction SilentlyContinue
 }
@@ -72,30 +90,47 @@ $aiCodingModules = @(
 )
 $loadedTools = @()
 foreach ($mod in $aiCodingModules) {
-    $modPath = Join-Path $PSScriptRoot "ai-handler\modules\$mod"
+    $modPath = Join-Path $scriptDir "ai-handler\modules\$mod"
     if (Test-Path $modPath) {
         Import-Module $modPath -Force -Global -ErrorAction SilentlyContinue
         $loadedTools += $mod -replace '\.psm1$', ''
     }
 }
 
-# === AI HANDLER ===
+# === AI HANDLER (via AIFacade) ===
 Write-Host ""
 Write-Host "  AI Handler:" -ForegroundColor DarkGray
-$aiHandlerModule = Join-Path $PSScriptRoot 'ai-handler\AIModelHandler.psm1'
-if (Test-Path $aiHandlerModule) {
-    try {
-        Import-Module $aiHandlerModule -Force -Global -ErrorAction Stop
-        Initialize-AIState | Out-Null
+$aiFacadeModule = Join-Path $scriptDir 'ai-handler\AIFacade.psm1'
+$aiHealthModule = Join-Path $scriptDir 'ai-handler\utils\AIUtil-Health.psm1'
 
-        # Check Ollama (local) - use TCP socket for PS5.1 compatibility
+if (Test-Path $aiFacadeModule) {
+    try {
+        # Load AIFacade - single entry point for AI system
+        Import-Module $aiFacadeModule -Force -Global -ErrorAction Stop
+
+        # Load health utilities for Ollama check
+        if (Test-Path $aiHealthModule) {
+            Import-Module $aiHealthModule -Force -Global -ErrorAction SilentlyContinue
+        }
+
+        # Initialize AI system (loads all modules in correct order)
+        $initResult = Initialize-AISystem -ErrorAction Stop
+        $modulesLoaded = $initResult.TotalLoaded
+
+        # Check Ollama using Test-OllamaAvailable if available, else fallback to TCP
         $ollamaStatus = $false
-        try {
-            $tcp = New-Object System.Net.Sockets.TcpClient
-            $tcp.Connect('localhost', 11434)
-            $ollamaStatus = $tcp.Connected
-            $tcp.Close()
-        } catch { }
+        if (Get-Command Test-OllamaAvailable -ErrorAction SilentlyContinue) {
+            $ollamaCheck = Test-OllamaAvailable -NoCache
+            $ollamaStatus = $ollamaCheck.Available
+        } else {
+            # Fallback: TCP socket check for PS5.1 compatibility
+            try {
+                $tcp = New-Object System.Net.Sockets.TcpClient
+                $tcp.Connect('localhost', 11434)
+                $ollamaStatus = $tcp.Connected
+                $tcp.Close()
+            } catch { }
+        }
 
         # Auto-start Ollama if not running
         if (-not $ollamaStatus) {
@@ -107,12 +142,17 @@ if (Test-Path $aiHandlerModule) {
                 $retries = 10
                 while ($retries -gt 0 -and -not $ollamaStatus) {
                     Start-Sleep -Milliseconds 500
-                    try {
-                        $tcp = New-Object System.Net.Sockets.TcpClient
-                        $tcp.Connect('localhost', 11434)
-                        $ollamaStatus = $tcp.Connected
-                        $tcp.Close()
-                    } catch { }
+                    if (Get-Command Test-OllamaAvailable -ErrorAction SilentlyContinue) {
+                        $ollamaCheck = Test-OllamaAvailable -NoCache
+                        $ollamaStatus = $ollamaCheck.Available
+                    } else {
+                        try {
+                            $tcp = New-Object System.Net.Sockets.TcpClient
+                            $tcp.Connect('localhost', 11434)
+                            $ollamaStatus = $tcp.Connected
+                            $tcp.Close()
+                        } catch { }
+                    }
                     $retries--
                 }
             }
@@ -124,7 +164,7 @@ if (Test-Path $aiHandlerModule) {
             Write-StatusLine -Label "Ollama (local)" -Value "Not running" -Status 'warning'
         }
 
-        # Check cloud providers
+        # Check cloud providers using Get-AISystemStatus if available
         $hasAnthropic = [bool]$env:ANTHROPIC_API_KEY
         $hasOpenAI = [bool]$env:OPENAI_API_KEY
         $cloudMsg = @()
@@ -136,15 +176,16 @@ if (Test-Path $aiHandlerModule) {
             Write-StatusLine -Label "Cloud APIs" -Value "No keys configured" -Status 'warning'
         }
 
-        Write-StatusLine -Label "AI Handler" -Value "v1.0 loaded" -Status 'ok'
+        # Show loaded modules count
+        Write-StatusLine -Label "AI Handler" -Value "v1.0 loaded ($modulesLoaded modules)" -Status 'ok'
 
         # Create global aliases
-        Set-Alias -Name ai -Value (Join-Path $PSScriptRoot 'ai-handler\Invoke-AI.ps1') -Scope Global -Force
+        Set-Alias -Name ai -Value (Join-Path $scriptDir 'ai-handler\Invoke-AI.ps1') -Scope Global -Force
     } catch {
         Write-StatusLine -Label "AI Handler" -Value "Load failed: $_" -Status 'error'
     }
 } else {
-    Write-StatusLine -Label "AI Handler" -Value "Module not found" -Status 'error'
+    Write-StatusLine -Label "AI Handler" -Value "AIFacade not found" -Status 'error'
 }
 
 # === AI CODING TOOLS STATUS ===
