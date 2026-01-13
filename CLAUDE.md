@@ -104,7 +104,8 @@ C:\Users\BIURODOM\Desktop\ClaudeCLI\
 │       ├── SpeculativeDecoding.psm1 # Parallel multi-model
 │       ├── LoadBalancer.psm1        # CPU-aware load balancing
 │       ├── SemanticFileMapping.psm1 # Deep RAG with imports
-│       └── AdvancedAI.psm1          # Unified interface
+│       ├── AdvancedAI.psm1          # Unified interface
+│       └── PromptOptimizer.psm1     # 🆕 Auto prompt enhancement
 ├── parallel/            # ⚡ Parallel execution system
 │   ├── modules/
 │   │   └── ParallelUtils.psm1    # Core parallel functions
@@ -928,6 +929,72 @@ START
   ├─ Have file context? ────────→ Invoke-SemanticQuery (deep RAG)
   │
   └─ General query ─────────────→ Invoke-AdvancedAI -Mode auto
+```
+
+### 11.7 Prompt Optimizer (🆕 NEW)
+
+Automatyczne ulepszanie promptów przed wysłaniem do AI - analiza, kategoryzacja i wzbogacanie.
+
+| Function | Description |
+|----------|-------------|
+| `Optimize-Prompt` | Main optimizer - analyze & enhance |
+| `Get-PromptCategory` | Detect intent (code, analysis, question) |
+| `Get-PromptClarity` | Score clarity 0-100 |
+| `Get-PromptLanguage` | Detect programming language |
+| `Get-BetterPrompt` | Quick one-liner enhancement |
+| `Test-PromptQuality` | Visual quality report |
+| `Invoke-AIWithOptimization` | AI call with auto-enhancement |
+
+```powershell
+# Quick prompt improvement
+"explain python" | Get-BetterPrompt
+# Returns: "explain python\n\nBe concise but thorough. Provide examples if helpful."
+
+# Full analysis
+$result = Optimize-Prompt -Prompt "write code" -Model "llama3.2:3b" -Detailed
+# Returns: OptimizedPrompt, Category, ClarityScore, Enhancements
+
+# Test quality
+Test-PromptQuality -Prompt "do something with the stuff"
+# Shows: Score 45/100, Issues: vague terms, Suggestions: add specifics
+
+# AI call with auto-optimization
+Invoke-AIRequest -Messages @(@{role="user"; content="python sort"}) `
+    -OptimizePrompt -ShowOptimization
+# Auto-enhances prompt before sending
+```
+
+**Categories Detected**:
+
+| Category | Triggers | Enhancements Added |
+|----------|----------|-------------------|
+| `code` | write, implement, function | Clean code, error handling, best practices |
+| `analysis` | analyze, compare, explain | Structured analysis, multiple perspectives |
+| `question` | what is, how, why, ? | Concise, examples if helpful |
+| `creative` | brainstorm, imagine, ideas | Creative, original angles |
+| `task` | do, execute, build, setup | Step-by-step, verification |
+| `summary` | summarize, tldr, brief | Bullet points, key points only |
+
+**Model-Specific Optimizations**:
+
+| Model Pattern | Style | Prefix Added |
+|--------------|-------|--------------|
+| `llama3.2:1b` | concise | (none) |
+| `qwen2.5-coder` | technical | "You are an expert programmer. " |
+| `claude` | detailed | (none) |
+| `gpt-4o` | detailed | (none) |
+
+**Auto-Enhancement Rules**:
+
+1. **Category-based**: Adds task-specific instructions
+2. **Language tagging**: Prepends `[python]` for detected code languages
+3. **Structure wrapper**: Wraps low-clarity prompts (<60 score)
+4. **Few-shot injection**: Adds examples from cache (if `-AddExamples`)
+
+```powershell
+# Batch optimization (parallel)
+$prompts = @("task 1", "task 2", "task 3")
+$optimized = Optimize-PromptBatch -Prompts $prompts -Model "llama3.2:3b"
 ```
 
 ---

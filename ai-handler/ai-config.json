@@ -204,6 +204,12 @@
                              "accurateModel": "llama3.2:3b",
                              "codeModel": "qwen2.5-coder:1.5b",
                              "timeoutMs": 30000
+                         },
+                         "promptOptimizer": {
+                             "enabled": true,
+                             "autoOptimize": true,
+                             "minClarityThreshold": 60,
+                             "showEnhancements": true
                          }
                      }
                  }

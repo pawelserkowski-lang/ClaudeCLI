@@ -16,6 +16,25 @@
 
 $script:ConfigPath = Join-Path $PSScriptRoot "ai-config.json"
 $script:StatePath = Join-Path $PSScriptRoot "ai-state.json"
+$script:PromptOptimizerPath = Join-Path $PSScriptRoot "modules\PromptOptimizer.psm1"
+$script:ModelDiscoveryPath = Join-Path $PSScriptRoot "modules\ModelDiscovery.psm1"
+$script:PromptQueuePath = Join-Path $PSScriptRoot "modules\PromptQueue.psm1"
+$script:DiscoveredModels = $null
+
+# Auto-load PromptOptimizer if available
+if (Test-Path $script:PromptOptimizerPath) {
+    Import-Module $script:PromptOptimizerPath -Force -ErrorAction SilentlyContinue
+}
+
+# Auto-load ModelDiscovery if available
+if (Test-Path $script:ModelDiscoveryPath) {
+    Import-Module $script:ModelDiscoveryPath -Force -ErrorAction SilentlyContinue
+}
+
+# Auto-load PromptQueue if available
+if (Test-Path $script:PromptQueuePath) {
+    Import-Module $script:PromptQueuePath -Force -ErrorAction SilentlyContinue
+}
 
 #region Helper Functions for PS 5.1 Compatibility
 
@@ -558,6 +577,12 @@ function Invoke-AIRequest {
         Sampling temperature
     .PARAMETER AutoFallback
         Enable automatic fallback on errors
+    .PARAMETER OptimizePrompt
+        Automatically enhance prompts before sending (uses PromptOptimizer module)
+    .PARAMETER ShowOptimization
+        Display prompt optimization details
+    .PARAMETER NoOptimize
+        Disable auto-optimization (send raw prompt)
     #>
     [CmdletBinding()]
     param(
@@ -568,12 +593,44 @@ function Invoke-AIRequest {
         [int]$MaxTokens = 4096,
         [float]$Temperature = 0.7,
         [switch]$AutoFallback,
-        [switch]$Stream
+        [switch]$Stream,
+        [switch]$OptimizePrompt,
+        [switch]$ShowOptimization,
+        [switch]$NoOptimize
     )
 
     $config = Get-AIConfig
     $maxRetries = $config.settings.maxRetries
     $retryDelay = $config.settings.retryDelayMs
+
+    # Apply prompt optimization if enabled (auto or explicit, unless -NoOptimize)
+    $optimizationResult = $null
+    $autoOptimize = $config.settings.advancedAI.promptOptimizer.autoOptimize -eq $true
+    $shouldOptimize = (-not $NoOptimize) -and ($OptimizePrompt -or $autoOptimize)
+    $showOpt = $ShowOptimization -or ($config.settings.advancedAI.promptOptimizer.showEnhancements -eq $true)
+
+    if ($shouldOptimize -and (Get-Command Optimize-Prompt -ErrorAction SilentlyContinue)) {
+        # Find user message to optimize
+        for ($i = 0; $i -lt $Messages.Count; $i++) {
+            if ($Messages[$i].role -eq "user") {
+                $originalContent = $Messages[$i].content
+                $optimizationResult = Optimize-Prompt -Prompt $originalContent -Model $Model -Detailed
+
+                if ($optimizationResult.WasEnhanced) {
+                    $Messages[$i].content = $optimizationResult.OptimizedPrompt
+
+                    if ($showOpt) {
+                        Write-Host "`n[Prompt Optimizer]" -ForegroundColor Cyan
+                        Write-Host "Category: $($optimizationResult.Category)" -ForegroundColor Gray
+                        Write-Host "Clarity: $($optimizationResult.ClarityScore)/100" -ForegroundColor Gray
+                        Write-Host "Enhancements: $($optimizationResult.Enhancements -join ', ')" -ForegroundColor Gray
+                        Write-Host ""
+                    }
+                }
+                break  # Only optimize first user message
+            }
+        }
+    }
 
     # Auto-select model if not specified
     if (-not $Model) {
@@ -626,12 +683,23 @@ function Invoke-AIRequest {
                 -InputTokens $inputTokens -OutputTokens $outputTokens
 
             # Add metadata to result
-            $result | Add-Member -NotePropertyName "_meta" -NotePropertyValue @{
+            $metaData = @{
                 provider = $currentProvider
                 model = $currentModel
                 attempt = $attempt
                 timestamp = (Get-Date).ToString("o")
-            } -Force
+            }
+
+            # Include optimization info if applied
+            if ($optimizationResult -and $optimizationResult.WasEnhanced) {
+                $metaData.promptOptimization = @{
+                    category = $optimizationResult.Category
+                    clarityScore = $optimizationResult.ClarityScore
+                    enhancements = $optimizationResult.Enhancements
+                }
+            }
+
+            $result | Add-Member -NotePropertyName "_meta" -NotePropertyValue $metaData -Force
 
             return $result
 
@@ -1369,6 +1437,119 @@ function Get-LocalModels {
 
 #endregion
 
+#region Model Discovery Integration
+
+function Sync-AIModels {
+    <#
+    .SYNOPSIS
+        Synchronize available models from all providers
+    .DESCRIPTION
+        Fetches current model list from Anthropic, OpenAI, and Ollama APIs
+        Updates config with discovered models
+    .PARAMETER Force
+        Force refresh, bypass cache
+    .PARAMETER UpdateConfig
+        Write discovered models to ai-config.json
+    .PARAMETER Silent
+        Suppress output
+    #>
+    [CmdletBinding()]
+    param(
+        [switch]$Force,
+        [switch]$UpdateConfig,
+        [switch]$Silent
+    )
+
+    if (-not (Get-Command 'Get-AllAvailableModels' -ErrorAction SilentlyContinue)) {
+        Write-Warning "ModelDiscovery module not loaded"
+        return $null
+    }
+
+    if (-not $Silent) {
+        Write-Host "[AI] Synchronizing models from providers..." -ForegroundColor Cyan
+    }
+
+    $script:DiscoveredModels = Get-AllAvailableModels -Force:$Force
+
+    if (-not $Silent) {
+        foreach ($p in $script:DiscoveredModels.Summary.GetEnumerator()) {
+            $icon = if ($p.Value.Success) { "+" } else { "-" }
+            $color = if ($p.Value.Success) { "Green" } else { "Yellow" }
+            Write-Host "  [$icon] $($p.Key): $($p.Value.ModelCount) models" -ForegroundColor $color
+        }
+        Write-Host "  Total: $($script:DiscoveredModels.TotalModels) models in $($script:DiscoveredModels.FetchDurationMs)ms" -ForegroundColor Gray
+    }
+
+    if ($UpdateConfig) {
+        Update-ModelConfig | Out-Null
+        if (-not $Silent) {
+            Write-Host "[AI] Config updated with discovered models" -ForegroundColor Green
+        }
+    }
+
+    return $script:DiscoveredModels
+}
+
+function Get-DiscoveredModels {
+    <#
+    .SYNOPSIS
+        Get cached discovered models
+    .PARAMETER Provider
+        Filter by provider
+    .PARAMETER Refresh
+        Force refresh from APIs
+    #>
+    [CmdletBinding()]
+    param(
+        [ValidateSet("anthropic", "openai", "ollama", "all")]
+        [string]$Provider = "all",
+        [switch]$Refresh
+    )
+
+    if ($Refresh -or -not $script:DiscoveredModels) {
+        $script:DiscoveredModels = Sync-AIModels -Silent
+    }
+
+    if (-not $script:DiscoveredModels) {
+        return @()
+    }
+
+    $models = $script:DiscoveredModels.Models
+
+    if ($Provider -ne "all") {
+        $models = $models | Where-Object { $_.provider -eq $Provider }
+    }
+
+    return $models
+}
+
+function Get-ModelInfo {
+    <#
+    .SYNOPSIS
+        Get detailed info about a specific model
+    .PARAMETER ModelId
+        Model ID (e.g., "gpt-4o", "claude-sonnet-4-20250514", "llama3.2:3b")
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory)]
+        [string]$ModelId
+    )
+
+    $models = Get-DiscoveredModels
+
+    $model = $models | Where-Object { $_.id -eq $ModelId } | Select-Object -First 1
+
+    if (-not $model) {
+        # Try partial match
+        $model = $models | Where-Object { $_.id -like "*$ModelId*" } | Select-Object -First 1
+    }
+
+    return $model
+}
+
+#endregion
+
 #region Exports
 
 Export-ModuleMember -Function @(
@@ -1387,10 +1568,23 @@ Export-ModuleMember -Function @(
     'Reset-AIState',
     'Test-AIProviders',
     'Test-OllamaAvailable',
-    'Install-OllamaAuto'
+    'Install-OllamaAuto',
+    # Model Discovery
+    'Sync-AIModels',
+    'Get-DiscoveredModels',
+    'Get-ModelInfo'
 )
 
 #endregion
 
 # Auto-initialize on module load
 Initialize-AIState | Out-Null
+
+# Auto-discover models if API keys are present (background, silent)
+if ($env:ANTHROPIC_API_KEY -or $env:OPENAI_API_KEY -or (Test-OllamaAvailable -ErrorAction SilentlyContinue)) {
+    try {
+        $script:DiscoveredModels = Sync-AIModels -Silent
+    } catch {
+        # Silently fail - models can be synced manually
+    }
+}
