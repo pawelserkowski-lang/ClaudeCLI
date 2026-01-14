@@ -65,19 +65,21 @@ if (Test-Path $facadePath) {
         Write-Host "[OK] AIFacade module loaded" -ForegroundColor Green
     }
 } else {
+    # If AIFacade is missing, we cannot proceed with the new architecture.
+    # We could look for AIModelHandler.psm1 but AIFacade is required for the new initialization logic.
     Write-Host "[ERROR] AIFacade module not found: $facadePath" -ForegroundColor Red
-    Write-Host "        Falling back to legacy AIModelHandler..." -ForegroundColor Yellow
 
-    # Fallback to legacy module if facade doesn't exist
-    $legacyPath = Join-Path $script:AIHandlerRoot "AIModelHandler.psm1"
-    if (Test-Path $legacyPath) {
-        Import-Module $legacyPath -Force -Global
-        Initialize-AIState | Out-Null
-        Write-Host "[OK] Legacy AIModelHandler loaded" -ForegroundColor Green
-    } else {
-        Write-Host "[ERROR] No AI module found!" -ForegroundColor Red
-        return
+    # Try finding AIModelHandler.psm1 for legacy fallback
+    $modelHandlerPath = Join-Path $script:AIHandlerRoot "AIModelHandler.psm1"
+    if (Test-Path $modelHandlerPath) {
+         Write-Host "        Falling back to AIModelHandler (Legacy)..." -ForegroundColor Yellow
+         Import-Module $modelHandlerPath -Force -Global
+         # If using legacy handler, we might need manual initialization steps here if they were part of old scripts.
+         return
     }
+
+    Write-Host "[FATAL] Neither AIFacade.psm1 nor AIModelHandler.psm1 found!" -ForegroundColor Red
+    return
 }
 
 # Initialize the AI system using the facade
@@ -145,7 +147,8 @@ if (-not $Quiet) {
 }
 
 # Create convenience aliases
-Set-Alias -Name ai -Value (Join-Path $script:AIHandlerRoot "Invoke-AI.ps1") -Scope Global -Force
+# Point 'ai' alias to the function exported by AIFacade 'Invoke-AI'
+Set-Alias -Name ai -Value "Invoke-AI" -Scope Global -Force
 Set-Alias -Name aistat -Value "Get-AIStatus" -Scope Global -Force
 Set-Alias -Name aihealth -Value (Join-Path $script:AIHandlerRoot "Invoke-AIHealth.ps1") -Scope Global -Force
 Set-Alias -Name aisys -Value "Get-AISystemStatus" -Scope Global -Force
@@ -159,7 +162,6 @@ Quick Commands:
   Get-AIHealth          - Health dashboard (status, tokens, cost)
   Test-AIProviders      - Test connectivity to all providers
   Invoke-AI             - Unified AI request (auto mode selection)
-  Invoke-AIRequest      - Direct AI request with auto-fallback
   Reset-AISystem        - Reset and reload all modules
 
 "@ -ForegroundColor Gray
@@ -179,46 +181,12 @@ Quick Commands:
 
     Write-Host @"
 Invoke-AI Examples:
-  Invoke-AI "Hello"                           # Auto mode
-  Invoke-AI "Write code" -Mode code           # Code with validation
-  Invoke-AI "Quick question" -Mode fast       # Fastest response
-  Invoke-AI "Explain X" -Mode analysis        # Thorough analysis
+  ai "Hello"                           # Auto mode
+  ai "Write code" -Mode code           # Code with validation
+  ai "Quick question" -Mode fast       # Fastest response
+  ai "Explain X" -Mode analysis        # Thorough analysis
 
 "@ -ForegroundColor Gray
-}
-
-# Integration with existing api-usage-tracker (legacy support)
-$trackerPath = Join-Path (Split-Path $script:AIHandlerRoot) "api-usage-tracker.ps1"
-if (Test-Path $trackerPath) {
-    if (-not $Quiet) {
-        Write-Host "[OK] Legacy api-usage-tracker.ps1 found - compatible mode enabled" -ForegroundColor Green
-    }
-
-    # Create unified logging function
-    function global:Log-AIUsage {
-        param(
-            [int]$InputTokens,
-            [int]$OutputTokens,
-            [string]$Model,
-            [string]$Provider = "anthropic",
-            [string]$Operation = "chat"
-        )
-
-        # Log to new system (if function exists)
-        $updateCmd = Get-Command "Update-UsageTracking" -ErrorAction SilentlyContinue
-        if ($updateCmd) {
-            Update-UsageTracking -Provider $Provider -Model $Model `
-                -InputTokens $InputTokens -OutputTokens $OutputTokens
-        }
-
-        # Log to legacy system
-        & $trackerPath -Command log -InputTokens $InputTokens `
-            -OutputTokens $OutputTokens -Model $Model -Operation $Operation
-    }
-
-    if (-not $Quiet) {
-        Write-Host "[OK] Unified Log-AIUsage function created" -ForegroundColor Green
-    }
 }
 
 if (-not $Quiet) {
