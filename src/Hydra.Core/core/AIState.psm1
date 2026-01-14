@@ -276,7 +276,7 @@ function Initialize-AIState {
 
     # Update runtime state and persist
     $script:RuntimeState = $state
-    Save-AIState $state
+    Save-AIState $state | Out-Null
 
     return $state
 }

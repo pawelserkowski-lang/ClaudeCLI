@@ -398,26 +398,28 @@ function Initialize-AISystem {
     }
 
     # ========================================================================
-    # LOAD MAIN AI HANDLER MODULE
+    # PHASE 6: ORCHESTRATION (The Core Logic)
     # ========================================================================
-    Write-Verbose "Loading main AIModelHandler module..."
+    Write-Verbose "Phase 6: Loading orchestration module..."
+    $phaseResults.Phase6 = @{ Success = @(); Failed = @() }
+    
     try {
-        $mainModulePath = Join-Path $script:ModuleBasePath "AIModelHandler.psm1"
-        if (Test-Path $mainModulePath) {
-            Import-Module $mainModulePath -Force -Global -ErrorAction Stop
-            $script:Dependencies.LoadedModules += "AIModelHandler"
-
-            # Register main handler functions
-            $mainMod = Get-Module "AIModelHandler" -ErrorAction SilentlyContinue
-            if ($mainMod) {
-                foreach ($func in $mainMod.ExportedFunctions.Keys) {
+        if (Import-AIModule -Path "AIOrchestrator.psm1" -Name "AIOrchestrator" -Category "Core") {
+            $phaseResults.Phase6.Success += "AIOrchestrator"
+            $script:Dependencies.LoadedModules += "AIOrchestrator"
+            
+            # Register orchestrator functions
+            $orchMod = Get-Module "AIOrchestrator" -ErrorAction SilentlyContinue
+            if ($orchMod) {
+                foreach ($func in $orchMod.ExportedFunctions.Keys) {
                     Register-Dependency -Category "Core" -Name $func -Value (Get-Command $func -ErrorAction SilentlyContinue)
                 }
             }
         }
     }
     catch {
-        Write-Warning "Failed to load AIModelHandler: $($_.Exception.Message)"
+        $phaseResults.Phase6.Failed += @{ Name = "AIOrchestrator"; Error = $_.Exception.Message }
+        Write-Error "Failed to load AIOrchestrator: $($_.Exception.Message)"
     }
 
     # ========================================================================
@@ -900,15 +902,27 @@ function Reset-AISystem {
 # ============================================================================
 
 Export-ModuleMember -Function @(
-    'Initialize-AISystem'
-    'Get-AIDependencies'
-    'Invoke-AI'
-    'Get-AISystemStatus'
-    'Reset-AISystem'
+    'Initialize-AISystem',
+    'Get-AIDependencies',
+    'Invoke-AI',
+    'Get-AISystemStatus',
+    'Reset-AISystem',
+    
+    # Orchestrator Functions
+    'Invoke-AIRequest',
+    'Invoke-AIRequestParallel',
+    'Invoke-AIBatch',
+    'Get-AIStatus',
+    'Get-AIHealth',
+    'Test-AIProviders',
+    'Sync-AIModels',
+    'Get-DiscoveredModels',
+    'Get-ModelInfo',
+    'Get-LocalModels'
 )
 
 # ============================================================================
 # MODULE INITIALIZATION MESSAGE
 # ============================================================================
 
-Write-Verbose "AIFacade module loaded. Use Initialize-AISystem to load all AI modules."
+Write-Verbose "Hydra Core module loaded. Use Initialize-AISystem to load all AI modules."

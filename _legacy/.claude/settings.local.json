@@ -1,0 +1,90 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash",
+      "mcp__serena__*",
+      "mcp__desktop-commander__*",
+      "mcp__playwright__*",
+      "mcp__windows-mcp__*",
+      "mcp__cursortouch__*",
+      "Write",
+      "Edit",
+      "Read",
+      "Glob",
+      "Grep",
+      "Skill",
+      "SlashCommand",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:www.manageengine.com)"
+    ],
+    "deny": [],
+    "defaultMode": "dontAsk"
+  },
+  "language": "polish",
+  "enabledMcpjsonServers": [
+    "serena",
+    "desktop-commander",
+    "playwright"
+  ],
+  "mcpServers": {
+    "serena": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/oraios/serena",
+        "serena",
+        "start-mcp-server",
+        "--context",
+        "claude-code",
+        "--project",
+        "C:\\Users\\BIURODOM\\Desktop\\ClaudeCLI"
+      ]
+    },
+    "desktop-commander": {
+      "command": "npx",
+      "args": ["-y", "@wonderwhy-er/desktop-commander"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    }
+  },
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/ai-handler-integration.ps1"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File .claude/hooks/permission-alert.ps1"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -Command \"[console]::beep(800,200)\""
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "node .claude/statusline.js"
+  }
+}

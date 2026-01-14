@@ -1,134 +1,9 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    AI Model Handler Facade - Unified entry point for the modular AI Handler system.
-
-.DESCRIPTION
-    This module serves as a FACADE that imports and re-exports all functions from the
-    modular AI Handler components:
-    - Utils: JSON I/O, Health checks, Validation
-    - Core: Constants, Configuration, State management
-    - Rate Limiting: Usage tracking, rate limit checks
-    - Model Selection: Optimal model selection, fallback chains
-    - Providers: Anthropic, OpenAI, Ollama
-
-    DEPRECATION NOTICE:
-    For new integrations, consider using the individual modules directly or
-    the AIFacade.psm1 module which provides a cleaner, more explicit interface.
-
-.VERSION
-    2.0.0 (Modular Facade)
-
-.AUTHOR
-    HYDRA System
-
-.NOTES
-    Breaking changes from v1.x:
-    - Internal implementation moved to dedicated modules
-    - All public functions remain backward compatible
-    - Import order matters for module dependencies
-
-.EXAMPLE
-    Import-Module .\AIModelHandler.psm1
-    $response = Invoke-AIRequest -Messages @(@{role="user"; content="Hello"})
-
-.LINK
-    See also: AIFacade.psm1 for the recommended modern interface
+    AI Orchestrator - Core logic for handling AI requests, retries, and fallback.
+    Loaded by Hydra.Core.
 #>
-
-Write-Warning @"
-[DEPRECATION] AIModelHandler.psm1 is deprecated and will be removed in v11.0.
-Please use AIFacade.psm1 instead:
-  Import-Module AIFacade.psm1
-  Initialize-AISystem
-"@
-
-# ============================================================================
-# MODULE PATHS
-# ============================================================================
-
-$script:ModuleRoot = $PSScriptRoot
-
-# Submodule paths
-$script:Paths = @{
-    # Utilities (load first - no dependencies)
-    JsonIO     = Join-Path $script:ModuleRoot "utils\AIUtil-JsonIO.psm1"
-    Health     = Join-Path $script:ModuleRoot "utils\AIUtil-Health.psm1"
-
-    # Core modules (depend on utils)
-    Constants  = Join-Path $script:ModuleRoot "core\AIConstants.psm1"
-    Config     = Join-Path $script:ModuleRoot "core\AIConfig.psm1"
-    State      = Join-Path $script:ModuleRoot "core\AIState.psm1"
-
-    # Rate Limiting (depends on core)
-    RateLimiter = Join-Path $script:ModuleRoot "rate-limiting\RateLimiter.psm1"
-
-    # Model Selection (depends on core, rate limiting)
-    ModelSelector = Join-Path $script:ModuleRoot "model-selection\ModelSelector.psm1"
-
-    # Providers (depend on utils)
-    Anthropic  = Join-Path $script:ModuleRoot "providers\AnthropicProvider.psm1"
-    OpenAI     = Join-Path $script:ModuleRoot "providers\OpenAIProvider.psm1"
-    Ollama     = Join-Path $script:ModuleRoot "providers\OllamaProvider.psm1"
-
-    # Legacy modules (optional)
-    PromptOptimizer = Join-Path $script:ModuleRoot "modules\PromptOptimizer.psm1"
-    ModelDiscovery  = Join-Path $script:ModuleRoot "modules\ModelDiscovery.psm1"
-    SecureStorage   = Join-Path $script:ModuleRoot "modules\SecureStorage.psm1"
-}
-
-# ============================================================================
-# MODULE IMPORTS (Order matters!)
-# ============================================================================
-
-# Track loaded modules for export
-$script:LoadedModules = @()
-
-function Import-SubModule {
-    param([string]$Path, [string]$Name)
-
-    if (Test-Path $Path) {
-        try {
-            Import-Module $Path -Force -Global -ErrorAction Stop
-            $script:LoadedModules += $Name
-            Write-Verbose "[AIHandler] Loaded: $Name"
-            return $true
-        }
-        catch {
-            Write-Warning "[AIHandler] Failed to load $Name`: $($_.Exception.Message)"
-            return $false
-        }
-    }
-    else {
-        Write-Verbose "[AIHandler] Module not found: $Name at $Path"
-        return $false
-    }
-}
-
-# === Stage 1: Utilities (no dependencies) ===
-Import-SubModule $script:Paths.JsonIO "JsonIO" | Out-Null
-Import-SubModule $script:Paths.Health "Health" | Out-Null
-
-# === Stage 2: Core (depend on utils) ===
-Import-SubModule $script:Paths.Constants "Constants" | Out-Null
-Import-SubModule $script:Paths.Config "Config" | Out-Null
-Import-SubModule $script:Paths.State "State" | Out-Null
-
-# === Stage 3: Rate Limiting (depend on core) ===
-Import-SubModule $script:Paths.RateLimiter "RateLimiter" | Out-Null
-
-# === Stage 4: Model Selection (depend on core + rate limiting) ===
-Import-SubModule $script:Paths.ModelSelector "ModelSelector" | Out-Null
-
-# === Stage 5: Providers (depend on utils) ===
-Import-SubModule $script:Paths.Anthropic "Anthropic" | Out-Null
-Import-SubModule $script:Paths.OpenAI "OpenAI" | Out-Null
-Import-SubModule $script:Paths.Ollama "Ollama" | Out-Null
-
-# === Stage 6: Legacy/Optional modules ===
-Import-SubModule $script:Paths.PromptOptimizer "PromptOptimizer" | Out-Null
-Import-SubModule $script:Paths.ModelDiscovery "ModelDiscovery" | Out-Null
-Import-SubModule $script:Paths.SecureStorage "SecureStorage" | Out-Null
 
 # ============================================================================
 # DISCOVERED MODELS CACHE
@@ -864,4 +739,4 @@ Export-ModuleMember -Function @(
 # NOTE: Auto-initialization removed - use AIFacade.psm1 instead
 # ============================================================================
 
-Write-Verbose "[AIModelHandler] Facade loaded. Modules: $($script:LoadedModules -join ', ')"
+Write-Verbose "[AIOrchestrator] Module loaded."
