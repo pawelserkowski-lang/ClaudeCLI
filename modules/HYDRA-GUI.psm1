@@ -1,4 +1,4 @@
-#Requires -Version 5.1
+﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
     HYDRA GUI Module - 50 Visual Enhancements for ClaudeCLI & GeminiCLI
@@ -605,7 +605,7 @@ function Show-StatusBar {
 
     foreach ($section in $Sections) {
         Write-Host "$($section.Label): " -NoNewline -ForegroundColor $script:Colors.Muted
-        Write-Host $section.Value -NoNewline -ForegroundColor ($section.Color ?? $script:Colors.Text)
+        Write-Host $section.Value -NoNewline -ForegroundColor $(if ($section.Color) { $section.Color } else { $script:Colors.Text })
         if ($section -ne $Sections[-1]) {
             Write-Host $separator -NoNewline -ForegroundColor $script:Colors.Border
         }
@@ -1092,10 +1092,10 @@ function Show-SessionStats {
     )
 
     Show-Box -Title "Session Stats" -Content @(
-        "Duration:  $($Stats.Duration ?? 'N/A')"
-        "Requests:  $($Stats.Requests ?? 0)"
-        "Tokens:    $($Stats.Tokens ?? 0)"
-        "Cost:      `$$($Stats.Cost ?? 0)"
+        "Duration:  $(if ($Stats.Duration) { $Stats.Duration } else { 'N/A' })"
+        "Requests:  $(if ($Stats.Requests) { $Stats.Requests } else { 0 })"
+        "Tokens:    $(if ($Stats.Tokens) { $Stats.Tokens } else { 0 })"
+        "Cost:      `$$(if ($Stats.Cost) { $Stats.Cost } else { 0 })"
     ) -Style "rounded"
 }
 

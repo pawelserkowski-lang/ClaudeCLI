@@ -29,9 +29,10 @@ $script:GraphCacheFile = Join-Path $script:CachePath "file_graph.json"
 
 #region Module Imports
 
-# Import utility modules
-$script:UtilValidationPath = Join-Path $PSScriptRoot "AIUtil-Validation.psm1"
-$script:UtilJsonIOPath = Join-Path $PSScriptRoot "AIUtil-JsonIO.psm1"
+# Import utility modules from utils/ directory
+$script:UtilsPath = Join-Path (Split-Path $PSScriptRoot -Parent) "utils"
+$script:UtilValidationPath = Join-Path $script:UtilsPath "AIUtil-Validation.psm1"
+$script:UtilJsonIOPath = Join-Path $script:UtilsPath "AIUtil-JsonIO.psm1"
 
 if (Test-Path $script:UtilValidationPath) {
     Import-Module $script:UtilValidationPath -Force -DisableNameChecking
@@ -417,10 +418,10 @@ function Get-RelatedFiles {
 
 #region Dependency Graph
 
-function Build-DependencyGraph {
+function New-DependencyGraph {
     <#
     .SYNOPSIS
-        Build a complete dependency graph for a project
+        Create a complete dependency graph for a project
     .DESCRIPTION
         Analyzes all source files and builds a graph of import relationships.
         Caches results for faster subsequent queries.
@@ -566,7 +567,7 @@ function Get-DependencyChain {
 
     $projectRoot = Split-Path $FilePath -Parent
     if (-not $Graph) {
-        $Graph = Build-DependencyGraph -ProjectRoot $projectRoot
+        $Graph = New-DependencyGraph -ProjectRoot $projectRoot
     }
 
     $relativePath = $FilePath.Replace($Graph.ProjectRoot, '').TrimStart('\', '/')
@@ -871,7 +872,7 @@ function Get-ProjectStructure {
         [string]$ProjectRoot
     )
 
-    $graph = Build-DependencyGraph -ProjectRoot $ProjectRoot
+    $graph = New-DependencyGraph -ProjectRoot $ProjectRoot
 
     Write-Host "`n=== Project Structure ===" -ForegroundColor Cyan
     Write-Host "Root: $ProjectRoot" -ForegroundColor White
@@ -963,7 +964,7 @@ Export-ModuleMember -Function @(
     'Get-FileImports',
     'Get-FileFunctions',
     'Get-RelatedFiles',
-    'Build-DependencyGraph',
+    'New-DependencyGraph',
     'Get-DependencyChain',
     'Get-ExpandedContext',
     'Format-ContextForAI',

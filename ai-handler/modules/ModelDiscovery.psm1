@@ -979,7 +979,13 @@ function Update-ModelConfig {
 
         if ($config.providers.$providerName) {
             $config.providers.$providerName.models = $providerModels
-            $config.fallbackChain.$providerName = @($providerModels.Keys)
+            # Preserve existing fallbackChain order - only add new models at the end
+            $existingChain = @()
+            if ($config.fallbackChain.$providerName) {
+                $existingChain = @($config.fallbackChain.$providerName | Where-Object { $providerModels.ContainsKey($_) })
+            }
+            $newModels = @($providerModels.Keys | Where-Object { $existingChain -notcontains $_ })
+            $config.fallbackChain.$providerName = @($existingChain + $newModels)
         }
     }
 

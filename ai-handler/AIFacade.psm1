@@ -323,6 +323,37 @@ function Initialize-AISystem {
     }
 
     # ========================================================================
+    # PHASE 4.5: FALLBACK MODULES (API Key Rotation, Provider Fallback)
+    # ========================================================================
+    Write-Verbose "Phase 4.5: Loading fallback modules..."
+    $phaseResults.Phase45 = @{ Success = @(); Failed = @() }
+
+    $fallbackModules = @(
+        @{ Path = "fallback\ApiKeyRotation.psm1"; Name = "ApiKeyRotation" }
+        @{ Path = "fallback\ProviderFallback.psm1"; Name = "ProviderFallback" }
+    )
+
+    foreach ($mod in $fallbackModules) {
+        try {
+            if (Import-AIModule -Path $mod.Path -Name $mod.Name -Category "Infrastructure" -Optional) {
+                $phaseResults.Phase45.Success += $mod.Name
+
+                # Register fallback functions
+                $loadedMod = Get-Module $mod.Name -ErrorAction SilentlyContinue
+                if ($loadedMod) {
+                    foreach ($func in $loadedMod.ExportedFunctions.Keys) {
+                        Register-Dependency -Category "Infrastructure" -Name $func -Value (Get-Command $func -ErrorAction SilentlyContinue)
+                    }
+                }
+            }
+        }
+        catch {
+            $phaseResults.Phase45.Failed += @{ Name = $mod.Name; Error = $_.Exception.Message }
+            Write-Verbose "Fallback module $($mod.Name) failed to load: $($_.Exception.Message)"
+        }
+    }
+
+    # ========================================================================
     # PHASE 5: ADVANCED MODULES (Optional, with try/catch)
     # ========================================================================
     if (-not $SkipAdvanced) {
@@ -337,12 +368,8 @@ function Initialize-AISystem {
             @{ Path = "modules\SemanticFileMapping.psm1"; Name = "SemanticFileMapping" }
             @{ Path = "modules\PromptOptimizer.psm1"; Name = "PromptOptimizer" }
             @{ Path = "modules\AdvancedAI.psm1"; Name = "AdvancedAI" }
-            @{ Path = "modules\TaskClassifier.psm1"; Name = "TaskClassifier" }
-            @{ Path = "modules\SmartQueue.psm1"; Name = "SmartQueue" }
             @{ Path = "modules\ModelDiscovery.psm1"; Name = "ModelDiscovery" }
-            @{ Path = "modules\SemanticGitCommit.psm1"; Name = "SemanticGitCommit" }
-            @{ Path = "modules\AICodeReview.psm1"; Name = "AICodeReview" }
-            @{ Path = "modules\PredictiveAutocomplete.psm1"; Name = "PredictiveAutocomplete" }
+            @{ Path = "modules\ContextOptimizer.psm1"; Name = "ContextOptimizer" }
         )
 
         foreach ($mod in $advancedModules) {

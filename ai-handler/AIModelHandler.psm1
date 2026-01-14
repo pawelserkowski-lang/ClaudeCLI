@@ -10,7 +10,7 @@
     - Core: Constants, Configuration, State management
     - Rate Limiting: Usage tracking, rate limit checks
     - Model Selection: Optimal model selection, fallback chains
-    - Providers: Anthropic, OpenAI, Ollama, Google, Mistral, Groq
+    - Providers: Anthropic, OpenAI, Ollama
 
     DEPRECATION NOTICE:
     For new integrations, consider using the individual modules directly or
@@ -35,6 +35,13 @@
 .LINK
     See also: AIFacade.psm1 for the recommended modern interface
 #>
+
+Write-Warning @"
+[DEPRECATION] AIModelHandler.psm1 is deprecated and will be removed in v11.0.
+Please use AIFacade.psm1 instead:
+  Import-Module AIFacade.psm1
+  Initialize-AISystem
+"@
 
 # ============================================================================
 # MODULE PATHS
@@ -147,7 +154,7 @@ function Invoke-AIRequest {
     .PARAMETER Messages
         Array of message objects with 'role' and 'content' properties.
     .PARAMETER Provider
-        Provider name: anthropic, openai, google, mistral, groq, ollama
+        Provider name: anthropic, openai, ollama
     .PARAMETER Model
         Model identifier. Auto-selected if not specified.
     .PARAMETER MaxTokens
@@ -364,18 +371,6 @@ function Invoke-ProviderAPI {
         }
         "ollama" {
             return Invoke-OllamaAPI -Model $Model -Messages $Messages `
-                -MaxTokens $MaxTokens -Temperature $Temperature -Stream:$Stream
-        }
-        "google" {
-            return Invoke-GoogleAPI -Model $Model -Messages $Messages `
-                -MaxTokens $MaxTokens -Temperature $Temperature -Stream:$Stream
-        }
-        "mistral" {
-            return Invoke-MistralAPI -Model $Model -Messages $Messages `
-                -MaxTokens $MaxTokens -Temperature $Temperature -Stream:$Stream
-        }
-        "groq" {
-            return Invoke-GroqAPI -Model $Model -Messages $Messages `
                 -MaxTokens $MaxTokens -Temperature $Temperature -Stream:$Stream
         }
         default {
@@ -788,98 +783,6 @@ function Get-LocalModels {
 }
 
 # ============================================================================
-# LEGACY PROVIDER STUBS (for backward compatibility with providers not yet modularized)
-# ============================================================================
-
-function Invoke-GoogleAPI {
-    param([string]$Model, [array]$Messages, [int]$MaxTokens, [float]$Temperature, [switch]$Stream)
-
-    $apiKey = $env:GOOGLE_API_KEY
-    if (-not $apiKey) { throw "GOOGLE_API_KEY environment variable not set." }
-
-    $systemMessage = ($Messages | Where-Object { $_.role -eq "system" } | Select-Object -First 1).content
-    $contents = @($Messages | Where-Object { $_.role -ne "system" } | ForEach-Object {
-        @{ role = $_.role; parts = @(@{ text = $_.content }) }
-    })
-
-    $body = @{
-        contents = $contents
-        generationConfig = @{ maxOutputTokens = $MaxTokens; temperature = $Temperature }
-    }
-    if ($systemMessage) { $body.systemInstruction = @{ parts = @(@{ text = $systemMessage }) } }
-
-    $uri = "https://generativelanguage.googleapis.com/v1beta/models/$Model`:generateContent?key=$apiKey"
-    $response = Invoke-RestMethod -Uri $uri -Method Post -Body ($body | ConvertTo-Json -Depth 10) -ContentType "application/json"
-
-    return @{
-        content = $response.candidates[0].content.parts[0].text
-        usage = @{ input_tokens = $response.usageMetadata.promptTokenCount; output_tokens = $response.usageMetadata.candidatesTokenCount }
-        model = $Model
-        stop_reason = $response.candidates[0].finishReason
-    }
-}
-
-function Invoke-MistralAPI {
-    param([string]$Model, [array]$Messages, [int]$MaxTokens, [float]$Temperature, [switch]$Stream)
-
-    $apiKey = $env:MISTRAL_API_KEY
-    if (-not $apiKey) { throw "MISTRAL_API_KEY environment variable not set." }
-
-    $body = @{
-        model = $Model
-        max_tokens = $MaxTokens
-        temperature = $Temperature
-        messages = @($Messages | ForEach-Object { @{ role = $_.role; content = $_.content } })
-    }
-
-    $headers = @{ "Authorization" = "Bearer $apiKey"; "Content-Type" = "application/json" }
-
-    if ($Stream) {
-        return Invoke-OpenAICompatibleStream -Uri "https://api.mistral.ai/v1/chat/completions" `
-            -Headers $headers -Body ($body | ConvertTo-Json -Depth 10) -Model $Model
-    }
-
-    $response = Invoke-RestMethod -Uri "https://api.mistral.ai/v1/chat/completions" -Method Post -Headers $headers -Body ($body | ConvertTo-Json -Depth 10)
-
-    return @{
-        content = $response.choices[0].message.content
-        usage = @{ input_tokens = $response.usage.prompt_tokens; output_tokens = $response.usage.completion_tokens }
-        model = $response.model
-        stop_reason = $response.choices[0].finish_reason
-    }
-}
-
-function Invoke-GroqAPI {
-    param([string]$Model, [array]$Messages, [int]$MaxTokens, [float]$Temperature, [switch]$Stream)
-
-    $apiKey = $env:GROQ_API_KEY
-    if (-not $apiKey) { throw "GROQ_API_KEY environment variable not set." }
-
-    $body = @{
-        model = $Model
-        max_tokens = $MaxTokens
-        temperature = $Temperature
-        messages = @($Messages | ForEach-Object { @{ role = $_.role; content = $_.content } })
-    }
-
-    $headers = @{ "Authorization" = "Bearer $apiKey"; "Content-Type" = "application/json" }
-
-    if ($Stream) {
-        return Invoke-OpenAICompatibleStream -Uri "https://api.groq.com/openai/v1/chat/completions" `
-            -Headers $headers -Body ($body | ConvertTo-Json -Depth 10) -Model $Model
-    }
-
-    $response = Invoke-RestMethod -Uri "https://api.groq.com/openai/v1/chat/completions" -Method Post -Headers $headers -Body ($body | ConvertTo-Json -Depth 10)
-
-    return @{
-        content = $response.choices[0].message.content
-        usage = @{ input_tokens = $response.usage.prompt_tokens; output_tokens = $response.usage.completion_tokens }
-        model = $response.model
-        stop_reason = $response.choices[0].finish_reason
-    }
-}
-
-# ============================================================================
 # MODULE EXPORTS
 # ============================================================================
 
@@ -954,29 +857,11 @@ Export-ModuleMember -Function @(
     'Sync-AIModels',
     'Get-DiscoveredModels',
     'Get-ModelInfo',
-    'Get-LocalModels',
-
-    # === Legacy Provider Stubs ===
-    'Invoke-GoogleAPI',
-    'Invoke-MistralAPI',
-    'Invoke-GroqAPI'
+    'Get-LocalModels'
 )
 
 # ============================================================================
-# AUTO-INITIALIZATION
+# NOTE: Auto-initialization removed - use AIFacade.psm1 instead
 # ============================================================================
-
-# Initialize state on module load
-Initialize-AIState | Out-Null
-
-# Auto-discover models if API keys are present (silent background)
-if ($env:ANTHROPIC_API_KEY -or $env:OPENAI_API_KEY -or (Test-OllamaAvailable -ErrorAction SilentlyContinue)) {
-    try {
-        $script:DiscoveredModels = Sync-AIModels -Silent
-    }
-    catch {
-        # Silently fail - models can be synced manually
-    }
-}
 
 Write-Verbose "[AIModelHandler] Facade loaded. Modules: $($script:LoadedModules -join ', ')"

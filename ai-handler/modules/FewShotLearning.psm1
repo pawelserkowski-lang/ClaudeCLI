@@ -345,10 +345,10 @@ function Get-SuccessfulExamples {
     return $best | ForEach-Object { $_.entry }
 }
 
-function Build-FewShotPrompt {
+function New-FewShotPrompt {
     <#
     .SYNOPSIS
-        Build a prompt with few-shot examples prepended
+        Create a prompt with few-shot examples prepended
     .DESCRIPTION
         Creates an enhanced prompt with relevant historical examples
         to guide the model toward better outputs.
@@ -468,7 +468,7 @@ function Invoke-AIWithFewShot {
     }
 
     # Build enhanced prompt
-    $enhanced = Build-FewShotPrompt -UserPrompt $Prompt -Examples $examples -Style "chat"
+    $enhanced = New-FewShotPrompt -UserPrompt $Prompt -Examples $examples -Style "chat"
 
     # Prepare messages
     $messages = @()
@@ -608,7 +608,7 @@ Export-ModuleMember -Function @(
     'Initialize-FewShotCache',
     'Save-SuccessfulResponse',
     'Get-SuccessfulExamples',
-    'Build-FewShotPrompt',
+    'New-FewShotPrompt',
     'Invoke-AIWithFewShot',
     'Add-ToSuccessHistory',
     'Get-FewShotStats',

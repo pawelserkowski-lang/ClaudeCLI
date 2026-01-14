@@ -46,7 +46,7 @@ Query your codebase with automatic context expansion based on imports and depend
 Get-RelatedFiles -FilePath "src/app.py" -MaxDepth 2
 
 # Build full dependency graph
-Build-DependencyGraph -ProjectPath "C:\Project" -Language "python"
+New-DependencyGraph -ProjectPath "C:\Project" -Language "python"
 
 # Query with expanded context
 Invoke-SemanticQuery -FilePath "auth.py" -Query "How does login work?" -IncludeRelated

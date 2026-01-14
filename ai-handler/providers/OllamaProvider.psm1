@@ -18,7 +18,7 @@
     Import-Module .\OllamaProvider.psm1
 
     # Check if Ollama is running
-    if (Test-OllamaAvailable) {
+    if ((Test-OllamaAvailable).Available) {
         # List models
         Get-OllamaModels | Format-Table
 
@@ -122,32 +122,67 @@ function Test-OllamaAvailable {
         Performs a TCP connection test to localhost:11434 to check if the
         Ollama service is running and responding to requests.
 
+    .PARAMETER NoCache
+        Ignored - included for compatibility with AIUtil-Health version
+
+    .PARAMETER IncludeModels
+        If specified, also fetches available models (slower)
+
     .OUTPUTS
-        Boolean indicating whether Ollama is available
+        Hashtable with Available, Port, ResponseTimeMs properties
+        (Compatible with AIUtil-Health.psm1 version)
 
     .EXAMPLE
-        if (Test-OllamaAvailable) {
+        if ((Test-OllamaAvailable).Available) {
             Write-Host "Ollama is running on port 11434"
-        } else {
-            Write-Host "Ollama is not available"
         }
     #>
     [CmdletBinding()]
-    [OutputType([bool])]
-    param()
+    [OutputType([hashtable])]
+    param(
+        [switch]$NoCache,
+        [switch]$IncludeModels
+    )
+
+    $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+    $available = $false
+    $models = @()
 
     try {
         $request = [System.Net.WebRequest]::Create("$script:OllamaBaseUri/api/tags")
         $request.Method = "GET"
         $request.Timeout = $script:DefaultTimeout
         $response = $request.GetResponse()
+
+        if ($IncludeModels) {
+            $reader = [System.IO.StreamReader]::new($response.GetResponseStream())
+            $json = $reader.ReadToEnd() | ConvertFrom-Json
+            $models = @($json.models | ForEach-Object { $_.name })
+            $reader.Close()
+        }
+
         $response.Close()
-        return $true
+        $available = $true
     }
     catch {
         Write-Verbose "Ollama not available: $($_.Exception.Message)"
-        return $false
+        $available = $false
     }
+
+    $stopwatch.Stop()
+
+    $result = @{
+        Available      = $available
+        Port           = 11434
+        ResponseTimeMs = $stopwatch.ElapsedMilliseconds
+        Cached         = $false
+    }
+
+    if ($IncludeModels) {
+        $result.Models = $models
+    }
+
+    return $result
 }
 
 function Install-OllamaAuto {
@@ -190,7 +225,7 @@ function Install-OllamaAuto {
     if (Test-Path $installerScript) {
         Write-Host "[AI] Auto-installing Ollama via installer script..." -ForegroundColor Yellow
         & $installerScript -SkipModelPull
-        return Test-OllamaAvailable
+        return (Test-OllamaAvailable).Available
     }
 
     # Inline minimal installer
@@ -217,7 +252,7 @@ function Install-OllamaAuto {
             }
 
             Remove-Item $tempInstaller -Force -ErrorAction SilentlyContinue
-            return Test-OllamaAvailable
+            return (Test-OllamaAvailable).Available
         }
         else {
             Write-Warning "[AI] Ollama installer exited with code: $($process.ExitCode)"
@@ -258,7 +293,7 @@ function Get-OllamaModels {
     [OutputType([array])]
     param()
 
-    if (-not (Test-OllamaAvailable)) {
+    if (-not (Test-OllamaAvailable).Available) {
         Write-Warning "Ollama is not running"
         return @()
     }
@@ -356,7 +391,7 @@ function Invoke-OllamaAPI {
     )
 
     # Check if Ollama is running, try to start or install if not
-    if (-not (Test-OllamaAvailable)) {
+    if (-not (Test-OllamaAvailable).Available) {
         Write-Host "[AI] Ollama not running, attempting to start..." -ForegroundColor Yellow
 
         # Try to start existing installation
@@ -364,7 +399,7 @@ function Invoke-OllamaAPI {
             Start-Process -FilePath $script:OllamaExePath -ArgumentList "serve" -WindowStyle Hidden
             Start-Sleep -Seconds 3
 
-            if (-not (Test-OllamaAvailable)) {
+            if (-not (Test-OllamaAvailable).Available) {
                 throw "Ollama installed but failed to start"
             }
         }

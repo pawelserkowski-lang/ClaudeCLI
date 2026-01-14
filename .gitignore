@@ -56,6 +56,13 @@ tmpclaude-*
 ai-handler/ai-state.json
 ai-handler/cache/*.json
 ai-handler/queue/*.json
+ai-handler/fallback-telemetry.json
+
+# Claude Config Backups
+.claude/config-backup/
+
+# Playwright MCP Cache
+.playwright-mcp/
 
 # Test Coverage
 coverage/

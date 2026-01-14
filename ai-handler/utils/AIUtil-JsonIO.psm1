@@ -30,11 +30,18 @@ function Read-JsonFile {
         The default value to return if the file does not exist or cannot be parsed.
         Defaults to an empty hashtable.
 
+    .PARAMETER AsHashtable
+        If specified, converts the parsed JSON to a hashtable instead of PSCustomObject.
+        This provides PowerShell 5.1 compatibility where hashtables are required.
+
     .EXAMPLE
         $config = Read-JsonFile -Path "C:\config\settings.json"
 
     .EXAMPLE
         $state = Read-JsonFile -Path "C:\state.json" -Default @{ initialized = $false }
+
+    .EXAMPLE
+        $config = Read-JsonFile -Path "C:\config.json" -AsHashtable
 
     .OUTPUTS
         System.Object
@@ -48,7 +55,10 @@ function Read-JsonFile {
         [string]$Path,
 
         [Parameter(Mandatory = $false)]
-        [object]$Default = @{}
+        [object]$Default = @{},
+
+        [Parameter(Mandatory = $false)]
+        [switch]$AsHashtable
     )
 
     try {
@@ -65,6 +75,12 @@ function Read-JsonFile {
         }
 
         $parsed = $content | ConvertFrom-Json -ErrorAction Stop
+
+        # Convert to hashtable if requested (PS 5.1 compatibility)
+        if ($AsHashtable) {
+            return ConvertTo-Hashtable -InputObject $parsed
+        }
+
         return $parsed
     }
     catch {

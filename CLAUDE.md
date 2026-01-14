@@ -4,6 +4,37 @@
 **Path**: `C:\Users\BIURODOM\Desktop\ClaudeCLI`
 **Config**: `hydra-config.json`
 
+---
+
+## 🔴 DYREKTYWY NADRZĘDNE (Priorytet: ZAWSZE)
+
+> **📄 Pełna dokumentacja:** [`ai-handler/AI_MANDATES.md`](ai-handler/AI_MANDATES.md)
+
+### Quick Reference
+
+| Dyrektywa | Reguła |
+|-----------|--------|
+| **Pamięć** | Sprawdź Serena → MCP Cache → Session State |
+| **Równoległość** | READ-ONLY = parallel, WRITE = sequential |
+| **Architektura** | 🧠 Cloud AI (analiza) + 💪 Local (egzekucja) |
+| **Fallback** | API Key 2 → Niższy model → Inny provider |
+| **Koszt** | `preferLocal: true`, Ollama first ($0) |
+
+### Fallback Chain
+
+```
+Opus → 🔑 API Key 2 → 📉 Sonnet → Haiku → 🔄 OpenAI → Ollama
+```
+
+### Auto-loaded Modules (AIFacade)
+
+| Faza | Moduły |
+|------|--------|
+| 4.5 | ApiKeyRotation, ProviderFallback |
+| 5 | ContextOptimizer, SelfCorrection, FewShot... |
+
+---
+
 ## MCP Tools
 
 | Tool | Port | Funkcja |
@@ -35,6 +66,7 @@
 | `/few-shot <task>` | Learn from history | FewShotLearning |
 | `/load-balance` | CPU-aware provider | LoadBalancer |
 | `/optimize-prompt <text>` | Enhance prompt quality | PromptOptimizer |
+| `/optimize-context` | Token savings dashboard | ContextOptimizer |
 
 ### Orchestration
 
@@ -63,6 +95,9 @@
 
 # Improve vague prompt
 /optimize-prompt do something with the stuff
+
+# Check token usage and memory status
+/optimize-context
 ```
 
 ---
@@ -84,7 +119,8 @@
 
 | Komponent | Opis | Status |
 |-----------|------|--------|
-| `AIModelHandler.psm1` | Główny moduł | Import globalny |
+| `AIFacade.psm1` | 🎯 Główny punkt wejścia | Import globalny |
+| `AIModelHandler.psm1` | Wewnętrzny moduł (via Facade) | Auto-load |
 | `Initialize-AIState` | Stan providerów | Auto-init |
 | Ollama check | Port 11434 | Status w GUI |
 | Cloud API keys | Anthropic/OpenAI | Weryfikacja |
@@ -212,7 +248,6 @@ C:\Users\BIURODOM\Desktop\ClaudeCLI\
 │   ├── Invoke-AI.ps1            # Quick CLI wrapper
 │   ├── Initialize-AIHandler.ps1 # Setup script
 │   ├── Initialize-AdvancedAI.ps1 # Advanced AI loader
-│   ├── Demo-AdvancedAI.ps1      # Advanced features demo
 │   ├── cache/                   # Few-shot learning cache
 │   ├── utils/                   # 📦 Layer 1: Utilities (NEW)
 │   │   ├── AIUtil-JsonIO.psm1       # Atomic JSON read/write
@@ -231,6 +266,9 @@ C:\Users\BIURODOM\Desktop\ClaudeCLI\
 │   │   ├── OllamaProvider.psm1      # Local Ollama integration
 │   │   ├── AnthropicProvider.psm1   # Anthropic Claude API
 │   │   └── OpenAIProvider.psm1      # OpenAI GPT API
+│   ├── fallback/               # 📦 Layer 5: Fallback (NEW)
+│   │   ├── ProviderFallback.psm1    # Cross-provider fallback
+│   │   └── ApiKeyRotation.psm1      # API key rotation
 │   └── modules/                 # 🧠 Advanced AI Modules (Layer 6)
 │       ├── SelfCorrection.psm1      # Agentic self-correction
 │       ├── FewShotLearning.psm1     # Dynamic few-shot learning
@@ -239,12 +277,10 @@ C:\Users\BIURODOM\Desktop\ClaudeCLI\
 │       ├── SemanticFileMapping.psm1 # Deep RAG with imports
 │       ├── AdvancedAI.psm1          # Unified interface
 │       ├── PromptOptimizer.psm1     # Auto prompt enhancement
-│       ├── TaskClassifier.psm1      # Task type classification
-│       ├── SmartQueue.psm1          # Prompt queue management
+│       ├── ContextOptimizer.psm1    # Context/token optimization
 │       ├── ModelDiscovery.psm1      # Dynamic model discovery
-│       ├── SemanticGitCommit.psm1   # AI-powered git commits
-│       ├── AICodeReview.psm1        # Code review module
-│       └── PredictiveAutocomplete.psm1 # Autocomplete suggestions
+│       ├── ErrorLogger.psm1         # Centralized error logging
+│       └── SecureStorage.psm1       # Secure credential storage
 ├── parallel/            # ⚡ Parallel execution system
 │   ├── modules/
 │   │   └── ParallelUtils.psm1    # Core parallel functions
@@ -301,17 +337,21 @@ ai-handler/
 │   └── OpenAIProvider.psm1    # OpenAI GPT API
 │
 ├── fallback/                  # 📦 Layer 5: Fallback logic
-│   └── (fallback orchestration)
+│   ├── ProviderFallback.psm1  # Cross-provider fallback
+│   └── ApiKeyRotation.psm1    # API key rotation
 │
 └── modules/                   # 📦 Layer 6: Advanced features
-    ├── SelfCorrection.psm1
-    ├── FewShotLearning.psm1
-    ├── SpeculativeDecoding.psm1
-    ├── LoadBalancer.psm1
-    ├── SemanticFileMapping.psm1
-    ├── PromptOptimizer.psm1
-    ├── AdvancedAI.psm1
-    └── ... (other advanced modules)
+    ├── SelfCorrection.psm1    # Agentic self-correction
+    ├── FewShotLearning.psm1   # Dynamic few-shot learning
+    ├── SpeculativeDecoding.psm1 # Parallel multi-model
+    ├── LoadBalancer.psm1      # CPU-aware load balancing
+    ├── SemanticFileMapping.psm1 # Deep RAG with imports
+    ├── PromptOptimizer.psm1   # Auto prompt enhancement
+    ├── ContextOptimizer.psm1  # Context/token optimization
+    ├── ModelDiscovery.psm1    # Dynamic model discovery
+    ├── AdvancedAI.psm1        # Unified interface
+    ├── ErrorLogger.psm1       # Centralized error logging
+    └── SecureStorage.psm1     # Secure credential storage
 ```
 
 ### Layer Descriptions
@@ -1190,7 +1230,7 @@ Deep RAG z analizą importów i zależności - automatyczne rozszerzanie konteks
 | `Get-FileImports` | Extract imports/requires |
 | `Get-FileFunctions` | Extract function definitions |
 | `Get-RelatedFiles` | Find related by imports |
-| `Build-DependencyGraph` | Build project graph |
+| `New-DependencyGraph` | Build project graph |
 | `Get-ExpandedContext` | AI context with related files |
 | `Invoke-SemanticQuery` | Query with full context |
 | `Get-ProjectStructure` | Analyze project structure |
@@ -1201,7 +1241,7 @@ $related = Get-RelatedFiles -FilePath "src/app.py" -MaxDepth 2
 # Returns files imported by app.py
 
 # Build full dependency graph
-$graph = Build-DependencyGraph -ProjectPath "C:\MyProject" -Language "python"
+$graph = New-DependencyGraph -ProjectPath "C:\MyProject" -Language "python"
 # Returns: nodes (files), edges (dependencies)
 
 # Query with automatic context expansion

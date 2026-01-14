@@ -9,9 +9,11 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$ModulePath = Join-Path $PSScriptRoot "AIModelHandler.psm1"
 
-Import-Module $ModulePath -Force
+# Import AI Facade
+$FacadePath = Join-Path $PSScriptRoot "AIFacade.psm1"
+Import-Module $FacadePath -Force
+$null = Initialize-AISystem -SkipAdvanced
 
 $health = Get-AIHealth
 

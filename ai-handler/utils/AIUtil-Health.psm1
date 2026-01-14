@@ -19,12 +19,11 @@
     HYDRA System
 
 .NOTES
-    Replaces 5+ duplicate Ollama/system check implementations across:
+    Replaces duplicate Ollama/system check implementations across:
     - AIModelHandler.psm1
     - LoadBalancer.psm1
     - AdvancedAI.psm1
     - Initialize-AdvancedAI.ps1
-    - SmartQueue.psm1
     - _launcher.ps1
 #>
 

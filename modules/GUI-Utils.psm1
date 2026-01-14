@@ -1,4 +1,4 @@
-# HYDRA GUI UTILS - Shared GUI components for ClaudeCLI & GeminiCLI
+﻿# HYDRA GUI UTILS - Shared GUI components for ClaudeCLI & GeminiCLI
 
 # === ASCII Art Logos ===
 function Show-HydraLogo {
@@ -60,11 +60,11 @@ function Write-StatusLine {
     )
     
     $icon = switch ($Status) {
-        'ok'    { '[OK]'; $color = 'Green' }
-        'error' { '[X]'; $color = 'Red' }
-        'warn'  { '[!]'; $color = 'Yellow' }
-        'info'  { '[i]'; $color = 'Cyan' }
-        default { '[.]'; $color = 'DarkGray' }
+        'ok'      { '[OK]'; $color = 'Green' }
+        'error'   { '[X]'; $color = 'Red' }
+        { $_ -in 'warn', 'warning' } { '[!]'; $color = 'Yellow' }
+        'info'    { '[i]'; $color = 'Cyan' }
+        default   { '[.]'; $color = 'DarkGray' }
     }
     
     Write-Host "  $icon " -NoNewline -ForegroundColor $color
@@ -216,12 +216,11 @@ function Show-TheEnd {
 
     $art = @"
 
-  ████████╗██╗  ██╗███████╗    ███████╗███╗   ██╗██████╗
-  ╚══██╔══╝██║  ██║██╔════╝    ██╔════╝████╗  ██║██╔══██╗
-     ██║   ███████║█████╗      █████╗  ██╔██╗ ██║██║  ██║
-     ██║   ██╔══██║██╔══╝      ██╔══╝  ██║╚██╗██║██║  ██║
-     ██║   ██║  ██║███████╗    ███████╗██║ ╚████║██████╔╝
-     ╚═╝   ╚═╝  ╚═╝╚══════╝    ╚══════╝╚═╝  ╚═══╝╚═════╝
+  ######## ##  ## #######     ####### ###   ## ######
+     ##    ##  ## ##          ##      ####  ## ##   ##
+     ##    ###### ####        ####    ## ## ## ##   ##
+     ##    ##  ## ##          ##      ##  #### ##   ##
+     ##    ##  ## #######     ####### ##   ### ######
 
 "@
 
@@ -241,20 +240,20 @@ function Show-TheEnd {
 
     # Session summary
     $date = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    Write-Host "  ┌─────────────────────────────────────────────────────┐" -ForegroundColor $accentColor
-    Write-Host "  │" -NoNewline -ForegroundColor $accentColor
+    Write-Host "  +-----------------------------------------------------+" -ForegroundColor $accentColor
+    Write-Host "  |" -NoNewline -ForegroundColor $accentColor
     Write-Host "  Session completed: $date" -NoNewline -ForegroundColor White
-    Write-Host "       │" -ForegroundColor $accentColor
+    Write-Host "       |" -ForegroundColor $accentColor
     if ($SessionDuration) {
-        Write-Host "  │" -NoNewline -ForegroundColor $accentColor
+        Write-Host "  |" -NoNewline -ForegroundColor $accentColor
         Write-Host "  Duration: $SessionDuration" -NoNewline -ForegroundColor Green
         $padding = " " * (39 - $SessionDuration.Length)
-        Write-Host "$padding│" -ForegroundColor $accentColor
+        Write-Host "$padding|" -ForegroundColor $accentColor
     }
-    Write-Host "  │" -NoNewline -ForegroundColor $accentColor
+    Write-Host "  |" -NoNewline -ForegroundColor $accentColor
     Write-Host "  Thank you for using HYDRA!" -NoNewline -ForegroundColor $color
-    Write-Host "                  │" -ForegroundColor $accentColor
-    Write-Host "  └─────────────────────────────────────────────────────┘" -ForegroundColor $accentColor
+    Write-Host "                  |" -ForegroundColor $accentColor
+    Write-Host "  +-----------------------------------------------------+" -ForegroundColor $accentColor
     Write-Host ""
 }
 

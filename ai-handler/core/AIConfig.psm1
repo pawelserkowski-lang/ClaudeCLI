@@ -17,7 +17,7 @@
 #>
 
 # Import JSON I/O utilities
-$script:JsonIOPath = Join-Path $PSScriptRoot "AIUtil-JsonIO.psm1"
+$script:JsonIOPath = Join-Path (Split-Path $PSScriptRoot -Parent) "utils\AIUtil-JsonIO.psm1"
 if (Test-Path $script:JsonIOPath) {
     Import-Module $script:JsonIOPath -Force -ErrorAction Stop
 }

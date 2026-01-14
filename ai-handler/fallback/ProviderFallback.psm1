@@ -5,6 +5,7 @@
 
 .DESCRIPTION
     Provides comprehensive fallback chain logic for AI requests including:
+    - API KEY ROTATION as FIRST fallback option (same model, different key)
     - Automatic retry with exponential backoff
     - Same-provider model downgrade (e.g., Opus -> Sonnet -> Haiku)
     - Cross-provider fallback when current provider fails
@@ -12,8 +13,13 @@
     - Rate limit awareness for fallback selection
     - Streaming support with fallback handling
 
+    FALLBACK PRIORITY ORDER:
+    1. Switch to alternate API key (same provider, same model)
+    2. Switch to lower tier model (same provider)
+    3. Switch to different provider
+
 .VERSION
-    1.0.0
+    1.1.0
 
 .AUTHOR
     HYDRA System
@@ -47,13 +53,28 @@ $dependencies = @(
     @{ Path = "$script:ModuleRoot\utils\AIErrorHandler.psm1"; Required = $true },
     @{ Path = "$script:ModuleRoot\rate-limiting\RateLimiter.psm1"; Required = $true },
     @{ Path = "$script:ModuleRoot\model-selection\ModelSelector.psm1"; Required = $true },
-    @{ Path = "$script:ModuleRoot\core\AIConfig.psm1"; Required = $true }
+    @{ Path = "$script:ModuleRoot\core\AIConfig.psm1"; Required = $true },
+    @{ Path = "$PSScriptRoot\ApiKeyRotation.psm1"; Required = $false }  # API Key Rotation (optional but recommended)
 )
+
+# Track current API key index per provider
+$script:CurrentApiKeyIndex = @{}
 
 foreach ($dep in $dependencies) {
     if (Test-Path $dep.Path) {
         try {
-            Import-Module $dep.Path -Force -ErrorAction Stop
+            # Check if module is already loaded globally - don't reimport if so
+            $modName = [System.IO.Path]::GetFileNameWithoutExtension($dep.Path)
+            $existingMod = Get-Module $modName -ErrorAction SilentlyContinue
+
+            if (-not $existingMod) {
+                # Import with -Global to maintain visibility from AIFacade
+                Import-Module $dep.Path -Force -Global -ErrorAction Stop
+                Write-Verbose "[ProviderFallback] Loaded dependency: $modName"
+            }
+            else {
+                Write-Verbose "[ProviderFallback] Dependency already loaded: $modName"
+            }
         }
         catch {
             if ($dep.Required) {
@@ -124,7 +145,13 @@ function Test-ShouldFallback {
         [int]$MaxAttempts = 3,
 
         [Parameter()]
-        [switch]$AllowCrossProvider
+        [switch]$AllowCrossProvider,
+
+        [Parameter()]
+        [string]$CurrentProvider = "",
+
+        [Parameter()]
+        [switch]$AlreadyTriedKeyRotation
     )
 
     # Default: no fallback
@@ -143,12 +170,25 @@ function Test-ShouldFallback {
 
     # Non-recoverable errors don't warrant retry
     if (-not $ErrorInfo.Recoverable) {
-        # But auth errors can switch providers
-        if ($ErrorInfo.Category -eq 'AuthError' -and $AllowCrossProvider) {
-            $result.ShouldFallback = $true
-            $result.FallbackType = "SwitchProvider"
-            $result.WaitMs = 0
-            $result.Reason = "Authentication failed, switching provider"
+        # But auth errors can try alternate API key first
+        if ($ErrorInfo.Category -eq 'AuthError') {
+            # Try alternate key before switching provider
+            if (-not $AlreadyTriedKeyRotation -and (Get-Command Test-AlternateKeyAvailable -ErrorAction SilentlyContinue)) {
+                if ($CurrentProvider -and (Test-AlternateKeyAvailable -Provider $CurrentProvider)) {
+                    $result.ShouldFallback = $true
+                    $result.FallbackType = "SwitchApiKey"
+                    $result.WaitMs = 0
+                    $result.Reason = "Authentication failed, trying alternate API key"
+                    return $result
+                }
+            }
+            # No alternate key, try switching provider
+            if ($AllowCrossProvider) {
+                $result.ShouldFallback = $true
+                $result.FallbackType = "SwitchProvider"
+                $result.WaitMs = 0
+                $result.Reason = "Authentication failed, switching provider"
+            }
         }
         elseif ($ErrorInfo.Category -eq 'ValidationError') {
             $result.Reason = "Validation error - request malformed, no fallback"
@@ -160,16 +200,40 @@ function Test-ShouldFallback {
     }
 
     # Recoverable errors - determine fallback strategy
+    # PRIORITY: SwitchApiKey > SwitchModel > SwitchProvider
     switch ($ErrorInfo.Category) {
         'RateLimit' {
             $result.ShouldFallback = $true
+
+            # FIRST: Try alternate API key (same model, different key)
+            if (-not $AlreadyTriedKeyRotation -and (Get-Command Test-AlternateKeyAvailable -ErrorAction SilentlyContinue)) {
+                if ($CurrentProvider -and (Test-AlternateKeyAvailable -Provider $CurrentProvider)) {
+                    $result.FallbackType = "SwitchApiKey"
+                    $result.WaitMs = 1000  # Brief pause before switching key
+                    $result.Reason = "Rate limit hit, switching to alternate API key (same model)"
+                    return $result
+                }
+            }
+
+            # SECOND: Switch model or provider
             $result.FallbackType = if ($AllowCrossProvider) { "SwitchProvider" } else { "SwitchModel" }
             $result.WaitMs = [Math]::Min($ErrorInfo.RetryAfter, 60000)
-            $result.Reason = "Rate limit hit, switching to alternative"
+            $result.Reason = "Rate limit hit, no alternate keys - switching to alternative model"
         }
 
         'Overloaded' {
             $result.ShouldFallback = $true
+
+            # Try alternate key first for overloaded errors too
+            if (-not $AlreadyTriedKeyRotation -and (Get-Command Test-AlternateKeyAvailable -ErrorAction SilentlyContinue)) {
+                if ($CurrentProvider -and (Test-AlternateKeyAvailable -Provider $CurrentProvider)) {
+                    $result.FallbackType = "SwitchApiKey"
+                    $result.WaitMs = 2000
+                    $result.Reason = "Service overloaded, trying alternate API key"
+                    return $result
+                }
+            }
+
             $result.FallbackType = "SwitchModel"
             $result.WaitMs = [Math]::Min($ErrorInfo.RetryAfter, 30000)
             $result.Reason = "Service overloaded, trying alternative model"
@@ -221,7 +285,7 @@ function Get-NextFallback {
         The current model identifier
 
     .PARAMETER FallbackType
-        Type of fallback: "Retry", "SwitchModel", "SwitchProvider"
+        Type of fallback: "Retry", "SwitchApiKey", "SwitchModel", "SwitchProvider"
 
     .PARAMETER CrossProvider
         Allow switching to a different provider
@@ -230,7 +294,7 @@ function Get-NextFallback {
         Hashtable of already-tried provider/model combinations to avoid loops
 
     .OUTPUTS
-        Hashtable with: provider, model, isNewProvider
+        Hashtable with: provider, model, isNewProvider, newApiKeyIndex (if SwitchApiKey)
         Returns $null if no fallback is available
 
     .EXAMPLE
@@ -250,7 +314,7 @@ function Get-NextFallback {
         [string]$CurrentModel,
 
         [Parameter()]
-        [ValidateSet("Retry", "SwitchModel", "SwitchProvider", "None")]
+        [ValidateSet("Retry", "SwitchApiKey", "SwitchModel", "SwitchProvider", "None")]
         [string]$FallbackType = "SwitchModel",
 
         [Parameter()]
@@ -267,6 +331,33 @@ function Get-NextFallback {
             model         = $CurrentModel
             isNewProvider = $false
         }
+    }
+
+    # API KEY ROTATION - same model, different key
+    if ($FallbackType -eq "SwitchApiKey") {
+        if (Get-Command Switch-ToNextApiKey -ErrorAction SilentlyContinue) {
+            $nextKey = Switch-ToNextApiKey -Provider $CurrentProvider -MarkCurrentAsRateLimited
+
+            if ($nextKey) {
+                Write-Host "[ProviderFallback] Rotated to API key index $($nextKey.Index) for $CurrentProvider" -ForegroundColor Green
+                return @{
+                    provider       = $CurrentProvider
+                    model          = $CurrentModel
+                    isNewProvider  = $false
+                    newApiKeyIndex = $nextKey.Index
+                    apiKey         = $nextKey.Key
+                }
+            }
+            else {
+                Write-Warning "[ProviderFallback] No alternate API keys available for $CurrentProvider"
+            }
+        }
+        else {
+            Write-Verbose "[ProviderFallback] ApiKeyRotation module not loaded"
+        }
+
+        # No alternate key available, fall through to SwitchModel
+        $FallbackType = "SwitchModel"
     }
 
     # Use ModelSelector's Get-FallbackModel if available
@@ -500,8 +591,10 @@ function Invoke-AIRequestWithFallback {
     # Initialize tracking
     $currentProvider = $Provider
     $currentModel = $Model
+    $currentApiKey = $null  # Will use default from env if null
     $attempt = 0
     $triedCombinations = @{}
+    $triedKeyRotation = $false  # Track if we already tried rotating API key for this provider
     $fallbackPath = @()
     $lastError = $null
 
@@ -509,10 +602,11 @@ function Invoke-AIRequestWithFallback {
     while ($attempt -lt $MaxRetries) {
         $attempt++
         $combinationKey = "$currentProvider/$currentModel"
+        $keyInfo = if ($currentApiKey) { " [key rotated]" } else { "" }
         $triedCombinations[$combinationKey] = $true
         $fallbackPath += $combinationKey
 
-        Write-Host "[ProviderFallback] Attempt $attempt/$MaxRetries -> $combinationKey" -ForegroundColor Cyan
+        Write-Host "[ProviderFallback] Attempt $attempt/$MaxRetries -> $combinationKey$keyInfo" -ForegroundColor Cyan
 
         try {
             # Check rate limits before request
@@ -531,7 +625,8 @@ function Invoke-AIRequestWithFallback {
                         }
 
                         $decision = Test-ShouldFallback -ErrorInfo $errorInfo -CurrentAttempt $attempt `
-                            -MaxAttempts $MaxRetries -AllowCrossProvider:$CrossProvider
+                            -MaxAttempts $MaxRetries -AllowCrossProvider:$CrossProvider `
+                            -CurrentProvider $currentProvider -AlreadyTriedKeyRotation:$triedKeyRotation
 
                         if ($decision.ShouldFallback) {
                             $nextFallback = Get-NextFallback -CurrentProvider $currentProvider `
@@ -539,8 +634,18 @@ function Invoke-AIRequestWithFallback {
                                 -CrossProvider:$CrossProvider -TriedCombinations $triedCombinations
 
                             if ($nextFallback) {
-                                $currentProvider = $nextFallback.provider
-                                $currentModel = $nextFallback.model
+                                # Handle API key rotation
+                                if ($decision.FallbackType -eq "SwitchApiKey" -and $nextFallback.apiKey) {
+                                    $currentApiKey = $nextFallback.apiKey
+                                    $triedKeyRotation = $true
+                                    Write-Host "[ProviderFallback] Using alternate API key (index $($nextFallback.newApiKeyIndex))" -ForegroundColor Green
+                                }
+                                else {
+                                    $currentProvider = $nextFallback.provider
+                                    $currentModel = $nextFallback.model
+                                    $currentApiKey = $null  # Reset to default for new provider/model
+                                    $triedKeyRotation = $false  # Reset for new provider
+                                }
 
                                 if ($decision.WaitMs -gt 0) {
                                     Write-Host "[ProviderFallback] Waiting $($decision.WaitMs)ms before fallback..." -ForegroundColor Yellow
@@ -555,9 +660,19 @@ function Invoke-AIRequestWithFallback {
                 }
             }
 
-            # Make the actual API call
-            $response = Invoke-ProviderAPIInternal -Provider $currentProvider -Model $currentModel `
-                -Messages $Messages -MaxTokens $MaxTokens -Temperature $Temperature -Stream:$Stream
+            # Make the actual API call (pass custom API key if rotated)
+            $apiParams = @{
+                Provider = $currentProvider
+                Model = $currentModel
+                Messages = $Messages
+                MaxTokens = $MaxTokens
+                Temperature = $Temperature
+                Stream = $Stream
+            }
+            if ($currentApiKey) {
+                $apiParams['ApiKey'] = $currentApiKey
+            }
+            $response = Invoke-ProviderAPIInternal @apiParams
 
             # Update usage tracking
             if (Get-Command Update-UsageTracking -ErrorAction SilentlyContinue) {
@@ -634,7 +749,8 @@ function Invoke-AIRequestWithFallback {
             else {
                 # Fallback enabled - make decision
                 $decision = Test-ShouldFallback -ErrorInfo $errorInfo -CurrentAttempt $attempt `
-                    -MaxAttempts $MaxRetries -AllowCrossProvider:$CrossProvider
+                    -MaxAttempts $MaxRetries -AllowCrossProvider:$CrossProvider `
+                    -CurrentProvider $currentProvider -AlreadyTriedKeyRotation:$triedKeyRotation
 
                 if ($decision.ShouldFallback) {
                     $nextFallback = Get-NextFallback -CurrentProvider $currentProvider `
@@ -644,14 +760,24 @@ function Invoke-AIRequestWithFallback {
                     if ($nextFallback) {
                         Write-Host "[ProviderFallback] $($decision.Reason)" -ForegroundColor Yellow
 
-                        $currentProvider = $nextFallback.provider
-                        $currentModel = $nextFallback.model
-
-                        if ($nextFallback.isNewProvider) {
-                            Write-Host "[ProviderFallback] Switching to provider: $currentProvider" -ForegroundColor Yellow
+                        # Handle API key rotation
+                        if ($decision.FallbackType -eq "SwitchApiKey" -and $nextFallback.apiKey) {
+                            $currentApiKey = $nextFallback.apiKey
+                            $triedKeyRotation = $true
+                            Write-Host "[ProviderFallback] Using alternate API key (index $($nextFallback.newApiKeyIndex))" -ForegroundColor Green
                         }
                         else {
-                            Write-Host "[ProviderFallback] Falling back to: $currentModel" -ForegroundColor Yellow
+                            $currentProvider = $nextFallback.provider
+                            $currentModel = $nextFallback.model
+                            $currentApiKey = $null  # Reset to default
+
+                            if ($nextFallback.isNewProvider) {
+                                $triedKeyRotation = $false  # Reset for new provider
+                                Write-Host "[ProviderFallback] Switching to provider: $currentProvider" -ForegroundColor Yellow
+                            }
+                            else {
+                                Write-Host "[ProviderFallback] Falling back to: $currentModel" -ForegroundColor Yellow
+                            }
                         }
 
                         if ($decision.WaitMs -gt 0) {
@@ -697,6 +823,7 @@ function Invoke-ProviderAPIInternal {
     .DESCRIPTION
         Routes requests to the appropriate provider API implementation.
         This is an internal function used by Invoke-AIRequestWithFallback.
+        Supports custom API key for key rotation scenarios.
     #>
     [CmdletBinding()]
     param(
@@ -711,13 +838,30 @@ function Invoke-ProviderAPIInternal {
 
         [int]$MaxTokens = 4096,
         [float]$Temperature = 0.7,
-        [switch]$Stream
+        [switch]$Stream,
+
+        [Parameter()]
+        [string]$ApiKey  # Optional custom API key (for key rotation)
     )
+
+    # Build parameters for provider API
+    $apiParams = @{
+        Provider = $Provider
+        Model = $Model
+        Messages = $Messages
+        MaxTokens = $MaxTokens
+        Temperature = $Temperature
+        Stream = $Stream
+    }
+
+    # Add custom API key if provided (for key rotation)
+    if ($ApiKey) {
+        $apiParams['ApiKey'] = $ApiKey
+    }
 
     # Check if main module's Invoke-ProviderAPI is available
     if (Get-Command Invoke-ProviderAPI -ErrorAction SilentlyContinue) {
-        return Invoke-ProviderAPI -Provider $Provider -Model $Model `
-            -Messages $Messages -MaxTokens $MaxTokens -Temperature $Temperature -Stream:$Stream
+        return Invoke-ProviderAPI @apiParams
     }
 
     # Fallback: Load main module and try again
@@ -726,8 +870,7 @@ function Invoke-ProviderAPIInternal {
         Import-Module $mainModule -Force -ErrorAction SilentlyContinue
 
         if (Get-Command Invoke-ProviderAPI -ErrorAction SilentlyContinue) {
-            return Invoke-ProviderAPI -Provider $Provider -Model $Model `
-                -Messages $Messages -MaxTokens $MaxTokens -Temperature $Temperature -Stream:$Stream
+            return Invoke-ProviderAPI @apiParams
         }
     }
 

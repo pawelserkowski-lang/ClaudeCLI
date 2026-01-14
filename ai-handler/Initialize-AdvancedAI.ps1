@@ -236,7 +236,7 @@ Load Balancing:
 
 Semantic File Mapping:
   Get-RelatedFiles            - Find files related by imports
-  Build-DependencyGraph       - Build project dependency graph
+  New-DependencyGraph         - Create project dependency graph
   Get-ExpandedContext         - Get AI context with related files
   Invoke-SemanticQuery        - Query about file with full context
   Get-ProjectStructure        - Analyze project structure

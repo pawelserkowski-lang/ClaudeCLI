@@ -38,9 +38,10 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# Import module
-$modulePath = Join-Path $PSScriptRoot "AIModelHandler.psm1"
-Import-Module $modulePath -Force
+# Import AI Facade
+$facadePath = Join-Path $PSScriptRoot "AIFacade.psm1"
+Import-Module $facadePath -Force
+$null = Initialize-AISystem -SkipAdvanced
 
 # Join query parts
 $queryText = $Query -join " "

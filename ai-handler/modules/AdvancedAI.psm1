@@ -189,7 +189,7 @@ function Invoke-AdvancedAI {
                 $examples = Get-SuccessfulExamples -Query $Prompt -MaxExamples 2
 
                 if ($examples.Count -gt 0) {
-                    $enhanced = Build-FewShotPrompt -UserPrompt $Prompt -Examples $examples
+                    $enhanced = New-FewShotPrompt -UserPrompt $Prompt -Examples $examples
                     $effectivePrompt = $enhanced.prompt
                     Write-Host "[FewShot] Added $($examples.Count) example(s)" -ForegroundColor Gray
                 } else {
@@ -599,6 +599,3 @@ Export-ModuleMember -Function @(
 )
 
 #endregion
-
-# Auto-initialize on import
-Initialize-AdvancedAI

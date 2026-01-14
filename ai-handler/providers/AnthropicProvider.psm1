@@ -111,6 +111,7 @@ function Invoke-AnthropicAPI {
     .DESCRIPTION
         Sends a request to the Anthropic Messages API. Handles message format conversion
         (extracting system message separately), streaming responses, and error handling.
+        Supports custom API key for key rotation scenarios.
 
     .PARAMETER Model
         The Claude model to use (e.g., "claude-3-5-haiku-20241022", "claude-sonnet-4-5-20250929").
@@ -127,6 +128,10 @@ function Invoke-AnthropicAPI {
 
     .PARAMETER Stream
         If specified, streams the response in real-time to the console.
+
+    .PARAMETER ApiKey
+        Optional custom API key. If not provided, uses ANTHROPIC_API_KEY environment variable.
+        Useful for API key rotation when one key hits rate limits.
 
     .OUTPUTS
         Hashtable with keys:
@@ -146,8 +151,14 @@ function Invoke-AnthropicAPI {
             -Messages @(@{role="system"; content="You are a helpful assistant"}, @{role="user"; content="Hello"}) `
             -Stream
 
+    .EXAMPLE
+        # With custom API key (for key rotation)
+        Invoke-AnthropicAPI -Model "claude-3-5-haiku-20241022" `
+            -Messages @(@{role="user"; content="Hello"}) `
+            -ApiKey $alternateKey
+
     .NOTES
-        Requires ANTHROPIC_API_KEY environment variable to be set.
+        Requires ANTHROPIC_API_KEY environment variable to be set (or ApiKey parameter).
     #>
     [CmdletBinding()]
     param(
@@ -161,12 +172,17 @@ function Invoke-AnthropicAPI {
 
         [float]$Temperature = 0.7,
 
-        [switch]$Stream
+        [switch]$Stream,
+
+        [Parameter()]
+        [string]$ApiKey  # Optional custom API key for key rotation
     )
 
-    $apiKey = $env:ANTHROPIC_API_KEY
-    if (-not $apiKey) {
-        throw "ANTHROPIC_API_KEY environment variable is not set. Please set it with your Anthropic API key."
+    # Use provided API key or fall back to environment variable
+    $effectiveApiKey = if ($ApiKey) { $ApiKey } else { $env:ANTHROPIC_API_KEY }
+
+    if (-not $effectiveApiKey) {
+        throw "ANTHROPIC_API_KEY environment variable is not set and no ApiKey provided. Please set it with your Anthropic API key."
     }
 
     # Convert messages to Anthropic format (system message is separate)
@@ -191,7 +207,7 @@ function Invoke-AnthropicAPI {
     }
 
     $headers = @{
-        "x-api-key" = $apiKey
+        "x-api-key" = $effectiveApiKey
         "anthropic-version" = $script:AnthropicApiVersion
         "content-type" = "application/json"
     }
