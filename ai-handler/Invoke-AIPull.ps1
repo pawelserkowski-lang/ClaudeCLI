@@ -168,18 +168,21 @@ if ($Model) {
     $process.StartInfo = $pinfo
     $process.Start() | Out-Null
 
-    # Read output in real-time
+    # Read output in real-time (avoid blocking on empty stdout)
     while (-not $process.HasExited) {
-        $line = $process.StandardOutput.ReadLine()
-        if ($line) {
-            # Parse progress
-            if ($line -match "pulling|downloading|verifying|writing") {
-                Write-Host "  $line" -ForegroundColor Gray
-            } elseif ($line -match "(\d+)%") {
-                Write-Host "`r  Progress: $($Matches[1])%   " -NoNewline -ForegroundColor Yellow
+        if ($process.StandardOutput.Peek() -ge 0) {
+            $line = $process.StandardOutput.ReadLine()
+            if ($line) {
+                # Parse progress
+                if ($line -match "pulling|downloading|verifying|writing") {
+                    Write-Host "  $line" -ForegroundColor Gray
+                } elseif ($line -match "(\d+)%") {
+                    Write-Host "`r  Progress: $($Matches[1])%   " -NoNewline -ForegroundColor Yellow
+                }
             }
+        } else {
+            Start-Sleep -Milliseconds 100
         }
-        Start-Sleep -Milliseconds 100
     }
 
     # Read remaining output
