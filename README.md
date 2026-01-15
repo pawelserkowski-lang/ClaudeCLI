@@ -219,6 +219,14 @@ powershell -ExecutionPolicy Bypass -File _launcher.ps1
 .\mcp-health-check.ps1 -AutoRestart
 ```
 
+### Testy (Pester)
+
+```bash
+./scripts/run-pester.sh
+```
+
+Skrypt automatycznie użyje `pwsh` lub `powershell`, a jeśli nie są dostępne, wyświetli instrukcję instalacji.
+
 ### Konfiguracja MCP servers
 - Edytuj `mcp-servers.json`, aby dodać/zmienić serwery MCP bez dotykania skryptu.
 
