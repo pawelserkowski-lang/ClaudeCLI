@@ -1,0 +1,282 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Matrix Theme */
+  --matrix-bg-primary: #0d1a0d;
+  --matrix-bg-secondary: #061206;
+  --matrix-accent: #00ff41;
+  --matrix-glass-bg: rgba(0, 30, 0, 0.75);
+
+  /* HYDRA Theme Extensions */
+  --hydra-cyan: #00d4ff;
+  --hydra-purple: #bd00ff;
+  --hydra-gold: #ffd700;
+
+  /* Glass Physics - Higher opacity, less blur */
+  --glass-blur: blur(8px) saturate(120%);
+  --glass-radius: 16px;
+  --glass-dark-bg: rgba(5, 15, 5, 0.8);
+  --glass-dark-border: 1px solid rgba(0, 255, 65, 0.12);
+  --glass-dark-shadow: 0 4px 20px rgba(0, 0, 0, 0.2),
+    0 0 0 1px rgba(0, 255, 65, 0.08);
+}
+
+html {
+  font-size: 100%;
+  height: 100%;
+  background: transparent;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: #e8f5e8;
+  font-family: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow: hidden;
+  height: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100%;
+  width: 100%;
+}
+
+/* Scrollbars - Subtle */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 255, 65, 0.2);
+  border-radius: 10px;
+  transition: all 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 255, 65, 0.4);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 65, 0.2) transparent;
+}
+
+/* Glass Components - Higher opacity, less blur, no borders, white glow */
+.glass-card {
+  background: rgba(5, 20, 5, 0.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 20px;
+  border: none;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.15),
+    0 0 40px rgba(255, 255, 255, 0.03),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.glass-panel-dark {
+  background: rgba(5, 15, 5, 0.8);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: none;
+  box-shadow:
+    0 2px 12px rgba(0, 0, 0, 0.1),
+    0 0 30px rgba(255, 255, 255, 0.02);
+  color: #ffffff;
+  border-radius: var(--glass-radius);
+}
+
+.glass-button {
+  background: rgba(0, 255, 65, 0.12);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  border: none;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  border-radius: 12px;
+}
+
+.glass-button:hover {
+  background: rgba(0, 255, 65, 0.2);
+  box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
+  transform: translateY(-1px);
+}
+
+.glass-button:active {
+  transform: scale(0.98) translateY(0);
+}
+
+/* Neon Effects - Subtle */
+.neon-text {
+  text-shadow:
+    0 0 10px rgba(0, 255, 65, 0.3),
+    0 0 20px rgba(0, 255, 65, 0.1);
+}
+
+.neon-border {
+  box-shadow:
+    0 0 10px rgba(0, 255, 65, 0.15),
+    inset 0 0 10px rgba(0, 255, 65, 0.05);
+}
+
+.neon-glow {
+  filter: drop-shadow(0 0 15px rgba(0, 255, 65, 0.3));
+}
+
+/* Animations - Smoother */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.2), 0 0 20px rgba(0, 255, 65, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3), 0 0 40px rgba(0, 255, 65, 0.15);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 2.5s infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.5s ease-out;
+}
+
+/* Status Colors - Softer */
+.status-online {
+  color: #4ade80;
+  text-shadow: 0 0 12px rgba(74, 222, 128, 0.4);
+}
+
+.status-offline {
+  color: #f87171;
+  text-shadow: 0 0 12px rgba(248, 113, 113, 0.4);
+}
+
+.status-warning {
+  color: #fbbf24;
+  text-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
+}
+
+/* HYDRA Specific - Lighter */
+.hydra-logo {
+  filter: drop-shadow(0 0 40px rgba(0, 255, 65, 0.25));
+  transition: filter 0.4s ease;
+}
+
+.hydra-logo:hover {
+  filter: drop-shadow(0 0 60px rgba(0, 255, 65, 0.4));
+}
+
+/* Light Mode Support - Brighter & Cleaner */
+:root.light {
+  --matrix-bg-primary: #fafcfa;
+  --matrix-bg-secondary: #f0f7f0;
+  --matrix-accent: #10b981;
+  --matrix-glass-bg: rgba(255, 255, 255, 0.7);
+}
+
+:root.light body {
+  background: linear-gradient(160deg, #fafcfa 0%, #e8f5e8 100%);
+  color: #1e3a2e;
+}
+
+:root.light .glass-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: none;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+}
+
+:root.light .glass-button {
+  background: rgba(16, 185, 129, 0.12);
+  border: none;
+}
+
+:root.light .glass-button:hover {
+  background: rgba(16, 185, 129, 0.2);
+  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
+}
+
+:root.light .neon-text {
+  text-shadow: none;
+}
+
+:root.light .status-online {
+  color: #059669;
+  text-shadow: none;
+}
+
+:root.light .status-offline {
+  color: #dc2626;
+  text-shadow: none;
+}
+
+:root.light .status-warning {
+  color: #d97706;
+  text-shadow: none;
+}
+
+:root.light ::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.25);
+}
+
+:root.light ::-webkit-scrollbar-thumb:hover {
+  background: rgba(16, 185, 129, 0.4);
+}
+
+/* Utility classes */
+.text-balance {
+  text-wrap: balance;
+}
+
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
