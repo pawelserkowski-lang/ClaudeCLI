@@ -56,7 +56,7 @@ pub fn load_hydra_config() -> Result<HydraConfig, String> {
     HydraConfig::load(None)
 }
 
-#[tauri::command]
+#[tauri::command(rename_all = "camelCase")]
 pub async fn launch_claude(yolo_mode: bool) -> Result<String, String> {
     spawn_claude_cli(yolo_mode).await
 }

@@ -8,46 +8,43 @@ const MCPStatus: React.FC = () => {
   const isLight = resolvedTheme === 'light';
   const { health, isLoading, error, refresh, onlineCount, totalCount } = useMCPHealth();
 
-  const getServerIcon = (name: string) => {
+  const getServerRune = (name: string) => {
     switch (name.toLowerCase()) {
       case 'serena':
-        return '🧠';
+        return 'ᚨ';
       case 'desktop commander':
-        return '⚡';
+        return 'ᚱ';
       case 'playwright':
-        return '🌐';
+        return 'ᚲ';
       default:
-        return '📡';
+        return 'ᚷ';
     }
   };
 
   return (
-    <div className={`glass-card p-5 ${isLight ? 'bg-white/50' : ''}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-5">
-        <div className="flex items-center gap-2.5">
-          <Server className={isLight ? 'text-slate-500' : 'text-matrix-accent/70'} size={16} />
-          <h2 className={`font-medium tracking-wider text-sm ${isLight ? 'text-slate-700' : 'text-white/90'}`}>
-            MCP SERVERS
+    <div className="glass-card p-5">
+      {/* Codex Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <span className={`text-lg ${isLight ? 'text-amber-600' : 'text-amber-500'}`}>ᚠ</span>
+          <Server className={isLight ? 'text-amber-700' : 'text-amber-500/80'} size={16} />
+          <h2 className="codex-header !border-0 !pb-0 !mb-0">
+            SERWERY MCP
           </h2>
         </div>
         <div className="flex items-center gap-3">
           <span
-            className={`text-[10px] font-medium tracking-wide ${
+            className={`text-[10px] font-cinzel font-semibold tracking-wider ${
               onlineCount === totalCount
-                ? isLight ? 'text-emerald-500' : 'text-emerald-400/80'
-                : isLight ? 'text-amber-500' : 'text-amber-400/80'
+                ? 'status-online'
+                : 'status-warning'
             }`}
           >
             {onlineCount}/{totalCount}
           </span>
           <button
             onClick={refresh}
-            className={`p-1.5 rounded-lg transition-all duration-300 ${
-              isLight
-                ? 'hover:bg-slate-100/60 text-slate-400 hover:text-slate-600'
-                : 'hover:bg-white/5 text-slate-500 hover:text-matrix-accent/70'
-            }`}
+            className="glass-button p-1.5"
             title="Odśwież status"
           >
             <RefreshCw size={12} className={isLoading ? 'animate-spin' : ''} />
@@ -55,10 +52,17 @@ const MCPStatus: React.FC = () => {
         </div>
       </div>
 
+      {/* Decorative Divider */}
+      <div className="h-px bg-gradient-to-r from-transparent via-amber-600/40 to-transparent mb-4" />
+
       {/* Error State */}
       {error && (
-        <div className="text-red-400/80 text-[10px] mb-4 p-2.5 bg-red-500/5 rounded-xl border border-red-500/10">
-          {error}
+        <div className={`text-[10px] mb-4 p-3 rounded border font-cinzel ${
+          isLight
+            ? 'bg-red-100/60 text-red-700 border-red-300/50'
+            : 'bg-red-900/20 text-red-400 border-red-500/30'
+        }`}>
+          ⚠ {error}
         </div>
       )}
 
@@ -66,11 +70,11 @@ const MCPStatus: React.FC = () => {
       <div className="space-y-2.5">
         {isLoading && health.length === 0 ? (
           <div className="flex items-center justify-center py-6">
-            <Loader2 className={`animate-spin ${isLight ? 'text-emerald-400' : 'text-matrix-accent/50'}`} size={20} />
+            <Loader2 className="animate-spin text-amber-500/50" size={20} />
           </div>
         ) : (
           health.map((server) => (
-            <ServerRow key={server.name} server={server} icon={getServerIcon(server.name)} isLight={isLight} />
+            <ServerRow key={server.name} server={server} rune={getServerRune(server.name)} isLight={isLight} />
           ))
         )}
       </div>
@@ -80,50 +84,62 @@ const MCPStatus: React.FC = () => {
 
 const ServerRow: React.FC<{
   server: McpHealthResult;
-  icon: string;
+  rune: string;
   isLight: boolean;
-}> = ({ server, icon, isLight }) => {
+}> = ({ server, rune, isLight }) => {
   const isOnline = server.status === 'online';
 
   return (
     <div
-      className={`flex items-center justify-between p-3.5 rounded-xl transition-all duration-300 ${
+      className={`flex items-center justify-between p-3.5 rounded transition-all duration-300 border ${
         isLight
           ? isOnline
-            ? 'bg-emerald-50/60'
-            : 'bg-red-50/60'
+            ? 'bg-amber-50/60 border-amber-300/30'
+            : 'bg-red-50/60 border-red-300/30'
           : isOnline
-            ? 'bg-matrix-accent/8'
-            : 'bg-red-500/8'
+            ? 'bg-amber-900/15 border-amber-500/20'
+            : 'bg-red-900/15 border-red-500/20'
       }`}
     >
       <div className="flex items-center gap-3">
-        <span className="text-lg opacity-80">{icon}</span>
+        {/* Rune */}
+        <span
+          className={`text-xl transition-all duration-500 ${
+            isOnline
+              ? isLight ? 'text-amber-600' : 'text-amber-400'
+              : 'text-slate-500'
+          }`}
+          style={isOnline ? { textShadow: '0 0 10px rgba(212,165,10,0.6)' } : {}}
+        >
+          {rune}
+        </span>
         <div>
-          <div className={`font-medium text-sm ${isLight ? 'text-slate-700' : 'text-white/85'}`}>
+          <div className={`font-cinzel font-semibold text-sm tracking-wide ${
+            isLight ? 'text-amber-800' : 'text-amber-100/90'
+          }`}>
             {server.name}
           </div>
-          <div className={`text-[10px] font-light ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>
-            :{server.port}
+          <div className={`text-[10px] font-cinzel ${isLight ? 'text-amber-600/60' : 'text-amber-500/50'}`}>
+            Port {server.port}
           </div>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
         {server.response_time_ms && (
-          <span className={`text-[10px] font-light ${isLight ? 'text-slate-400' : 'text-slate-500'}`}>
+          <span className={`text-[10px] font-cinzel ${isLight ? 'text-amber-600/50' : 'text-amber-500/40'}`}>
             {server.response_time_ms}ms
           </span>
         )}
         {isOnline ? (
           <CheckCircle2
-            className={isLight ? 'text-emerald-400' : 'text-emerald-400/70'}
+            className="status-online"
             size={16}
             strokeWidth={1.5}
           />
         ) : (
           <XCircle
-            className={isLight ? 'text-red-400' : 'text-red-400/70'}
+            className="status-offline"
             size={16}
             strokeWidth={1.5}
           />

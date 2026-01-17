@@ -14,39 +14,42 @@ const Dashboard: React.FC = () => {
 
   return (
     <div
-      className={`w-full h-full p-8 overflow-auto animate-fade-in ${
+      className={`w-full h-full p-6 overflow-auto animate-fade-in ${
         isLight ? 'bg-transparent' : 'bg-transparent'
       }`}
     >
+      {/* Decorative Runes Header */}
+      <div className="text-center mb-2 opacity-40">
+        <span className="text-[10px] tracking-[1em] text-amber-600">
+          ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ ᚹ ᚺ ᚾ ᛁ ᛃ
+        </span>
+      </div>
+
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6">
+        {/* Logo */}
         <div className="flex items-center gap-4">
           <img
             src={logoSrc}
             alt="HYDRA"
-            className={`h-12 w-auto object-contain ${
-              isLight
-                ? 'drop-shadow-[0_0_20px_rgba(16,185,129,0.15)]'
-                : 'drop-shadow-[0_0_30px_rgba(0,255,65,0.2)]'
-            }`}
+            className="h-20 w-auto object-contain hydra-logo animate-float"
           />
-          <p className={`text-[9px] tracking-[0.2em] font-medium ${isLight ? 'text-slate-400' : 'text-slate-500/70'}`}>
-            FOUR-HEADED BEAST
-          </p>
+          <div className="flex flex-col">
+            <span className="codex-title text-lg">KODEKS</span>
+            <span className={`text-[9px] tracking-[0.3em] ${isLight ? 'text-amber-700/60' : 'text-amber-500/50'}`}>
+              FOUR-HEADED BEAST
+            </span>
+          </div>
         </div>
 
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
           {/* YOLO Toggle */}
           <YoloToggle />
 
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className={`p-2.5 rounded-xl transition-all duration-300 ${
-              isLight
-                ? 'bg-white/40 hover:bg-white/60 text-slate-500 hover:text-slate-700 shadow-sm'
-                : 'bg-white/5 hover:bg-white/10 text-slate-400 hover:text-matrix-accent/80'
-            }`}
+            className={`p-2.5 rounded glass-button transition-all duration-300`}
             title={isLight ? 'Dark mode' : 'Light mode'}
           >
             {isLight ? <Moon size={16} /> : <Sun size={16} />}
@@ -54,8 +57,11 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
+      {/* Decorative Divider */}
+      <div className="codex-divider mb-6" />
+
       {/* Main Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         {/* MCP Servers Status */}
         <MCPStatus />
 
@@ -64,7 +70,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Bottom Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* System Metrics */}
         <SystemMetricsPanel />
 
@@ -74,13 +80,17 @@ const Dashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <div
-        className={`mt-8 text-center text-[8px] tracking-[0.25em] font-light ${
-          isLight ? 'text-slate-400/60' : 'text-slate-600/50'
-        }`}
-      >
-        SERENA + DESKTOP COMMANDER + PLAYWRIGHT + SWARM
+      {/* Footer Runes */}
+      <div className="mt-6 text-center">
+        <div className="codex-divider" />
+        <p className={`text-[8px] tracking-[0.4em] mt-4 ${isLight ? 'text-amber-700/40' : 'text-amber-500/30'}`}>
+          ⚔ SERENA ◆ DESKTOP COMMANDER ◆ PLAYWRIGHT ◆ SWARM ⚔
+        </p>
+        <div className="mt-2 opacity-30">
+          <span className="text-[8px] tracking-[0.8em] text-amber-600">
+            ᛟ ᛞ ᛜ ᛗ ᛚ ᛖ ᛒ ᛏ ᛊ ᛉ ᛈ ᛇ
+          </span>
+        </div>
       </div>
     </div>
   );

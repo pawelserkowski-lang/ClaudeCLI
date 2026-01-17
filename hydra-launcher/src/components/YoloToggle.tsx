@@ -31,55 +31,79 @@ const YoloToggle: React.FC = () => {
     <button
       onClick={toggle}
       className={`
-        flex items-center gap-2 px-3 py-2 rounded-xl text-[10px] font-medium tracking-wider
-        transition-all duration-300
+        flex items-center gap-2 px-3 py-2 rounded text-[10px] font-cinzel font-semibold tracking-wider uppercase
+        transition-all duration-300 border-2 relative overflow-hidden
         ${
           yoloEnabled
             ? isLight
-              ? 'bg-amber-100/70 text-amber-600'
-              : 'bg-amber-500/15 text-amber-400/80'
+              ? 'bg-gradient-to-b from-amber-100 to-amber-200 text-amber-700 border-amber-500'
+              : 'bg-gradient-to-b from-amber-900/30 to-amber-900/50 text-amber-400 border-amber-500'
             : isLight
-              ? 'bg-slate-100/70 text-slate-500'
-              : 'bg-white/5 text-slate-500'
+              ? 'bg-gradient-to-b from-slate-100 to-slate-200 text-slate-500 border-slate-400'
+              : 'bg-gradient-to-b from-slate-800/30 to-slate-800/50 text-slate-400 border-slate-600'
         }
       `}
-      title={yoloEnabled ? 'YOLO: Skip all permission prompts' : 'Safe mode: Ask for permissions'}
+      style={yoloEnabled ? {
+        boxShadow: isLight
+          ? '0 0 15px rgba(180, 130, 10, 0.25)'
+          : '0 0 20px rgba(212, 165, 10, 0.25)'
+      } : {}}
+      title={yoloEnabled ? 'YOLO: Pełna autonomia bez potwierdzeń' : 'Tryb bezpieczny: Pytaj o uprawnienia'}
     >
+      {/* Glow effect for YOLO */}
+      {yoloEnabled && (
+        <div
+          className="absolute inset-0 animate-pulse-gold pointer-events-none opacity-30"
+          style={{
+            background: 'radial-gradient(circle, rgba(212,165,10,0.3) 0%, transparent 70%)'
+          }}
+        />
+      )}
+
       {yoloEnabled ? (
         <>
-          <Zap size={12} strokeWidth={1.5} />
+          <span className="text-sm" style={{ textShadow: '0 0 8px rgba(212,165,10,0.6)' }}>ᛉ</span>
+          <Zap size={12} strokeWidth={2} />
           <span>YOLO</span>
         </>
       ) : (
         <>
+          <span className="text-sm">ᛊ</span>
           <Shield size={12} strokeWidth={1.5} />
           <span>SAFE</span>
         </>
       )}
 
-      {/* Toggle Indicator */}
+      {/* Toggle Indicator - Medieval Style */}
       <div
         className={`
-          w-7 h-3.5 rounded-full relative ml-1.5 transition-all duration-300
+          w-8 h-4 rounded-sm relative ml-2 transition-all duration-300 border
           ${
             yoloEnabled
               ? isLight
-                ? 'bg-amber-400/60'
-                : 'bg-amber-500/40'
+                ? 'bg-amber-200/60 border-amber-400/60'
+                : 'bg-amber-800/40 border-amber-500/40'
               : isLight
-                ? 'bg-slate-300/60'
-                : 'bg-slate-600/40'
+                ? 'bg-slate-200/60 border-slate-400/60'
+                : 'bg-slate-700/40 border-slate-600/40'
           }
         `}
       >
         <div
           className={`
-            absolute top-0.5 w-2.5 h-2.5 rounded-full transition-all duration-300 shadow-sm
+            absolute top-0.5 w-3 h-3 rounded-sm transition-all duration-300
             ${yoloEnabled
-              ? isLight ? 'left-3.5 bg-amber-500' : 'left-3.5 bg-amber-400'
-              : isLight ? 'left-0.5 bg-slate-400' : 'left-0.5 bg-slate-500'
+              ? isLight
+                ? 'left-4 bg-gradient-to-b from-amber-400 to-amber-500'
+                : 'left-4 bg-gradient-to-b from-amber-400 to-amber-600'
+              : isLight
+                ? 'left-0.5 bg-gradient-to-b from-slate-300 to-slate-400'
+                : 'left-0.5 bg-gradient-to-b from-slate-500 to-slate-600'
             }
           `}
+          style={yoloEnabled ? {
+            boxShadow: '0 0 8px rgba(212, 165, 10, 0.5)'
+          } : {}}
         />
       </div>
     </button>

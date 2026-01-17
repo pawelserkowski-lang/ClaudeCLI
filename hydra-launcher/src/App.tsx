@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Launcher from "./components/Launcher";
 import Dashboard from "./components/Dashboard";
-import MatrixRain from "./components/MatrixRain";
+import WitcherRain from "./components/WitcherRain";
 import { useTheme } from "./contexts/ThemeContext";
 
 function App() {
@@ -32,12 +32,10 @@ function App() {
         }}
       />
 
-      {/* Matrix Rain Overlay (only in dark mode, semi-transparent) */}
-      {!isLight && (
-        <div className="absolute inset-0" style={{ zIndex: 1, opacity: 0.4 }}>
-          <MatrixRain />
-        </div>
-      )}
+      {/* Witcher Runes Rain Overlay */}
+      <div className="absolute inset-0" style={{ zIndex: 1, opacity: isLight ? 0.5 : 0.6 }}>
+        <WitcherRain />
+      </div>
 
       {/* Gradient Overlay for better readability */}
       <div

@@ -2,43 +2,42 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Import medieval-style font */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cinzel+Decorative:wght@400;700&display=swap');
+
 :root {
-  /* Matrix Theme */
-  --matrix-bg-primary: #0d1a0d;
-  --matrix-bg-secondary: #061206;
-  --matrix-accent: #00ff41;
-  --matrix-glass-bg: rgba(0, 30, 0, 0.75);
+  /* Witcher Codex Theme */
+  --codex-bg: #0d0b07;
+  --codex-parchment: #1a1510;
+  --codex-gold: #d4a50a;
+  --codex-gold-bright: #ffd700;
+  --codex-amber: #c9a227;
+  --codex-bronze: #b8860b;
+  --codex-blood: #8b0000;
+  --codex-silver: #c0c0c0;
+  --codex-text: #e8dcc8;
+  --codex-text-dim: #a89880;
 
-  /* HYDRA Theme Extensions */
-  --hydra-cyan: #00d4ff;
-  --hydra-purple: #bd00ff;
-  --hydra-gold: #ffd700;
-
-  /* Glass Physics - Higher opacity, less blur */
-  --glass-blur: blur(8px) saturate(120%);
-  --glass-radius: 16px;
-  --glass-dark-bg: rgba(5, 15, 5, 0.8);
-  --glass-dark-border: 1px solid rgba(0, 255, 65, 0.12);
-  --glass-dark-shadow: 0 4px 20px rgba(0, 0, 0, 0.2),
-    0 0 0 1px rgba(0, 255, 65, 0.08);
+  /* Glass Physics */
+  --glass-blur: blur(8px);
+  --glass-radius: 12px;
 }
 
 html {
   font-size: 100%;
   height: 100%;
-  background: transparent;
+  background: var(--codex-bg);
 }
 
 body {
   margin: 0;
   padding: 0;
-  background: transparent;
-  color: #e8f5e8;
-  font-family: "Inter", "SF Pro Display", -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--codex-bg);
+  color: var(--codex-text);
+  font-family: 'Cinzel', 'Times New Roman', serif;
   overflow: hidden;
   height: 100%;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
@@ -46,125 +45,228 @@ body {
   width: 100%;
 }
 
-/* Scrollbars - Subtle */
+/* Scrollbars - Medieval */
 ::-webkit-scrollbar {
-  width: 4px;
-  height: 4px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: transparent;
-  border-radius: 10px;
+  background: rgba(26, 21, 16, 0.5);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(0, 255, 65, 0.2);
-  border-radius: 10px;
-  transition: all 0.3s ease;
+  background: linear-gradient(180deg, var(--codex-gold) 0%, var(--codex-bronze) 100%);
+  border-radius: 4px;
+  border: 1px solid rgba(212, 165, 10, 0.3);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 255, 65, 0.4);
+  background: linear-gradient(180deg, var(--codex-gold-bright) 0%, var(--codex-gold) 100%);
 }
 
-* {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(0, 255, 65, 0.2) transparent;
-}
-
-/* Glass Components - Higher opacity, less blur, no borders, white glow */
+/* ========== CODEX GLASS CARDS ========== */
 .glass-card {
-  background: rgba(5, 20, 5, 0.75);
+  background: linear-gradient(
+    145deg,
+    rgba(26, 21, 16, 0.95) 0%,
+    rgba(13, 11, 7, 0.98) 100%
+  );
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border-radius: 20px;
-  border: none;
+  border-radius: 4px;
+  border: 2px solid;
+  border-image: linear-gradient(
+    135deg,
+    var(--codex-gold) 0%,
+    var(--codex-bronze) 25%,
+    var(--codex-gold-bright) 50%,
+    var(--codex-bronze) 75%,
+    var(--codex-gold) 100%
+  ) 1;
   box-shadow:
-    0 4px 20px rgba(0, 0, 0, 0.15),
-    0 0 40px rgba(255, 255, 255, 0.03),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    0 0 20px rgba(212, 165, 10, 0.15),
+    0 0 40px rgba(212, 165, 10, 0.05),
+    inset 0 0 30px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 215, 0, 0.1);
+  position: relative;
 }
 
+/* Corner ornaments */
+.glass-card::before,
+.glass-card::after {
+  content: '✧';
+  position: absolute;
+  font-size: 14px;
+  color: var(--codex-gold);
+  text-shadow: 0 0 10px var(--codex-gold);
+  opacity: 0.8;
+}
+
+.glass-card::before {
+  top: 4px;
+  left: 8px;
+}
+
+.glass-card::after {
+  bottom: 4px;
+  right: 8px;
+}
+
+/* ========== CODEX PANELS ========== */
 .glass-panel-dark {
-  background: rgba(5, 15, 5, 0.8);
+  background: linear-gradient(
+    180deg,
+    rgba(26, 21, 16, 0.9) 0%,
+    rgba(13, 11, 7, 0.95) 100%
+  );
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
-  border: none;
+  border: 1px solid rgba(212, 165, 10, 0.3);
   box-shadow:
-    0 2px 12px rgba(0, 0, 0, 0.1),
-    0 0 30px rgba(255, 255, 255, 0.02);
-  color: #ffffff;
-  border-radius: var(--glass-radius);
+    inset 0 0 20px rgba(0, 0, 0, 0.4),
+    0 0 15px rgba(212, 165, 10, 0.08);
+  color: var(--codex-text);
+  border-radius: 4px;
 }
 
+/* ========== CODEX BUTTONS ========== */
 .glass-button {
-  background: rgba(0, 255, 65, 0.12);
+  background: linear-gradient(
+    180deg,
+    rgba(212, 165, 10, 0.2) 0%,
+    rgba(184, 134, 11, 0.15) 100%
+  );
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  border: none;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  border-radius: 12px;
+  border: 2px solid var(--codex-gold);
+  border-radius: 4px;
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--codex-gold);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.glass-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 215, 0, 0.2),
+    transparent
+  );
+  transition: left 0.5s ease;
 }
 
 .glass-button:hover {
-  background: rgba(0, 255, 65, 0.2);
-  box-shadow: 0 0 20px rgba(0, 255, 65, 0.1);
-  transform: translateY(-1px);
+  background: linear-gradient(
+    180deg,
+    rgba(255, 215, 0, 0.3) 0%,
+    rgba(212, 165, 10, 0.25) 100%
+  );
+  border-color: var(--codex-gold-bright);
+  box-shadow:
+    0 0 30px rgba(212, 165, 10, 0.4),
+    inset 0 0 20px rgba(255, 215, 0, 0.1);
+  text-shadow: 0 0 10px var(--codex-gold);
+  transform: translateY(-2px);
+}
+
+.glass-button:hover::before {
+  left: 100%;
 }
 
 .glass-button:active {
   transform: scale(0.98) translateY(0);
 }
 
-/* Neon Effects - Subtle */
-.neon-text {
+/* ========== WITCHER GLOW EFFECTS ========== */
+.witcher-glow {
   text-shadow:
-    0 0 10px rgba(0, 255, 65, 0.3),
-    0 0 20px rgba(0, 255, 65, 0.1);
+    0 0 10px var(--codex-gold),
+    0 0 20px var(--codex-gold),
+    0 0 30px var(--codex-amber);
+  filter: drop-shadow(0 0 15px rgba(212, 165, 10, 0.5));
 }
 
-.neon-border {
+.witcher-text {
+  font-family: 'Cinzel Decorative', 'Cinzel', serif;
+  color: var(--codex-gold);
+  text-shadow:
+    0 0 10px rgba(212, 165, 10, 0.6),
+    0 0 20px rgba(212, 165, 10, 0.3),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+  letter-spacing: 0.15em;
+}
+
+.witcher-border {
+  border: 2px solid transparent;
+  border-image: linear-gradient(
+    135deg,
+    var(--codex-gold) 0%,
+    var(--codex-bronze) 50%,
+    var(--codex-gold) 100%
+  ) 1;
   box-shadow:
-    0 0 10px rgba(0, 255, 65, 0.15),
-    inset 0 0 10px rgba(0, 255, 65, 0.05);
+    0 0 15px rgba(212, 165, 10, 0.2),
+    inset 0 0 15px rgba(212, 165, 10, 0.05);
 }
 
-.neon-glow {
-  filter: drop-shadow(0 0 15px rgba(0, 255, 65, 0.3));
+/* ========== RUNE DECORATIONS ========== */
+.rune-decoration {
+  position: relative;
 }
 
-/* Animations - Smoother */
+.rune-decoration::before {
+  content: 'ᚠᚢᚦᚨᚱᚲ';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  color: var(--codex-gold);
+  opacity: 0.4;
+  letter-spacing: 0.5em;
+}
+
+/* ========== ANIMATIONS ========== */
 @keyframes shimmer {
-  0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(100%);
-  }
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
 }
 
-@keyframes pulse-glow {
+@keyframes pulse-gold {
   0%, 100% {
-    box-shadow: 0 0 10px rgba(0, 255, 65, 0.2), 0 0 20px rgba(0, 255, 65, 0.1);
+    box-shadow:
+      0 0 10px rgba(212, 165, 10, 0.3),
+      0 0 20px rgba(212, 165, 10, 0.2);
   }
   50% {
-    box-shadow: 0 0 20px rgba(0, 255, 65, 0.3), 0 0 40px rgba(0, 255, 65, 0.15);
+    box-shadow:
+      0 0 20px rgba(212, 165, 10, 0.5),
+      0 0 40px rgba(212, 165, 10, 0.3);
   }
 }
 
 @keyframes float {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-3px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
 }
 
 @keyframes fade-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translateY(20px);
   }
   to {
     opacity: 1;
@@ -172,12 +274,28 @@ body {
   }
 }
 
-.animate-shimmer {
-  animation: shimmer 2.5s infinite;
+@keyframes glow-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
 }
 
-.animate-pulse-glow {
-  animation: pulse-glow 3s ease-in-out infinite;
+@keyframes border-glow {
+  0%, 100% {
+    border-color: var(--codex-gold);
+    box-shadow: 0 0 10px rgba(212, 165, 10, 0.3);
+  }
+  50% {
+    border-color: var(--codex-gold-bright);
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
+  }
+}
+
+.animate-shimmer {
+  animation: shimmer 3s infinite;
+}
+
+.animate-pulse-gold {
+  animation: pulse-gold 3s ease-in-out infinite;
 }
 
 .animate-float {
@@ -185,98 +303,184 @@ body {
 }
 
 .animate-fade-in {
-  animation: fade-in 0.5s ease-out;
+  animation: fade-in 0.8s ease-out;
 }
 
-/* Status Colors - Softer */
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
+}
+
+.animate-border-glow {
+  animation: border-glow 3s ease-in-out infinite;
+}
+
+/* ========== STATUS INDICATORS ========== */
 .status-online {
-  color: #4ade80;
-  text-shadow: 0 0 12px rgba(74, 222, 128, 0.4);
+  color: #50c878;
+  text-shadow: 0 0 10px rgba(80, 200, 120, 0.5);
 }
 
 .status-offline {
-  color: #f87171;
-  text-shadow: 0 0 12px rgba(248, 113, 113, 0.4);
+  color: #dc3545;
+  text-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
 }
 
 .status-warning {
-  color: #fbbf24;
-  text-shadow: 0 0 12px rgba(251, 191, 36, 0.4);
+  color: var(--codex-amber);
+  text-shadow: 0 0 10px rgba(201, 162, 39, 0.5);
 }
 
-/* HYDRA Specific - Lighter */
+/* ========== CODEX DIVIDERS ========== */
+.codex-divider {
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--codex-gold) 20%,
+    var(--codex-gold-bright) 50%,
+    var(--codex-gold) 80%,
+    transparent 100%
+  );
+  margin: 1rem 0;
+  position: relative;
+}
+
+.codex-divider::before {
+  content: '◆';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  color: var(--codex-gold);
+  font-size: 12px;
+  background: var(--codex-bg);
+  padding: 0 8px;
+}
+
+/* ========== HYDRA LOGO ========== */
 .hydra-logo {
-  filter: drop-shadow(0 0 40px rgba(0, 255, 65, 0.25));
-  transition: filter 0.4s ease;
+  filter: drop-shadow(0 0 30px rgba(212, 165, 10, 0.5))
+          drop-shadow(0 0 60px rgba(212, 165, 10, 0.3));
+  transition: all 0.5s ease;
 }
 
 .hydra-logo:hover {
-  filter: drop-shadow(0 0 60px rgba(0, 255, 65, 0.4));
+  filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.7))
+          drop-shadow(0 0 80px rgba(255, 215, 0, 0.4));
+  transform: scale(1.02);
 }
 
-/* Light Mode Support - Brighter & Cleaner */
+/* ========== LIGHT MODE - Parchment Style ========== */
 :root.light {
-  --matrix-bg-primary: #fafcfa;
-  --matrix-bg-secondary: #f0f7f0;
-  --matrix-accent: #10b981;
-  --matrix-glass-bg: rgba(255, 255, 255, 0.7);
+  --codex-bg: #f4ede4;
+  --codex-parchment: #ebe3d6;
+  --codex-text: #2c2416;
+  --codex-text-dim: #5c4d3a;
 }
 
 :root.light body {
-  background: linear-gradient(160deg, #fafcfa 0%, #e8f5e8 100%);
-  color: #1e3a2e;
+  background: linear-gradient(
+    145deg,
+    #f4ede4 0%,
+    #e8dfd0 50%,
+    #f4ede4 100%
+  );
+  color: var(--codex-text);
 }
 
 :root.light .glass-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  background: linear-gradient(
+    145deg,
+    rgba(244, 237, 228, 0.95) 0%,
+    rgba(235, 227, 214, 0.98) 100%
+  );
+  border-image: linear-gradient(
+    135deg,
+    var(--codex-bronze) 0%,
+    var(--codex-gold) 50%,
+    var(--codex-bronze) 100%
+  ) 1;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.1),
+    0 0 20px rgba(184, 134, 11, 0.1),
+    inset 0 0 30px rgba(255, 255, 255, 0.3);
 }
 
 :root.light .glass-button {
-  background: rgba(16, 185, 129, 0.12);
-  border: none;
+  background: linear-gradient(
+    180deg,
+    rgba(184, 134, 11, 0.15) 0%,
+    rgba(184, 134, 11, 0.1) 100%
+  );
+  border-color: var(--codex-bronze);
+  color: var(--codex-bronze);
 }
 
 :root.light .glass-button:hover {
-  background: rgba(16, 185, 129, 0.2);
-  box-shadow: 0 4px 16px rgba(16, 185, 129, 0.12);
+  background: linear-gradient(
+    180deg,
+    rgba(184, 134, 11, 0.25) 0%,
+    rgba(184, 134, 11, 0.2) 100%
+  );
+  box-shadow: 0 0 20px rgba(184, 134, 11, 0.3);
 }
 
-:root.light .neon-text {
-  text-shadow: none;
+:root.light .witcher-text {
+  color: var(--codex-bronze);
+  text-shadow:
+    0 0 8px rgba(184, 134, 11, 0.3),
+    1px 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 :root.light .status-online {
-  color: #059669;
+  color: #228b22;
   text-shadow: none;
 }
 
 :root.light .status-offline {
-  color: #dc2626;
+  color: #b22222;
   text-shadow: none;
 }
 
-:root.light .status-warning {
-  color: #d97706;
-  text-shadow: none;
-}
-
-:root.light ::-webkit-scrollbar-thumb {
-  background: rgba(16, 185, 129, 0.25);
-}
-
-:root.light ::-webkit-scrollbar-thumb:hover {
-  background: rgba(16, 185, 129, 0.4);
-}
-
-/* Utility classes */
+/* ========== UTILITY CLASSES ========== */
 .text-balance {
   text-wrap: balance;
 }
 
 .transition-smooth {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.font-cinzel {
+  font-family: 'Cinzel', serif;
+}
+
+.font-cinzel-decorative {
+  font-family: 'Cinzel Decorative', serif;
+}
+
+/* ========== CODEX TITLE STYLE ========== */
+.codex-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-weight: 700;
+  color: var(--codex-gold);
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  text-shadow:
+    0 0 10px rgba(212, 165, 10, 0.5),
+    0 0 20px rgba(212, 165, 10, 0.3),
+    2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* ========== CODEX SECTION HEADERS ========== */
+.codex-header {
+  font-family: 'Cinzel', serif;
+  font-weight: 600;
+  color: var(--codex-gold);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  border-bottom: 1px solid rgba(212, 165, 10, 0.3);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
 }

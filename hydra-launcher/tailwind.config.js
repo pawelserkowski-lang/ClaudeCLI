@@ -8,18 +8,30 @@ export default {
   theme: {
     extend: {
       colors: {
+        witcher: {
+          bg: {
+            primary: '#0a0a08',
+            secondary: '#0d0d0a',
+          },
+          gold: '#d4a50a',
+          'gold-light': '#ffd700',
+          amber: '#c9a227',
+          bronze: '#b8860b',
+          glass: 'rgba(15, 12, 8, 0.88)',
+        },
+        // Legacy matrix colors (mapped to witcher)
         matrix: {
           bg: {
-            primary: '#0a1f0a',
-            secondary: '#001a00',
+            primary: '#0a0a08',
+            secondary: '#0d0d0a',
           },
-          accent: '#00ff41',
-          glass: 'rgba(0, 31, 0, 0.7)',
+          accent: '#d4a50a',
+          glass: 'rgba(15, 12, 8, 0.88)',
         },
         hydra: {
-          cyan: '#00d4ff',
-          purple: '#bd00ff',
           gold: '#ffd700',
+          amber: '#c9a227',
+          bronze: '#b8860b',
         }
       },
       fontFamily: {
@@ -32,13 +44,17 @@ export default {
         'glow': 'glow 2s ease-in-out infinite alternate',
       },
       keyframes: {
-        matrixRain: {
+        witcherRain: {
           '0%': { transform: 'translateY(-100%)' },
           '100%': { transform: 'translateY(100%)' },
         },
         glow: {
-          '0%': { boxShadow: '0 0 5px #00ff41, 0 0 10px #00ff41' },
-          '100%': { boxShadow: '0 0 20px #00ff41, 0 0 30px #00ff41' },
+          '0%': { boxShadow: '0 0 5px #d4a50a, 0 0 10px #d4a50a' },
+          '100%': { boxShadow: '0 0 20px #ffd700, 0 0 30px #ffd700' },
+        },
+        bling: {
+          '0%, 100%': { opacity: '0.3' },
+          '50%': { opacity: '1' },
         }
       },
       transitionDuration: {
