@@ -33,10 +33,6 @@ pub async fn spawn_claude_cli(yolo_mode: bool) -> Result<String, String> {
         args.push("--dangerously-skip-permissions".to_string());
     }
 
-    // Add working directory
-    args.push("--cwd".to_string());
-    args.push(hydra_path.clone());
-
     // Add initial prompt
     args.push("-p".to_string());
     args.push(HYDRA_INIT_PROMPT.to_string());
@@ -46,11 +42,11 @@ pub async fn spawn_claude_cli(yolo_mode: bool) -> Result<String, String> {
     // Use start command on Windows to open in new terminal
     #[cfg(windows)]
     {
-        // Build base args without prompt
+        // Build base args without prompt (no --cwd - it doesn't exist in Claude CLI)
         let base_args: Vec<&str> = if yolo_mode {
-            vec!["--dangerously-skip-permissions", "--cwd", &hydra_path]
+            vec!["--dangerously-skip-permissions"]
         } else {
-            vec!["--cwd", &hydra_path]
+            vec![]
         };
 
         // Escape prompt for command line - replace newlines with spaces

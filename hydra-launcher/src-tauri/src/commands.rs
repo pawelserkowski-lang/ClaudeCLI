@@ -126,10 +126,15 @@ pub async fn send_to_claude(message: String) -> Result<String, String> {
     };
     log_claude_interaction("SEND", &msg_preview);
 
+    // Find claude executable path
+    let claude_path = find_claude_executable()?;
+    log_info(&format!("Using Claude at: {}", claude_path));
+
     // Use claude CLI with print mode for single prompts
-    let output = Command::new("claude")
+    // Note: Claude CLI doesn't have --cwd option, we use current_dir() instead
+    let output = Command::new(&claude_path)
+        .current_dir(&hydra_path)
         .args([
-            "--cwd", &hydra_path,
             "-p", &message,
             "--output-format", "text",
         ])
@@ -153,6 +158,36 @@ pub async fn send_to_claude(message: String) -> Result<String, String> {
         log_error(&format!("Claude error: {}", error));
         Err(format!("Claude error: {}", error))
     }
+}
+
+/// Find Claude executable path
+fn find_claude_executable() -> Result<String, String> {
+    // Try common paths on Windows
+    let possible_paths = [
+        // NPM global installs
+        format!("{}\\AppData\\Roaming\\npm\\claude.cmd", std::env::var("USERPROFILE").unwrap_or_default()),
+        format!("{}\\bin\\claude.cmd", std::env::var("USERPROFILE").unwrap_or_default()),
+        // Just "claude" if in PATH
+        "claude".to_string(),
+    ];
+
+    for path in &possible_paths {
+        if path == "claude" {
+            // Check if claude is in PATH using where command
+            if let Ok(output) = Command::new("where").arg("claude").output() {
+                if output.status.success() {
+                    let paths = String::from_utf8_lossy(&output.stdout);
+                    if let Some(first_path) = paths.lines().next() {
+                        return Ok(first_path.trim().to_string());
+                    }
+                }
+            }
+        } else if std::path::Path::new(path).exists() {
+            return Ok(path.clone());
+        }
+    }
+
+    Err("Claude CLI not found. Please install it with: npm install -g @anthropic-ai/claude-code".to_string())
 }
 
 /// Get the HYDRA project path

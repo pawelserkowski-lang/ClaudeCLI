@@ -27,14 +27,16 @@ impl ClaudeSession {
             return Err("Session already running".to_string());
         }
 
-        let mut args = vec!["--cwd".to_string(), hydra_path.to_string()];
+        let mut args = vec![];
 
         if yolo_mode {
             args.push("--dangerously-skip-permissions".to_string());
         }
 
         // Start Claude CLI with piped stdin/stdout
+        // Note: Claude CLI doesn't have --cwd option, we use current_dir() instead
         let mut child = Command::new("claude")
+            .current_dir(hydra_path)
             .args(&args)
             .stdin(Stdio::piped())
             .stdout(Stdio::piped())
