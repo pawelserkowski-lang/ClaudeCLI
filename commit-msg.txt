@@ -1,0 +1,11 @@
+fix(ai-handler): resolve PowerShell module function export issue
+
+- Fix ModelDiscovery.psm1 overwriting global functions by checking if modules already loaded
+- Add Set-Item function:global export in Import-SubModule for proper scope propagation
+- Add conditional import guards to prevent redundant module reloading
+- Add AIFacadeLoading flag to suppress deprecation warnings during facade initialization
+- Update AIFacade.psm1 Import-AIModule with improved global scope export
+
+Tested: SelfCorrection, SpeculativeDecoding, LoadBalancer all working
+
+Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>

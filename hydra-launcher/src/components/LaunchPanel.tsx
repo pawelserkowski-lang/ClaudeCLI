@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Play, Loader2, Terminal, CheckCircle2, AlertCircle, Sword } from 'lucide-react';
+import { Loader2, Terminal, CheckCircle2, AlertCircle, Sword } from 'lucide-react';
 import { invoke } from '@tauri-apps/api/core';
 import { useTheme } from '../contexts/ThemeContext';
 import { useMCPHealth } from '../hooks/useMCPHealth';
@@ -92,21 +92,9 @@ const LaunchPanel: React.FC = () => {
           }
           ${isLaunching ? 'opacity-70 cursor-wait' : ''}
         `}
-        style={canLaunch && !isLaunching ? {
-          boxShadow: isLight
-            ? '0 0 20px rgba(180, 130, 10, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.5)'
-            : '0 0 30px rgba(212, 165, 10, 0.3), inset 0 1px 0 rgba(255, 215, 0, 0.1)'
-        } : {}}
+        style={{}}
       >
-        {/* Shimmer effect */}
-        {canLaunch && !isLaunching && (
-          <div
-            className="absolute inset-0 animate-shimmer pointer-events-none"
-            style={{
-              background: 'linear-gradient(90deg, transparent, rgba(255,215,0,0.15), transparent)'
-            }}
-          />
-        )}
+        {/* Shimmer effect removed */}
 
         {isLaunching ? (
           <>

@@ -79,7 +79,19 @@ function Import-AIModule {
     }
 
     try {
+        # Import module globally and export functions to global scope
         Import-Module $fullPath -Force -Global -ErrorAction Stop
+
+        # Re-export all functions from the module to global scope
+        $moduleName = [System.IO.Path]::GetFileNameWithoutExtension($fullPath)
+        $moduleInfo = Get-Module -Name $moduleName
+        if ($moduleInfo -and $moduleInfo.ExportedFunctions) {
+            foreach ($funcName in $moduleInfo.ExportedFunctions.Keys) {
+                $funcDef = $moduleInfo.ExportedFunctions[$funcName]
+                Set-Item -Path "function:global:$funcName" -Value $funcDef.ScriptBlock -ErrorAction SilentlyContinue
+            }
+        }
+
         $script:Dependencies.LoadedModules += $Name
         Write-Verbose "Loaded module: $Name"
         return $true
@@ -404,7 +416,10 @@ function Initialize-AISystem {
     try {
         $mainModulePath = Join-Path $script:ModuleBasePath "AIModelHandler.psm1"
         if (Test-Path $mainModulePath) {
+            # Set flag to suppress deprecation warning (loaded via Facade = correct usage)
+            $global:AIFacadeLoading = $true
             Import-Module $mainModulePath -Force -Global -ErrorAction Stop
+            $global:AIFacadeLoading = $false
             $script:Dependencies.LoadedModules += "AIModelHandler"
 
             # Register main handler functions

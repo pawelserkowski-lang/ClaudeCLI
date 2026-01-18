@@ -1,6 +1,6 @@
 # Testing Commands
 
-The ClaudeCLI project utilizes a custom PowerShell-based testing framework, primarily located within the `ai-handler/` directory. The ClaudeCLI project utilizes a custom PowerShell-based testing framework, primarily located within the `ai-handler/` directory. Linting is performed via a dedicated script. While a single comprehensive test command is not explicitly defined in the `README.md`, individual test scripts and functions can be executed to verify specific modules and functionalities.
+The ClaudeHYDRA project utilizes a custom PowerShell-based testing framework, primarily located within the `ai-handler/` directory. The ClaudeHYDRA project utilizes a custom PowerShell-based testing framework, primarily located within the `ai-handler/` directory. Linting is performed via a dedicated script. While a single comprehensive test command is not explicitly defined in the `README.md`, individual test scripts and functions can be executed to verify specific modules and functionalities.
 
 **1. Running Individual Test Scripts:**
 - To execute tests for the Advanced AI modules, you would typically run the `test-advanced-ai.ps1` script, potentially with specific module parameters:

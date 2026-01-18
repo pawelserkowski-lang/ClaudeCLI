@@ -26,7 +26,7 @@ Execute multiple AI queries in parallel using local Ollama. Zero cost, maximum s
 When the user invokes `/ai-batch`, execute this command using Bash tool:
 
 ```bash
-powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Invoke-QuickAIBatch.ps1" $ARGUMENTS
+powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Invoke-QuickAIBatch.ps1" $ARGUMENTS
 ```
 
 **Flags:**

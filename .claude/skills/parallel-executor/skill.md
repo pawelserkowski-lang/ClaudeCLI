@@ -29,7 +29,7 @@ When user requests multiple independent operations, ALWAYS batch them:
 ### Pattern 2: Parallel File Operations
 ```powershell
 # Import module
-Import-Module "C:\Users\BIURODOM\Desktop\ClaudeCLI\parallel\modules\ParallelUtils.psm1"
+Import-Module "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\parallel\modules\ParallelUtils.psm1"
 
 # Read multiple files
 $results = Read-FilesParallel -Paths @("file1.txt", "file2.txt", "file3.txt")
@@ -44,22 +44,22 @@ $outputs = Invoke-CommandsParallel -Commands @("npm test", "npm run lint", "npm 
 ### Pattern 3: Parallel Builds
 ```powershell
 # Build all projects in directory
-& "C:\Users\BIURODOM\Desktop\ClaudeCLI\parallel\build\Build-Parallel.ps1" -Path "C:\Projects" -Test
+& "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\parallel\build\Build-Parallel.ps1" -Path "C:\Projects" -Test
 
 # Run tests in parallel
-& "C:\Users\BIURODOM\Desktop\ClaudeCLI\parallel\build\Test-Parallel.ps1" -Path "C:\Projects" -Type all
+& "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\parallel\build\Test-Parallel.ps1" -Path "C:\Projects" -Type all
 
 # Lint in parallel  
-& "C:\Users\BIURODOM\Desktop\ClaudeCLI\parallel\build\Lint-Parallel.ps1" -Path "C:\Projects" -Fix
+& "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\parallel\build\Lint-Parallel.ps1" -Path "C:\Projects" -Fix
 ```
 
 ### Pattern 4: Parallel Git
 ```powershell
 # Sync all repos
-& "C:\Users\BIURODOM\Desktop\ClaudeCLI\parallel\scripts\Invoke-ParallelGit.ps1" -BasePath "C:\Repos" -Operation sync
+& "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\parallel\scripts\Invoke-ParallelGit.ps1" -BasePath "C:\Repos" -Operation sync
 
 # Status of all repos
-& "C:\Users\BIURODOM\Desktop\ClaudeCLI\parallel\scripts\Invoke-ParallelGit.ps1" -BasePath "C:\Repos" -Operation status
+& "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\parallel\scripts\Invoke-ParallelGit.ps1" -BasePath "C:\Repos" -Operation status
 ```
 
 ### Pattern 5: Task DAG (Dependencies)
@@ -72,7 +72,7 @@ $tasks = @{
     "deploy" = @{ Script = { npm run deploy }; DependsOn = @("test", "lint") }
 }
 
-& "C:\Users\BIURODOM\Desktop\ClaudeCLI\parallel\scripts\Invoke-TaskDAG.ps1" -Tasks $tasks
+& "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\parallel\scripts\Invoke-TaskDAG.ps1" -Tasks $tasks
 ```
 
 ## Decision Matrix

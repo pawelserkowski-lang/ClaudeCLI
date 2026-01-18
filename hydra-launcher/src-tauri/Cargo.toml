@@ -35,6 +35,9 @@ sysinfo = "0.32"
 # Logging
 log = "0.4"
 
+# Date/Time for log files
+chrono = "0.4"
+
 # Utilities
 thiserror = "2.0"
 anyhow = "1.0"

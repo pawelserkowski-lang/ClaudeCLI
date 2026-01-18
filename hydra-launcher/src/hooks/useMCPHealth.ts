@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { safeInvoke, isTauri } from "./useTauri";
 
 export interface McpHealthResult {
   name: string;
@@ -9,6 +9,13 @@ export interface McpHealthResult {
   error: string | null;
 }
 
+// Mock data for browser development
+const MOCK_MCP_HEALTH: McpHealthResult[] = [
+  { name: "Serena", port: 9000, status: "online", response_time_ms: 12, error: null },
+  { name: "Desktop Commander", port: 8100, status: "online", response_time_ms: 8, error: null },
+  { name: "Playwright", port: 5200, status: "offline", response_time_ms: null, error: "Not running" },
+];
+
 export function useMCPHealth(refreshInterval = 5000) {
   const [health, setHealth] = useState<McpHealthResult[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,11 +23,23 @@ export function useMCPHealth(refreshInterval = 5000) {
 
   const checkHealth = useCallback(async () => {
     try {
-      const results = await invoke<McpHealthResult[]>("check_mcp_health");
+      if (!isTauri()) {
+        // Browser mode - use mock data
+        setHealth(MOCK_MCP_HEALTH);
+        setError(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const results = await safeInvoke<McpHealthResult[]>("check_mcp_health");
       setHealth(results);
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      // Don't show error for browser mode
+      if (!errorMsg.includes('browser mode')) {
+        setError(errorMsg);
+      }
     } finally {
       setIsLoading(false);
     }

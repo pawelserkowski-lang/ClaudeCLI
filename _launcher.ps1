@@ -1,11 +1,33 @@
-# ═══════════════════════════════════════════════════════════════════════════════
-# CLAUDE CLI - HYDRA LAUNCHER v10.0
-# Enhanced GUI with status monitoring
-# ═══════════════════════════════════════════════════════════════════════════════
+﻿#!/usr/bin/env pwsh
+# =============================================================================
+# CLAUDE CLI - HYDRA LAUNCHER v10.1
+# Enhanced GUI with status monitoring + YOLO Mode + Agent Swarm
+# =============================================================================
 
-$script:ProjectRoot = 'C:\Users\BIURODOM\Desktop\ClaudeCLI'
+param(
+    [switch]$NoYolo,         # Disable YOLO mode (default: YOLO ON)
+    [switch]$SkipHealthCheck, # Skip Node.js/npm validation
+    [switch]$Quiet           # Minimal output
+)
+
+# YOLO mode is ON by default
+$Yolo = -not $NoYolo
+
+# === FORCE UTF-8 ENCODING ===
+[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[Console]::InputEncoding = [System.Text.Encoding]::UTF8
+$OutputEncoding = [System.Text.Encoding]::UTF8
+$env:PYTHONIOENCODING = 'utf-8'
+$env:LANG = 'en_US.UTF-8'
+# Disable animations that cause flickering
+$env:CI = 'true'
+$env:TERM = 'dumb'
+chcp 65001 2>$null | Out-Null
+
+$script:ProjectRoot = 'C:\Users\BIURODOM\Desktop\ClaudeHYDRA'
 Set-Location $script:ProjectRoot
-$Host.UI.RawUI.WindowTitle = 'Claude CLI (HYDRA 10.0)'
+$yoloSuffix = if ($Yolo) { " [YOLO]" } else { "" }
+$Host.UI.RawUI.WindowTitle = "Claude CLI (HYDRA 10.1)$yoloSuffix"
 
 # Use explicit path since $PSScriptRoot can be empty when dot-sourced
 $scriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { $script:ProjectRoot }
@@ -32,8 +54,14 @@ Show-HydraLogo -Variant 'claude'
 
 Write-Host "       CLAUDE CLI" -NoNewline -ForegroundColor Yellow
 Write-Host " + " -NoNewline -ForegroundColor DarkGray
-Write-Host "HYDRA 10.0" -ForegroundColor DarkYellow
+Write-Host "HYDRA 10.1" -NoNewline -ForegroundColor DarkYellow
+if ($Yolo) {
+    Write-Host " [YOLO]" -ForegroundColor Red
+} else {
+    Write-Host ""
+}
 Write-Host "       MCP: Serena + Desktop Commander + Playwright" -ForegroundColor DarkGray
+Write-Host "       Agent Swarm: 12 Witcher Agents (School of the Wolf)" -ForegroundColor DarkGray
 Write-Host ""
 
 # === SYSTEM STATUS ===
@@ -82,11 +110,25 @@ if (Test-Path $smartQueueModule) {
     Import-Module $smartQueueModule -Force -Global -ErrorAction SilentlyContinue
 }
 
+# === AGENT SWARM (12 Witcher Agents) ===
+$agentSwarmModule = Join-Path $scriptDir 'ai-handler\modules\AgentSwarm.psm1'
+if (Test-Path $agentSwarmModule) {
+    try {
+        Import-Module $agentSwarmModule -Force -Global -ErrorAction Stop
+        # Enable YOLO mode if requested
+        if ($Yolo) {
+            Set-YoloMode -Enable | Out-Null
+        }
+    } catch {
+        Write-Host "  [WARN] AgentSwarm failed to load: $_" -ForegroundColor Yellow
+    }
+}
+
 # === AI CODING TOOLS ===
 $aiCodingModules = @(
-    'AICodeReview.psm1',
-    'SemanticGitCommit.psm1',
-    'PredictiveAutocomplete.psm1'
+    'SelfCorrection.psm1',
+    'PromptOptimizer.psm1',
+    'FewShotLearning.psm1'
 )
 $loadedTools = @()
 foreach ($mod in $aiCodingModules) {
@@ -192,11 +234,27 @@ if (Test-Path $aiFacadeModule) {
 Write-Host ""
 Write-Host "  AI Coding Tools:" -ForegroundColor DarkGray
 if ($loadedTools.Count -gt 0) {
-    Write-StatusLine -Label "Code Review" -Value "Invoke-AICodeReview" -Status 'ok'
-    Write-StatusLine -Label "Git Commit" -Value "New-AICommitMessage" -Status 'ok'
-    Write-StatusLine -Label "Autocomplete" -Value "Get-CodePrediction" -Status 'ok'
+    Write-StatusLine -Label "Self-Correction" -Value "Invoke-SelfCorrection" -Status 'ok'
+    Write-StatusLine -Label "Prompt Optimizer" -Value "Optimize-Prompt" -Status 'ok'
+    Write-StatusLine -Label "Few-Shot Learning" -Value "Invoke-AIWithFewShot" -Status 'ok'
 } else {
     Write-StatusLine -Label "AI Tools" -Value "Not loaded" -Status 'warning'
+}
+
+# === AGENT SWARM STATUS ===
+Write-Host ""
+Write-Host "  Agent Swarm:" -ForegroundColor DarkGray
+if (Get-Command Invoke-AgentSwarm -ErrorAction SilentlyContinue) {
+    Write-StatusLine -Label "Witcher Agents" -Value "12 agents loaded" -Status 'ok'
+    $yoloStatus = Get-YoloStatus
+    if ($yoloStatus.YoloMode) {
+        Write-StatusLine -Label "YOLO Mode" -Value "ENABLED (10 threads, 15s timeout)" -Status 'warning'
+    } else {
+        Write-StatusLine -Label "Mode" -Value "Standard (5 threads, 60s timeout)" -Status 'ok'
+    }
+    Write-StatusLine -Label "Commands" -Value "Invoke-AgentSwarm, Invoke-QuickAgent" -Status 'info'
+} else {
+    Write-StatusLine -Label "Agent Swarm" -Value "Not loaded" -Status 'warning'
 }
 
 Write-Separator -Width 55
@@ -209,6 +267,18 @@ Write-Host (Get-TipOfDay) -ForegroundColor DarkGray
 
 Show-QuickCommands -CLI 'claude'
 Write-Host ""
+
+# === DEFAULT WORKFLOW INFO ===
+Write-Host "  Default Workflow:" -ForegroundColor DarkGray
+Write-Host "    /hydra " -NoNewline -ForegroundColor Cyan
+Write-Host "- Four-Headed Beast (Serena + DC + Playwright + Swarm)" -ForegroundColor DarkGray
+if ($Yolo) {
+    Write-Host "    YOLO Mode: " -NoNewline -ForegroundColor DarkGray
+    Write-Host "ON" -NoNewline -ForegroundColor Red
+    Write-Host " (10 threads, 15s timeout)" -ForegroundColor DarkGray
+}
+Write-Host ""
+
 Write-Separator -Width 55
 Write-Host ""
 Write-Host "  Starting Claude CLI..." -ForegroundColor Cyan
@@ -242,7 +312,7 @@ Show-TheEnd -Variant 'claude' -SessionDuration $sessionDuration
 if (Get-Command Write-LogEntry -ErrorAction SilentlyContinue) {
     Write-LogEntry -Level 'INFO' -Message "Session ended" -Source 'Launcher' -Data @{
         duration = $sessionDuration
-        cli = 'ClaudeCLI'
+        cli = 'ClaudeHYDRA'
     }
 }
 

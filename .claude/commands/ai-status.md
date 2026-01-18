@@ -18,7 +18,7 @@ Display status of all AI providers, local models, configuration and costs.
 When the user invokes `/ai-status`, execute this command using Bash tool:
 
 ```bash
-powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Invoke-AIStatus.ps1" $ARGUMENTS
+powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Invoke-AIStatus.ps1" $ARGUMENTS
 ```
 
 **Flags:**

@@ -103,6 +103,7 @@ fn get_hydra_path() -> Result<String, String> {
 }
 
 /// Check if Claude CLI is installed
+#[allow(dead_code)]
 pub async fn check_claude_installed() -> bool {
     #[cfg(windows)]
     {

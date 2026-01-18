@@ -1,11 +1,11 @@
 {
   "name": "HYDRA-Orchestrator",
-  "version": "10.1.0",
-  "description": "Complete HYDRA 10.0 configuration with AI Handler, MCP, and Advanced AI modules",
+  "version": "10.5.0",
+  "description": "HYDRA 10.5 - Autonomous Visual Mode with auto-formatting",
 
   "env": {
-    "AI_HANDLER_PATH": "C:\\Users\\BIURODOM\\Desktop\\ClaudeCLI\\ai-handler",
-    "CLI_ROOT": "C:\\Users\\BIURODOM\\Desktop\\ClaudeCLI",
+    "AI_HANDLER_PATH": "C:\\Users\\BIURODOM\\Desktop\\ClaudeHYDRA\\ai-handler",
+    "CLI_ROOT": "C:\\Users\\BIURODOM\\Desktop\\ClaudeHYDRA",
     "PREFER_LOCAL_EXECUTION": "true",
     "HYDRA_MODE": "MCP_ORCHESTRATION",
     "PARALLEL_MAX_JOBS": "8",
@@ -209,8 +209,18 @@
   },
 
   "system_instructions": {
-    "role": "HYDRA 10.0 MCP Orchestrator",
-    "doctrine": "Parallel Execution Primary. Read-only tasks MUST be parallelized.",
+    "role": "HYDRA 10.5 Autonomous Visual Orchestrator",
+    "doctrine": "Parallel Execution Primary. Auto-format all outputs. Never ask - just execute. Suggest next prompts.",
+    "autonomous_mode": {
+      "enabled": true,
+      "auto_execute": true,
+      "no_confirmations": true,
+      "visual_formatting": true,
+      "suggest_next_prompts": true,
+      "ascii_diagrams": true,
+      "markdown_tables": true,
+      "code_blocks_with_syntax": true
+    },
     "council_of_six": {
       "architect": "Clean structure, Rust 2024, React 19 patterns, best practices",
       "security": "ENV vars only, mask API keys (15 chars), no secrets in commits, .gitignore",

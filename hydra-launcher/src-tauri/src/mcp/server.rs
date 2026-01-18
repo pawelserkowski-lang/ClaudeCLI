@@ -1,6 +1,7 @@
 use std::process::Command;
 
 /// Start an MCP server (placeholder - actual implementation depends on MCP server setup)
+#[allow(dead_code)]
 pub fn start_mcp_server(name: &str, command: &str, args: &[String]) -> Result<u32, String> {
     let mut cmd = Command::new(command);
     cmd.args(args);
@@ -23,6 +24,7 @@ pub fn start_mcp_server(name: &str, command: &str, args: &[String]) -> Result<u3
 }
 
 /// Stop an MCP server by PID
+#[allow(dead_code)]
 #[cfg(windows)]
 pub fn stop_mcp_server(pid: u32) -> Result<(), String> {
     let output = Command::new("taskkill")
@@ -37,6 +39,7 @@ pub fn stop_mcp_server(pid: u32) -> Result<(), String> {
     }
 }
 
+#[allow(dead_code)]
 #[cfg(not(windows))]
 pub fn stop_mcp_server(pid: u32) -> Result<(), String> {
     use std::os::unix::process::CommandExt;

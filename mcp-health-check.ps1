@@ -1,6 +1,6 @@
 # HYDRA 10.0 - MCP Health Check (Parallel Execution)
 # Checks all MCP servers in parallel and restarts if needed
-# Path: C:\Users\BIURODOM\Desktop\ClaudeCLI\mcp-health-check.ps1
+# Path: C:\Users\BIURODOM\Desktop\ClaudeHYDRA\mcp-health-check.ps1
 
 #Requires -Version 5.1
 

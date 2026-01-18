@@ -1,4 +1,4 @@
-﻿# HYDRA GUI UTILS - Shared GUI components for ClaudeCLI & GeminiCLI
+﻿# HYDRA GUI UTILS - Shared GUI components for ClaudeHYDRA & GeminiCLI
 
 # === ASCII Art Logos ===
 function Show-HydraLogo {

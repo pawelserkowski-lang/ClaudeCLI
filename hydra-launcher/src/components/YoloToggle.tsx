@@ -43,26 +43,14 @@ const YoloToggle: React.FC = () => {
               : 'bg-gradient-to-b from-slate-800/30 to-slate-800/50 text-slate-400 border-slate-600'
         }
       `}
-      style={yoloEnabled ? {
-        boxShadow: isLight
-          ? '0 0 15px rgba(180, 130, 10, 0.25)'
-          : '0 0 20px rgba(212, 165, 10, 0.25)'
-      } : {}}
+      style={{}}
       title={yoloEnabled ? 'YOLO: Pełna autonomia bez potwierdzeń' : 'Tryb bezpieczny: Pytaj o uprawnienia'}
     >
-      {/* Glow effect for YOLO */}
-      {yoloEnabled && (
-        <div
-          className="absolute inset-0 animate-pulse-gold pointer-events-none opacity-30"
-          style={{
-            background: 'radial-gradient(circle, rgba(212,165,10,0.3) 0%, transparent 70%)'
-          }}
-        />
-      )}
+      {/* Glow effect removed */}
 
       {yoloEnabled ? (
         <>
-          <span className="text-sm" style={{ textShadow: '0 0 8px rgba(212,165,10,0.6)' }}>ᛉ</span>
+          <span className="text-sm">ᛉ</span>
           <Zap size={12} strokeWidth={2} />
           <span>YOLO</span>
         </>
@@ -101,9 +89,7 @@ const YoloToggle: React.FC = () => {
                 : 'left-0.5 bg-gradient-to-b from-slate-500 to-slate-600'
             }
           `}
-          style={yoloEnabled ? {
-            boxShadow: '0 0 8px rgba(212, 165, 10, 0.5)'
-          } : {}}
+          style={{}}
         />
       </div>
     </button>

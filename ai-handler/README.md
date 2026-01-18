@@ -106,7 +106,7 @@ $fallbackProvider = $ProviderPriority | Select-Object -Skip 1 -First 1
 
 ```powershell
 # Initialize AI Handler
-. "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Initialize-AIHandler.ps1"
+. "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Initialize-AIHandler.ps1"
 
 # Quick AI call (auto-selects local/cloud)
 ai "Your question here"
@@ -115,7 +115,7 @@ ai "Your question here"
 Get-AIStatus
 
 # Use advanced features
-. "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Initialize-AdvancedAI.ps1"
+. "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Initialize-AdvancedAI.ps1"
 New-AICode "Write Python function to parse JSON"
 ```
 

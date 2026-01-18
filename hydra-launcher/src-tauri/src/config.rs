@@ -85,6 +85,7 @@ impl HydraConfig {
         }
     }
 
+    #[allow(dead_code)]
     pub fn save(&self, path: Option<PathBuf>) -> Result<(), String> {
         let config_path = path.unwrap_or_else(|| {
             let home = dirs::home_dir().unwrap_or_default();

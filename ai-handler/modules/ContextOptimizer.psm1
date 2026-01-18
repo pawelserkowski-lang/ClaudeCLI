@@ -41,7 +41,7 @@
 $script:ModuleRoot = Split-Path $PSScriptRoot -Parent
 $script:CacheDir = Join-Path $script:ModuleRoot "cache\mcp-cache"
 $script:SessionFile = Join-Path $script:ModuleRoot "session-state.json"
-$script:MemoriesDir = "C:\Users\BIURODOM\Desktop\ClaudeCLI\.serena\memories"
+$script:MemoriesDir = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\.serena\memories"
 
 # Create cache directory if not exists
 if (-not (Test-Path $script:CacheDir)) {

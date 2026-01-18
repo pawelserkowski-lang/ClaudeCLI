@@ -2,8 +2,7 @@ mod config;
 mod commands;
 mod mcp;
 mod process;
-
-use tauri::Manager;
+mod logger;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
@@ -17,12 +16,17 @@ pub fn run() {
             commands::check_ollama,
             commands::get_ollama_models,
             commands::set_yolo_mode,
+            commands::start_claude_session,
+            commands::send_to_claude,
         ])
-        .setup(|app| {
-            #[cfg(debug_assertions)]
-            {
-                let window = app.get_webview_window("main").unwrap();
-                window.open_devtools();
+        .manage(commands::AppState::default())
+        .setup(|_app| {
+            // Initialize file logger
+            if let Err(e) = logger::FileLogger::init() {
+                eprintln!("Failed to init logger: {}", e);
+            } else {
+                logger::log_info("HYDRA 10.4 Launcher started");
+                logger::log_info("Tauri application setup complete");
             }
             Ok(())
         })

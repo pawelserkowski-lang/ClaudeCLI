@@ -27,8 +27,8 @@ if (-not $prompt -or $prompt.Length -lt 5 -or $prompt.StartsWith('/')) {
 }
 
 # Initialize AI Handler via AIFacade (preferred entry point)
-[Environment]::SetEnvironmentVariable('CLAUDECLI_ENCRYPTION_KEY', 'ClaudeCLI-2024', 'Process')
-$aiHandlerPath = "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler"
+[Environment]::SetEnvironmentVariable('CLAUDECLI_ENCRYPTION_KEY', 'ClaudeHYDRA-2024', 'Process')
+$aiHandlerPath = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler"
 
 # Load AIFacade (handles all module loading automatically)
 $null = Import-Module "$aiHandlerPath\AIFacade.psm1" -Force 2>&1

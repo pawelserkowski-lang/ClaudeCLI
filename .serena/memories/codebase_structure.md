@@ -1,6 +1,6 @@
 # Codebase Structure
 
-The `ClaudeCLI` project follows a modular structure, with key functionalities organized into distinct directories:
+The `ClaudeHYDRA` project follows a modular structure, with key functionalities organized into distinct directories:
 
 - **`.claude/`**
   - `commands/`: Contains custom slash commands for the CLI (e.g., `ai.md`, `ai-batch.md`).
@@ -31,6 +31,6 @@ The `ClaudeCLI` project follows a modular structure, with key functionalities or
 
 - **`README.md`:** Provides a high-level overview of the project (this file).
 
-- **`_launcher.ps1`:** The primary PowerShell script for launching the ClaudeCLI environment.
+- **`_launcher.ps1`:** The primary PowerShell script for launching the ClaudeHYDRA environment.
 
 - **`mcp-health-check.ps1`:** Script for diagnosing the health of Multi-Context Protocol (MCP) servers.

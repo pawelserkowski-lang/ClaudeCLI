@@ -8,7 +8,7 @@ Run the Context Optimizer status check and display results:
 
 ```powershell
 # Load the module
-Import-Module "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\modules\ContextOptimizer.psm1" -Force
+Import-Module "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\modules\ContextOptimizer.psm1" -Force
 
 # Show comprehensive status
 Show-OptimizationStatus

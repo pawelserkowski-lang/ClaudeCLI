@@ -1,6 +1,6 @@
 # HYDRA 10.0 Installer
 
-Multi-platform installer for HYDRA (ClaudeCLI + AI Handler + Parallel System + MCP Servers).
+Multi-platform installer for HYDRA (ClaudeHYDRA + AI Handler + Parallel System + MCP Servers).
 
 ## Quick Install
 

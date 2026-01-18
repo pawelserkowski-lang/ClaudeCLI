@@ -2,7 +2,7 @@
 #Requires -RunAsAdministrator
 <#
 .SYNOPSIS
-    Configure keyboard shortcuts for ClaudeCLI
+    Configure keyboard shortcuts for ClaudeHYDRA
 .DESCRIPTION
     1. Disables Win+C (Cortana/Copilot) in Windows
     2. Configures Escape as alternative interrupt in PowerShell
@@ -125,7 +125,7 @@ function Install-EscapeInterrupt {
 
     $escapeHandler = @'
 
-# === ClaudeCLI: Escape as Interrupt ===
+# === ClaudeHYDRA: Escape as Interrupt ===
 # Pressing Escape sends Ctrl+C signal
 Set-PSReadLineKeyHandler -Key Escape -Function CancelLine
 
@@ -149,7 +149,7 @@ Set-PSReadLineKeyHandler -Key Escape -ScriptBlock {
 
     $script:lastEscapeTime = $now
 }
-# === End ClaudeCLI Escape Handler ===
+# === End ClaudeHYDRA Escape Handler ===
 
 '@
 
@@ -157,7 +157,7 @@ Set-PSReadLineKeyHandler -Key Escape -ScriptBlock {
         # Check if already installed
         if (Test-Path $profilePath) {
             $content = Get-Content $profilePath -Raw -ErrorAction SilentlyContinue
-            if ($content -match "ClaudeCLI: Escape as Interrupt") {
+            if ($content -match "ClaudeHYDRA: Escape as Interrupt") {
                 Write-Status "Escape interrupt already configured" "OK"
                 return
             }
@@ -191,13 +191,13 @@ function Remove-EscapeInterrupt {
     try {
         $content = Get-Content $profilePath -Raw
 
-        if (-not ($content -match "ClaudeCLI: Escape as Interrupt")) {
+        if (-not ($content -match "ClaudeHYDRA: Escape as Interrupt")) {
             Write-Status "Escape interrupt not configured" "INFO"
             return
         }
 
         # Remove the block
-        $pattern = "(?s)# === ClaudeCLI: Escape as Interrupt ===.*?# === End ClaudeCLI Escape Handler ===\r?\n?"
+        $pattern = "(?s)# === ClaudeHYDRA: Escape as Interrupt ===.*?# === End ClaudeHYDRA Escape Handler ===\r?\n?"
         $newContent = $content -replace $pattern, ""
 
         Set-Content -Path $profilePath -Value $newContent.TrimEnd()

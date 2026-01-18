@@ -1,9 +1,9 @@
+/* Import medieval-style font - MUST be first */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cinzel+Decorative:wght@400;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import medieval-style font */
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600;700&family=Cinzel+Decorative:wght@400;700&display=swap');
 
 :root {
   /* Witcher Codex Theme */
@@ -100,7 +100,6 @@ body {
   position: absolute;
   font-size: 14px;
   color: var(--codex-gold);
-  text-shadow: 0 0 10px var(--codex-gold);
   opacity: 0.8;
 }
 
@@ -152,21 +151,7 @@ body {
   overflow: hidden;
 }
 
-.glass-button::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    rgba(255, 215, 0, 0.2),
-    transparent
-  );
-  transition: left 0.5s ease;
-}
+/* Shimmer effect removed */
 
 .glass-button:hover {
   background: linear-gradient(
@@ -182,44 +167,27 @@ body {
   transform: translateY(-2px);
 }
 
-.glass-button:hover::before {
-  left: 100%;
-}
+/* Shimmer hover effect removed */
 
 .glass-button:active {
   transform: scale(0.98) translateY(0);
 }
 
-/* ========== WITCHER GLOW EFFECTS ========== */
+/* ========== WITCHER TEXT EFFECTS (simplified) ========== */
 .witcher-glow {
-  text-shadow:
-    0 0 10px var(--codex-gold),
-    0 0 20px var(--codex-gold),
-    0 0 30px var(--codex-amber);
-  filter: drop-shadow(0 0 15px rgba(212, 165, 10, 0.5));
+  text-shadow: 0 0 5px rgba(212, 165, 10, 0.3);
 }
 
 .witcher-text {
   font-family: 'Cinzel Decorative', 'Cinzel', serif;
   color: var(--codex-gold);
-  text-shadow:
-    0 0 10px rgba(212, 165, 10, 0.6),
-    0 0 20px rgba(212, 165, 10, 0.3),
-    2px 2px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
   letter-spacing: 0.15em;
 }
 
 .witcher-border {
-  border: 2px solid transparent;
-  border-image: linear-gradient(
-    135deg,
-    var(--codex-gold) 0%,
-    var(--codex-bronze) 50%,
-    var(--codex-gold) 100%
-  ) 1;
-  box-shadow:
-    0 0 15px rgba(212, 165, 10, 0.2),
-    inset 0 0 15px rgba(212, 165, 10, 0.05);
+  border: 2px solid var(--codex-gold);
+  box-shadow: none;
 }
 
 /* ========== RUNE DECORATIONS ========== */
@@ -239,95 +207,33 @@ body {
   letter-spacing: 0.5em;
 }
 
-/* ========== ANIMATIONS ========== */
-@keyframes shimmer {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
+/* ========== ANIMATIONS (DISABLED - bling removed) ========== */
+/* All shimmer, pulse, glow, float animations removed for cleaner UI */
 
-@keyframes pulse-gold {
-  0%, 100% {
-    box-shadow:
-      0 0 10px rgba(212, 165, 10, 0.3),
-      0 0 20px rgba(212, 165, 10, 0.2);
-  }
-  50% {
-    box-shadow:
-      0 0 20px rgba(212, 165, 10, 0.5),
-      0 0 40px rgba(212, 165, 10, 0.3);
-  }
-}
-
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-5px); }
-}
-
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes glow-pulse {
-  0%, 100% { opacity: 0.6; }
-  50% { opacity: 1; }
-}
-
-@keyframes border-glow {
-  0%, 100% {
-    border-color: var(--codex-gold);
-    box-shadow: 0 0 10px rgba(212, 165, 10, 0.3);
-  }
-  50% {
-    border-color: var(--codex-gold-bright);
-    box-shadow: 0 0 25px rgba(255, 215, 0, 0.5);
-  }
-}
-
-.animate-shimmer {
-  animation: shimmer 3s infinite;
-}
-
-.animate-pulse-gold {
-  animation: pulse-gold 3s ease-in-out infinite;
-}
-
-.animate-float {
-  animation: float 4s ease-in-out infinite;
+.animate-shimmer,
+.animate-pulse-gold,
+.animate-float,
+.animate-glow-pulse,
+.animate-border-glow {
+  /* No animation - static appearance */
 }
 
 .animate-fade-in {
-  animation: fade-in 0.8s ease-out;
-}
-
-.animate-glow-pulse {
-  animation: glow-pulse 2s ease-in-out infinite;
-}
-
-.animate-border-glow {
-  animation: border-glow 3s ease-in-out infinite;
+  /* Keep fade-in for page load only */
+  opacity: 1;
 }
 
 /* ========== STATUS INDICATORS ========== */
 .status-online {
   color: #50c878;
-  text-shadow: 0 0 10px rgba(80, 200, 120, 0.5);
 }
 
 .status-offline {
   color: #dc3545;
-  text-shadow: 0 0 10px rgba(220, 53, 69, 0.5);
 }
 
 .status-warning {
   color: var(--codex-amber);
-  text-shadow: 0 0 10px rgba(201, 162, 39, 0.5);
 }
 
 /* ========== CODEX DIVIDERS ========== */
@@ -359,15 +265,12 @@ body {
 
 /* ========== HYDRA LOGO ========== */
 .hydra-logo {
-  filter: drop-shadow(0 0 30px rgba(212, 165, 10, 0.5))
-          drop-shadow(0 0 60px rgba(212, 165, 10, 0.3));
-  transition: all 0.5s ease;
+  filter: drop-shadow(0 0 10px rgba(212, 165, 10, 0.3));
+  transition: filter 0.3s ease;
 }
 
 .hydra-logo:hover {
-  filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.7))
-          drop-shadow(0 0 80px rgba(255, 215, 0, 0.4));
-  transform: scale(1.02);
+  filter: drop-shadow(0 0 15px rgba(212, 165, 10, 0.4));
 }
 
 /* ========== LIGHT MODE - Parchment Style ========== */
@@ -466,10 +369,7 @@ body {
   color: var(--codex-gold);
   text-transform: uppercase;
   letter-spacing: 0.2em;
-  text-shadow:
-    0 0 10px rgba(212, 165, 10, 0.5),
-    0 0 20px rgba(212, 165, 10, 0.3),
-    2px 2px 4px rgba(0, 0, 0, 0.8);
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* ========== CODEX SECTION HEADERS ========== */
@@ -483,4 +383,124 @@ body {
   border-bottom: 1px solid rgba(212, 165, 10, 0.3);
   padding-bottom: 0.5rem;
   margin-bottom: 1rem;
+}
+
+/* ========== CODEX FRAME - Ornate Border ========== */
+.codex-frame {
+  position: relative;
+  margin: 1rem;
+  border: 3px solid transparent;
+  border-image: linear-gradient(
+    135deg,
+    var(--codex-gold) 0%,
+    var(--codex-bronze) 15%,
+    var(--codex-gold-bright) 30%,
+    var(--codex-bronze) 50%,
+    var(--codex-gold-bright) 70%,
+    var(--codex-bronze) 85%,
+    var(--codex-gold) 100%
+  ) 1;
+  background: linear-gradient(
+    145deg,
+    rgba(26, 21, 16, 0.85) 0%,
+    rgba(13, 11, 7, 0.9) 100%
+  );
+  box-shadow:
+    0 0 30px rgba(212, 165, 10, 0.15),
+    inset 0 0 50px rgba(0, 0, 0, 0.5);
+}
+
+/* Corner ornaments for codex frame */
+.codex-frame::before,
+.codex-frame::after {
+  content: '❧';
+  position: absolute;
+  font-size: 24px;
+  color: var(--codex-gold);
+  opacity: 0.8;
+  z-index: 10;
+}
+
+.codex-frame::before {
+  top: -8px;
+  left: 12px;
+}
+
+.codex-frame::after {
+  bottom: -8px;
+  right: 12px;
+  transform: rotate(180deg);
+}
+
+/* Light mode codex frame */
+:root.light .codex-frame {
+  background: linear-gradient(
+    145deg,
+    rgba(244, 237, 228, 0.9) 0%,
+    rgba(235, 227, 214, 0.95) 100%
+  );
+  box-shadow:
+    0 4px 30px rgba(0, 0, 0, 0.1),
+    0 0 20px rgba(184, 134, 11, 0.15),
+    inset 0 0 30px rgba(255, 255, 255, 0.3);
+}
+
+/* ========== CODEX ORNATE CARD ========== */
+.glass-card {
+  background: linear-gradient(
+    145deg,
+    rgba(26, 21, 16, 0.95) 0%,
+    rgba(13, 11, 7, 0.98) 100%
+  );
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 8px;
+  border: 3px solid;
+  border-image: linear-gradient(
+    135deg,
+    var(--codex-gold) 0%,
+    var(--codex-bronze) 20%,
+    var(--codex-gold-bright) 40%,
+    var(--codex-bronze) 60%,
+    var(--codex-gold-bright) 80%,
+    var(--codex-gold) 100%
+  ) 1;
+  box-shadow:
+    0 0 25px rgba(212, 165, 10, 0.2),
+    0 0 50px rgba(212, 165, 10, 0.08),
+    inset 0 0 40px rgba(0, 0, 0, 0.6),
+    inset 0 2px 0 rgba(255, 215, 0, 0.15);
+  position: relative;
+}
+
+/* Ornate corner decorations */
+.glass-card::before {
+  content: '◆✧◆';
+  position: absolute;
+  top: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--codex-gold);
+  background: var(--codex-bg);
+  padding: 0 12px;
+}
+
+.glass-card::after {
+  content: '◆✧◆';
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--codex-gold);
+  background: var(--codex-bg);
+  padding: 0 12px;
+}
+
+:root.light .glass-card::before,
+:root.light .glass-card::after {
+  background: var(--codex-parchment);
 }

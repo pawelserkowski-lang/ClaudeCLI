@@ -29,7 +29,7 @@ param(
 $ErrorActionPreference = "Stop"
 
 # Paths
-$LocalPath = "C:\Users\BIURODOM\Desktop\ClaudeCLI\.claude"
+$LocalPath = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\.claude"
 $GlobalPath = "$env:USERPROFILE\.claude"
 $DesktopPath = "$env:APPDATA\Claude"
 

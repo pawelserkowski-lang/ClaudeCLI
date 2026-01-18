@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Initialize Advanced AI Modules for ClaudeCLI
+    Initialize Advanced AI Modules for ClaudeHYDRA
 .DESCRIPTION
     Loads and initializes all advanced AI capabilities using the AIFacade system:
     - Agentic Self-Correction
@@ -21,7 +21,7 @@
 .EXAMPLE
     . .\Initialize-AdvancedAI.ps1
 .EXAMPLE
-    . "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Initialize-AdvancedAI.ps1"
+    . "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Initialize-AdvancedAI.ps1"
 #>
 
 $ErrorActionPreference = "Stop"

@@ -1,6 +1,6 @@
 # System Utilities (Windows)
 
-Given that the ClaudeCLI project operates on Windows, the following system utility commands (primarily PowerShell cmdlets) are relevant for file system navigation, manipulation, and general system interaction. These are analogous to common Unix/Linux commands.
+Given that the ClaudeHYDRA project operates on Windows, the following system utility commands (primarily PowerShell cmdlets) are relevant for file system navigation, manipulation, and general system interaction. These are analogous to common Unix/Linux commands.
 
 - **List Directory Contents (`ls` equivalent):**
   ```powershell
@@ -18,7 +18,7 @@ Given that the ClaudeCLI project operates on Windows, the following system utili
 
 - **Search File Content (`grep` equivalent):**
   ```powershell
-  Select-String -Path .\README.md -Pattern "ClaudeCLI"
+  Select-String -Path .\README.md -Pattern "ClaudeHYDRA"
   ```
 
 - **Find Files (`find` equivalent):**

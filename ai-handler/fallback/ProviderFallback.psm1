@@ -25,7 +25,7 @@
     HYDRA System
 
 .NOTES
-    Part of the ClaudeCLI AI Handler system
+    Part of the ClaudeHYDRA AI Handler system
     Dependencies:
     - utils/AIErrorHandler.psm1
     - rate-limiting/RateLimiter.psm1

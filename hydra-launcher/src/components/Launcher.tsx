@@ -53,10 +53,10 @@ const Launcher: React.FC = () => {
   return (
     <div className="flex flex-col items-center justify-center w-full h-full relative overflow-hidden">
       {/* Content */}
-      <div className="relative z-10 flex flex-col items-center w-full max-w-lg px-6 animate-fade-in">
+      <div className="relative z-10 flex flex-col items-center w-full max-w-lg px-6">
 
         {/* Decorative Runes Top */}
-        <div className="mb-6 text-center animate-glow-pulse">
+        <div className="mb-6 text-center">
           <span className="text-xs tracking-[0.5em] text-amber-500/60">
             ᚠ ᚢ ᚦ ᚨ ᚱ ᚲ ᚷ
           </span>
@@ -67,22 +67,13 @@ const Launcher: React.FC = () => {
           <img
             src={logoSrc}
             alt="HYDRA"
-            className={`w-72 h-auto object-contain transition-all duration-700 hydra-logo ${
-              progress > 95 ? 'animate-pulse-gold' : ''
-            }`}
+            className="w-72 h-auto object-contain transition-all duration-700 hydra-logo"
           />
-          {/* Glow ring */}
-          <div
-            className="absolute inset-0 rounded-full opacity-30 animate-pulse-gold"
-            style={{
-              background: 'radial-gradient(circle, rgba(212,165,10,0.3) 0%, transparent 70%)',
-              transform: 'scale(1.5)',
-            }}
-          />
+          {/* Glow ring - removed for cleaner UI */}
         </div>
 
         {/* Title */}
-        <h1 className="codex-title text-2xl mb-2 animate-glow-pulse">
+        <h1 className="codex-title text-2xl mb-2">
           KODEKS HYDRY
         </h1>
 
@@ -93,7 +84,7 @@ const Launcher: React.FC = () => {
 
         {/* Progress Section - Codex Style */}
         <div
-          className={`w-full max-w-md glass-card p-6 animate-border-glow`}
+          className="w-full max-w-md glass-card p-6"
         >
           {/* Status Text */}
           <div className="flex justify-between items-center mb-4">
@@ -122,13 +113,7 @@ const Launcher: React.FC = () => {
                 background: 'linear-gradient(90deg, #8b6914 0%, #d4a50a 50%, #ffd700 100%)',
               }}
             >
-              {/* Shimmer effect */}
-              <div
-                className="absolute inset-0 animate-shimmer"
-                style={{
-                  background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)',
-                }}
-              />
+              {/* Shimmer effect - removed */}
             </div>
           </div>
 
@@ -147,7 +132,7 @@ const Launcher: React.FC = () => {
         </div>
 
         {/* Bottom Runes */}
-        <div className="mt-8 text-center animate-glow-pulse">
+        <div className="mt-8 text-center">
           <span className="text-xs tracking-[0.5em] text-amber-500/40">
             ᛟ ᛞ ᛜ ᛗ ᛚ ᛖ ᛒ
           </span>
@@ -187,7 +172,7 @@ const WitcherSign: React.FC<{
           ? isLight ? 'text-amber-600' : 'text-amber-400'
           : 'text-slate-600'
       }`}
-      style={active ? { textShadow: '0 0 10px rgba(212,165,10,0.8)' } : {}}
+      style={{}}
     >
       {sign}
     </span>
@@ -203,15 +188,7 @@ const WitcherSign: React.FC<{
             ? 'text-slate-400'
             : 'text-slate-600'
       }`}
-      style={
-        active
-          ? {
-              boxShadow: isLight
-                ? '0 0 15px rgba(180,130,10,0.3)'
-                : '0 0 15px rgba(212,165,10,0.4)',
-            }
-          : {}
-      }
+      style={{}}
     >
       <Icon size={14} strokeWidth={active ? 2 : 1.5} />
     </div>

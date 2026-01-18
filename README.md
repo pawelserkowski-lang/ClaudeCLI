@@ -1,8 +1,8 @@
-# HYDRA 10.0 - ClaudeCLI
+# HYDRA 10.0 - ClaudeHYDRA
 
-[![GitHub stars](https://img.shields.io/github/stars/pawelserkowski-lang/ClaudeCLI?style=flat-square)](https://github.com/pawelserkowski-lang/ClaudeCLI/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/pawelserkowski-lang/ClaudeCLI?style=flat-square)](https://github.com/pawelserkowski-lang/ClaudeCLI/network/members)
-[![GitHub issues](https://img.shields.io/github/issues/pawelserkowski-lang/ClaudeCLI?style=flat-square)](https://github.com/pawelserkowski-lang/ClaudeCLI/issues)
+[![GitHub stars](https://img.shields.io/github/stars/pawelserkowski-lang/ClaudeHYDRA?style=flat-square)](https://github.com/pawelserkowski-lang/ClaudeHYDRA/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/pawelserkowski-lang/ClaudeHYDRA?style=flat-square)](https://github.com/pawelserkowski-lang/ClaudeHYDRA/network/members)
+[![GitHub issues](https://img.shields.io/github/issues/pawelserkowski-lang/ClaudeHYDRA?style=flat-square)](https://github.com/pawelserkowski-lang/ClaudeHYDRA/issues)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 [![PowerShell](https://img.shields.io/badge/PowerShell-7.0+-5391FE?style=flat-square&logo=powershell&logoColor=white)](https://github.com/PowerShell/PowerShell)
 [![Windows](https://img.shields.io/badge/Windows-11-0078D6?style=flat-square&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
@@ -96,7 +96,7 @@ Invoke-SemanticQuery -FilePath "app.py" -Query "How does auth work?"
 ### Quick Start
 
 ```powershell
-# 1. Clone or download projekt do Desktop\ClaudeCLI
+# 1. Clone or download projekt do Desktop\ClaudeHYDRA
 
 # 2. Ustaw API Key
 [Environment]::SetEnvironmentVariable('ANTHROPIC_API_KEY', 'sk-ant-api03-...', 'User')
@@ -107,7 +107,7 @@ Invoke-SemanticQuery -FilePath "app.py" -Query "How does auth work?"
 [Environment]::SetEnvironmentVariable('CLAUDECLI_ENCRYPTION_KEY', '...', 'User')
 
 # 3. Uruchom launcher
-.\ClaudeCLI.vbs
+.\ClaudeHYDRA.vbs
 # LUB
 powershell -ExecutionPolicy Bypass -File _launcher.ps1
 
@@ -118,7 +118,7 @@ powershell -ExecutionPolicy Bypass -File _launcher.ps1
 ## 🗂️ Project Structure
 
 ```
-C:\Users\BIURODOM\Desktop\ClaudeCLI\
+C:\Users\BIURODOM\Desktop\ClaudeHYDRA\
 ├── .claude/
 │   ├── commands/            # Custom slash commands (ai, ai-batch, ai-config...)
 │   ├── hooks/               # Event hooks
@@ -151,7 +151,7 @@ C:\Users\BIURODOM\Desktop\ClaudeCLI\
 ## 🔐 Security Policy
 
 ### Environment Variables Access
-ClaudeCLI ma **pełny dostęp** do zmiennych środowiskowych:
+ClaudeHYDRA ma **pełny dostęp** do zmiennych środowiskowych:
 
 ```powershell
 # ✅ DOZWOLONE: Odczyt
@@ -198,7 +198,7 @@ $apiKey = $env:ANTHROPIC_API_KEY
 
 ```powershell
 # Via VBS launcher (zalecane)
-.\ClaudeCLI.vbs
+.\ClaudeHYDRA.vbs
 
 # Via PowerShell
 powershell -ExecutionPolicy Bypass -File _launcher.ps1
@@ -247,7 +247,7 @@ setx ANTHROPIC_API_KEY "sk-ant-api03-..."
 
 ```powershell
 # (Opcjonalnie) Nadpisanie katalogu projektu
-$env:CLAUDECLI_ROOT = "C:\\Users\\%USERNAME%\\Desktop\\ClaudeCLI"
+$env:CLAUDECLI_ROOT = "C:\\Users\\%USERNAME%\\Desktop\\ClaudeHYDRA"
 ```
 
 ### Weryfikacja

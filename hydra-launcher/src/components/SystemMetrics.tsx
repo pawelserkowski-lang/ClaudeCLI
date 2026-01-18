@@ -23,7 +23,7 @@ const SystemMetricsPanel: React.FC = () => {
       <div className="h-px bg-gradient-to-r from-transparent via-amber-600/40 to-transparent mb-4" />
 
       {isLoading || !metrics ? (
-        <div className="animate-pulse space-y-3">
+        <div className="space-y-3">
           <div className={`h-16 rounded ${isLight ? 'bg-amber-100/40' : 'bg-amber-900/10'}`} />
           <div className={`h-16 rounded ${isLight ? 'bg-amber-100/40' : 'bg-amber-900/10'}`} />
         </div>
@@ -68,12 +68,7 @@ const MetricBar: React.FC<{
     return 'bg-gradient-to-r from-amber-700 to-amber-500';
   };
 
-  const getGlowColor = () => {
-    if (value > 90) return 'rgba(220, 38, 38, 0.4)';
-    if (value > 70) return 'rgba(212, 165, 10, 0.4)';
-    return 'rgba(212, 165, 10, 0.3)';
-  };
-
+  
   return (
     <div
       className={`p-3.5 rounded transition-all duration-300 border ${
@@ -86,7 +81,7 @@ const MetricBar: React.FC<{
         <div className="flex items-center gap-2">
           <span
             className={`text-sm ${isLight ? 'text-amber-600' : 'text-amber-500'}`}
-            style={{ textShadow: `0 0 8px ${getGlowColor()}` }}
+            style={{}}
           >
             {rune}
           </span>
@@ -117,17 +112,10 @@ const MetricBar: React.FC<{
         <div
           className={`h-full rounded-sm transition-all duration-700 relative ${getBarColor()}`}
           style={{
-            width: `${Math.min(value, 100)}%`,
-            boxShadow: `0 0 10px ${getGlowColor()}`
+            width: `${Math.min(value, 100)}%`
           }}
         >
-          {/* Shimmer effect */}
-          <div
-            className="absolute inset-0 animate-shimmer"
-            style={{
-              background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent)'
-            }}
-          />
+          {/* Shimmer removed */}
         </div>
       </div>
     </div>

@@ -53,6 +53,7 @@ pub async fn get_ollama_model_list() -> Result<Vec<String>, String> {
 }
 
 /// Start Ollama service (Windows)
+#[allow(dead_code)]
 #[cfg(windows)]
 pub async fn start_ollama() -> Result<(), String> {
     use std::process::Command;

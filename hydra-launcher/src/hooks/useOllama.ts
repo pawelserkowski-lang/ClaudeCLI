@@ -1,5 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { safeInvoke, isTauri } from "./useTauri";
+
+// Mock data for browser development
+const MOCK_MODELS = ["llama3.2:3b", "qwen2.5-coder:1.5b", "phi3:mini"];
 
 export function useOllama(refreshInterval = 10000) {
   const [isRunning, setIsRunning] = useState(false);
@@ -9,11 +12,20 @@ export function useOllama(refreshInterval = 10000) {
 
   const checkOllama = useCallback(async () => {
     try {
-      const running = await invoke<boolean>("check_ollama");
+      if (!isTauri()) {
+        // Browser mode - use mock data
+        setIsRunning(true);
+        setModels(MOCK_MODELS);
+        setError(null);
+        setIsLoading(false);
+        return;
+      }
+
+      const running = await safeInvoke<boolean>("check_ollama");
       setIsRunning(running);
 
       if (running) {
-        const modelList = await invoke<string[]>("get_ollama_models");
+        const modelList = await safeInvoke<string[]>("get_ollama_models");
         setModels(modelList);
       } else {
         setModels([]);
@@ -21,9 +33,13 @@ export function useOllama(refreshInterval = 10000) {
 
       setError(null);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Unknown error");
-      setIsRunning(false);
-      setModels([]);
+      const errorMsg = e instanceof Error ? e.message : String(e);
+      // Don't show error for browser mode
+      if (!errorMsg.includes('browser mode')) {
+        setError(errorMsg);
+        setIsRunning(false);
+        setModels([]);
+      }
     } finally {
       setIsLoading(false);
     }

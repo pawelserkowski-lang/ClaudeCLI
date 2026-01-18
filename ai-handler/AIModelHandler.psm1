@@ -36,12 +36,15 @@
     See also: AIFacade.psm1 for the recommended modern interface
 #>
 
-Write-Warning @"
+# Show deprecation warning only when loaded directly (not via AIFacade)
+if (-not $global:AIFacadeLoading) {
+    Write-Warning @"
 [DEPRECATION] AIModelHandler.psm1 is deprecated and will be removed in v11.0.
 Please use AIFacade.psm1 instead:
   Import-Module AIFacade.psm1
   Initialize-AISystem
 "@
+}
 
 # ============================================================================
 # MODULE PATHS
@@ -90,6 +93,19 @@ function Import-SubModule {
     if (Test-Path $Path) {
         try {
             Import-Module $Path -Force -Global -ErrorAction Stop
+
+            # Re-export functions to global scope
+            $moduleName = [System.IO.Path]::GetFileNameWithoutExtension($Path)
+            $loadedMod = Get-Module -Name $moduleName -ErrorAction SilentlyContinue
+            if ($loadedMod -and $loadedMod.ExportedFunctions) {
+                foreach ($funcName in $loadedMod.ExportedFunctions.Keys) {
+                    $funcDef = $loadedMod.ExportedFunctions[$funcName]
+                    if ($funcDef.ScriptBlock) {
+                        Set-Item -Path "function:global:$funcName" -Value $funcDef.ScriptBlock -Force -ErrorAction SilentlyContinue
+                    }
+                }
+            }
+
             $script:LoadedModules += $Name
             Write-Verbose "[AIHandler] Loaded: $Name"
             return $true

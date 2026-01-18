@@ -20,7 +20,7 @@ Download new Ollama models or manage installed models.
 When the user invokes `/ai-pull`, execute this command using Bash tool:
 
 ```bash
-powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Invoke-AIPull.ps1" $ARGUMENTS
+powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Invoke-AIPull.ps1" $ARGUMENTS
 ```
 
 ## Options

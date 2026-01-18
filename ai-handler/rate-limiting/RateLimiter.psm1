@@ -9,7 +9,7 @@
 .NOTES
     Author: HYDRA AI Handler
     Version: 1.0.0
-    Part of ClaudeCLI AI Handler system
+    Part of ClaudeHYDRA AI Handler system
 #>
 
 #region Module Initialization

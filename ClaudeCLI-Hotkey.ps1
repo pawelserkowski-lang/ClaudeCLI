@@ -1,13 +1,13 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Global Win+C Hotkey for ClaudeCLI
+    Global Win+C Hotkey for ClaudeHYDRA
 .DESCRIPTION
-    Registers Win+C as global hotkey to launch ClaudeCLI.
+    Registers Win+C as global hotkey to launch ClaudeHYDRA.
     Runs in system tray with minimal resource usage.
 .NOTES
     Author: HYDRA System
-    Path: C:\Users\BIURODOM\Desktop\ClaudeCLI\ClaudeCLI-Hotkey.ps1
+    Path: C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ClaudeHYDRA-Hotkey.ps1
 #>
 
 param(
@@ -16,8 +16,8 @@ param(
     [switch]$Silent
 )
 
-$ProjectRoot = "C:\Users\BIURODOM\Desktop\ClaudeCLI"
-$HotkeyName = "ClaudeCLI-WinC"
+$ProjectRoot = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA"
+$HotkeyName = "ClaudeHYDRA-WinC"
 
 # Win32 API for hotkey registration
 Add-Type -TypeDefinition @"
@@ -135,7 +135,7 @@ public class KeyboardHook {
 
 function Install-Hotkey {
     $taskName = $HotkeyName
-    $scriptPath = Join-Path $ProjectRoot "ClaudeCLI-Hotkey.ps1"
+    $scriptPath = Join-Path $ProjectRoot "ClaudeHYDRA-Hotkey.ps1"
 
     # Create scheduled task to run at logon
     $action = New-ScheduledTaskAction -Execute "powershell.exe" `
@@ -162,7 +162,7 @@ function Install-Hotkey {
         -Trigger $trigger `
         -Settings $settings `
         -Principal $principal `
-        -Description "Global Win+C hotkey for ClaudeCLI" | Out-Null
+        -Description "Global Win+C hotkey for ClaudeHYDRA" | Out-Null
 
     Write-Host "[OK] Hotkey Win+C installed" -ForegroundColor Green
     Write-Host "     Starts automatically at logon" -ForegroundColor Gray
@@ -178,7 +178,7 @@ function Uninstall-Hotkey {
 
     # Stop running instances
     Get-Process -Name "powershell" -ErrorAction SilentlyContinue | Where-Object {
-        $_.CommandLine -like "*ClaudeCLI-Hotkey*"
+        $_.CommandLine -like "*ClaudeHYDRA-Hotkey*"
     } | Stop-Process -Force -ErrorAction SilentlyContinue
 
     # Remove scheduled task
@@ -189,8 +189,8 @@ function Uninstall-Hotkey {
 
 function Start-HotkeyListener {
     if (-not $Silent) {
-        Write-Host "ClaudeCLI Hotkey Listener" -ForegroundColor Cyan
-        Write-Host "Press Win+C to launch ClaudeCLI" -ForegroundColor Gray
+        Write-Host "ClaudeHYDRA Hotkey Listener" -ForegroundColor Cyan
+        Write-Host "Press Win+C to launch ClaudeHYDRA" -ForegroundColor Gray
         Write-Host "Press Ctrl+C to exit" -ForegroundColor Gray
         Write-Host ""
     }
@@ -205,12 +205,12 @@ function Start-HotkeyListener {
             if ([KeyboardHook]::WinCPressed) {
                 [KeyboardHook]::WinCPressed = $false
 
-                # Launch ClaudeCLI
-                $vbsPath = Join-Path $ProjectRoot "ClaudeCLI.vbs"
+                # Launch ClaudeHYDRA
+                $vbsPath = Join-Path $ProjectRoot "ClaudeHYDRA.vbs"
                 if (Test-Path $vbsPath) {
                     Start-Process "wscript.exe" -ArgumentList "`"$vbsPath`"" -WorkingDirectory $ProjectRoot
                     if (-not $Silent) {
-                        Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Launched ClaudeCLI" -ForegroundColor Green
+                        Write-Host "[$(Get-Date -Format 'HH:mm:ss')] Launched ClaudeHYDRA" -ForegroundColor Green
                     }
                 }
             }

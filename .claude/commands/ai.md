@@ -26,7 +26,7 @@ Execute a quick AI query using local Ollama models. Zero cost, fast response.
 When the user invokes `/ai`, execute this command using Bash tool:
 
 ```bash
-powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Invoke-QuickAI.ps1" $ARGUMENTS
+powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Invoke-QuickAI.ps1" $ARGUMENTS
 ```
 
 **Flags:**

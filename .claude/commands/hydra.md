@@ -1,160 +1,177 @@
 ---
-description: "HYDRA - Three-Headed Beast (Serena + Desktop Commander + Playwright)"
+description: "HYDRA 10.1 - Four-Headed Beast (Serena + DC + Playwright + Swarm)"
 ---
 
-# HYDRA v9.0 - Three-Headed Beast
+# HYDRA 10.1 - Four-Headed Beast
 
-**Status: ACTIVE** | Zero backend required | Direct MCP tools
+**Status: ACTIVE** | Unified Orchestration | MCP + Agent Swarm
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│  🐉 HYDRA - Three-Headed Beast                                  │
-│  ═════════════════════════════════════                          │
-│  [●] Serena           → Symbolic code analysis                  │
+│  🐉 HYDRA 10.1 - Four-Headed Beast                              │
+│  ════════════════════════════════════════════════════════       │
+│  [●] Serena            → Symbolic code analysis                 │
 │  [●] Desktop Commander → System operations                      │
 │  [●] Playwright        → Browser automation                     │
+│  [●] Agent Swarm       → 12 Witcher Agents (parallel AI)        │
 │                                                                 │
-│  Mode: Pure MCP │ No backend required │ Direct tool access      │
+│  Mode: MCP + RunspacePool │ YOLO: $YOLO_STATUS                  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## THE THREE HEADS
+## THE FOUR HEADS
 
-| Head | Purpose | Key Tools |
-|------|---------|-----------|
+| Head | Purpose | Key Tools/Agents |
+|------|---------|------------------|
 | 🧠 **Serena** | Code Intelligence | `find_symbol`, `replace_symbol_body`, `get_symbols_overview` |
-| ⚡ **Desktop Commander** | System Power | `start_process`, `read_file`, `list_directory`, `write_file` |
-| 🌐 **Playwright** | Browser Automation | `browser_navigate`, `browser_click`, `browser_screenshot`, `browser_fill` |
+| ⚡ **Desktop Commander** | System Power | `start_process`, `read_file`, `write_file` |
+| 🌐 **Playwright** | Browser Automation | `browser_navigate`, `browser_click`, `browser_snapshot` |
+| 🐺 **Agent Swarm** | Parallel AI | Geralt, Yennefer, Triss, Ciri + 8 more |
 
-## QUICK WORKFLOWS
+## UNIFIED WORKFLOWS
 
-### Debug Workflow
-```
-1. mcp__serena__find_symbol          → Find error location
-2. mcp__desktop-commander__start_process → Run tests
-3. mcp__serena__replace_symbol_body  → Fix the bug
-4. mcp__desktop-commander__start_process → Verify fix
-```
+### 1. Code Analysis + AI Review
+```powershell
+# MCP: Get code structure
+mcp__serena__get_symbols_overview("src/")
 
-### Refactor Workflow
-```
-1. mcp__serena__get_symbols_overview → Understand structure
-2. mcp__serena__find_referencing_symbols → Find all usages
-3. mcp__serena__rename_symbol        → Safe rename
-4. mcp__desktop-commander__start_process → Run tests
+# Swarm: AI analysis
+Invoke-AgentSwarm -Query "Review this code architecture" -Agents @("Vesemir", "Yennefer")
 ```
 
-### E2E Testing Workflow
-```
-1. mcp__playwright__browser_navigate → Open test URL
-2. mcp__playwright__browser_fill     → Fill form inputs
-3. mcp__playwright__browser_click    → Submit form
-4. mcp__playwright__browser_screenshot → Capture result
-5. mcp__playwright__browser_snapshot → Get accessibility tree
-```
+### 2. Implement Feature (Full Stack)
+```powershell
+# Step 1: Plan with Dijkstra
+Invoke-QuickAgent -Query "Plan implementation of: $FEATURE" -Agent "Dijkstra"
 
-### Web Scraping Workflow
-```
-1. mcp__playwright__browser_navigate → Navigate to page
-2. mcp__playwright__browser_snapshot → Get page structure
-3. mcp__playwright__browser_evaluate → Extract data via JS
-4. mcp__desktop-commander__write_file → Save results
-```
+# Step 2: Code with Yennefer (via Serena)
+mcp__serena__find_symbol("TargetComponent")
+mcp__serena__replace_symbol_body("TargetComponent", $newCode)
 
-### Visual Regression Workflow
-```
-1. mcp__desktop-commander__start_process → Start dev server
-2. mcp__playwright__browser_navigate → Open app
-3. mcp__playwright__browser_screenshot → Capture baseline
-4. mcp__serena__replace_symbol_body  → Make UI changes
-5. mcp__playwright__browser_screenshot → Capture new state
+# Step 3: Test with Triss
+Invoke-QuickAgent -Query "Write tests for: $FEATURE" -Agent "Triss"
+mcp__desktop-commander__start_process("pnpm test")
+
+# Step 4: E2E with Playwright
+mcp__playwright__browser_navigate("http://localhost:3000")
+mcp__playwright__browser_snapshot()
 ```
 
-## PARALLEL EXECUTION RULES
-
-**Read-only tools** (can run in parallel):
-- Serena: `find_symbol`, `get_symbols_overview`, `search_for_pattern`
-- DC: `read_file`, `list_directory`, `get_file_info`
-- Playwright: `browser_snapshot`, `browser_tab_list`, `browser_console_messages`
-
-**Side-effect tools** (must run sequentially):
-- Serena: `replace_symbol_body`, `rename_symbol`, `insert_*`
-- DC: `write_file`, `start_process`, `create_directory`
-- Playwright: `browser_navigate`, `browser_click`, `browser_fill`, `browser_screenshot`
-
-## EXAMPLE: Full Debug Session
-
-```
-# Step 1: Gather context (PARALLEL)
+### 3. Debug Workflow
+```powershell
+# Parallel: Gather context
 mcp__serena__find_symbol("ErrorComponent")
-mcp__desktop-commander__read_file("/path/to/error.log")
+mcp__desktop-commander__read_file("error.log")
 
-# Step 2: Analyze (PARALLEL)
-mcp__serena__find_referencing_symbols("ErrorComponent")
-mcp__serena__get_symbols_overview("src/components/Error.tsx")
+# Swarm: Analyze with Lambert (debugger)
+Invoke-QuickAgent -Query "Analyze this error: $ERROR" -Agent "Lambert"
 
-# Step 3: Fix (SEQUENTIAL)
-mcp__serena__replace_symbol_body("ErrorComponent", new_code)
+# Fix via Serena
+mcp__serena__replace_symbol_body("ErrorComponent", $fixedCode)
 
-# Step 4: Verify (SEQUENTIAL)
+# Verify
 mcp__desktop-commander__start_process("pnpm test")
 ```
 
-## EXAMPLE: E2E Test Session
+### 4. Full Swarm Protocol
+```powershell
+# 6-Step Protocol (auto-routes to best agents)
+Invoke-AgentSwarm -Query "$ARGUMENTS"
 
-```
-# Step 1: Start app (SEQUENTIAL)
-mcp__desktop-commander__start_process("pnpm dev")
-
-# Step 2: Navigate and interact (SEQUENTIAL)
-mcp__playwright__browser_navigate("http://localhost:5173")
-mcp__playwright__browser_fill("#email", "test@example.com")
-mcp__playwright__browser_fill("#password", "secret123")
-mcp__playwright__browser_click("button[type=submit]")
-
-# Step 3: Verify (PARALLEL)
-mcp__playwright__browser_snapshot()
-mcp__playwright__browser_console_messages()
-
-# Step 4: Screenshot (SEQUENTIAL)
-mcp__playwright__browser_screenshot({ fullPage: true })
+# Steps executed:
+# 1. Speculate (Regis)     - Research context
+# 2. Plan (Dijkstra)       - Create task JSON
+# 3. Execute (Parallel)    - RunspacePool agents
+# 4. Synthesize (Vesemir)  - Merge results
+# 5. Log (Jaskier)         - Summary
+# 6. Archive               - Save transcript
 ```
 
-## PLAYWRIGHT TOOLS REFERENCE
+## YOLO MODE
 
-| Tool | Description |
-|------|-------------|
-| `browser_navigate` | Navigate to URL |
-| `browser_click` | Click element |
-| `browser_fill` | Fill input field |
-| `browser_select` | Select dropdown option |
-| `browser_hover` | Hover over element |
-| `browser_screenshot` | Capture screenshot |
-| `browser_snapshot` | Get accessibility tree |
-| `browser_evaluate` | Execute JavaScript |
-| `browser_press_key` | Press keyboard key |
-| `browser_scroll` | Scroll page/element |
-| `browser_wait` | Wait for condition |
-| `browser_tab_new` | Open new tab |
-| `browser_tab_close` | Close tab |
-| `browser_tab_list` | List all tabs |
-| `browser_resize` | Resize viewport |
-| `browser_close` | Close browser |
+Enable fast execution (10 threads, 15s timeout):
 
-## MEMORIES TO CHECK
+```powershell
+# Toggle YOLO
+Set-YoloMode -Enable    # Fast & Dangerous
+Set-YoloMode -Disable   # Standard mode
+Get-YoloStatus          # Check current mode
+```
 
-- `project_overview` - Project structure
-- `suggested_commands` - Common commands
-- `style_conventions` - Code style rules
-- `troubleshooting` - Known issues
-- `playwright_workflows` - Browser automation patterns
+| Feature | Standard | YOLO |
+|---------|----------|------|
+| Concurrency | 5 | 10 |
+| Timeout | 60s | 15s |
+| Retries | 3 | 1 |
 
-## NO BACKEND NEEDED
+## AGENT ROUTING
 
-This version uses MCP tools directly:
-- No `uvicorn` required
-- No REST API endpoints
-- No Python backend for HYDRA
-- Just pure MCP tool orchestration
+| Task Pattern | Agent | Model |
+|--------------|-------|-------|
+| security, audit, scan | Geralt | llama3.2:3b |
+| code, implement, function | Yennefer | qwen2.5-coder |
+| test, validate, qa | Triss | qwen2.5-coder |
+| doc, readme, explain | Jaskier | llama3.2:3b |
+| review, refactor | Vesemir | llama3.2:3b |
+| quick, fast, simple | Ciri | llama3.2:1b |
+| deploy, ci, docker | Eskel | llama3.2:3b |
+| debug, profile, perf | Lambert | qwen2.5-coder |
+| data, database, sql | Zoltan | llama3.2:3b |
+| research, analyze | Regis | phi3:mini |
+| plan, strategy | Dijkstra | llama3.2:3b |
+| api, integration | Philippa | qwen2.5-coder |
+
+## PARALLEL EXECUTION
+
+**READ-ONLY (parallel):**
+- Serena: `find_symbol`, `get_symbols_overview`
+- DC: `read_file`, `list_directory`
+- Playwright: `browser_snapshot`
+- Swarm: All agents via RunspacePool
+
+**WRITE (sequential):**
+- Serena: `replace_symbol_body`, `rename_symbol`
+- DC: `write_file`, `start_process`
+- Playwright: `browser_click`, `browser_fill`
+
+## QUICK COMMANDS
+
+```powershell
+# Full swarm
+Invoke-AgentSwarm -Query "Implement user auth"
+
+# Single agent
+Invoke-QuickAgent -Query "Write SQL query" -Agent "Zoltan"
+
+# List agents
+Get-SwarmAgents
+
+# Check stats
+Get-SwarmStats
+```
+
+## EXAMPLE: Complete Feature Implementation
+
+```powershell
+# 1. YOLO mode for speed
+Set-YoloMode -Enable
+
+# 2. Research with Swarm
+Invoke-AgentSwarm -Query "Implement dark mode toggle"
+
+# 3. Code via Serena
+mcp__serena__find_symbol("ThemeProvider")
+mcp__serena__replace_symbol_body("ThemeProvider", $darkModeCode)
+
+# 4. Test
+mcp__desktop-commander__start_process("pnpm test")
+
+# 5. Visual verification
+mcp__playwright__browser_navigate("http://localhost:3000")
+mcp__playwright__browser_click("#dark-mode-toggle")
+mcp__playwright__browser_screenshot("dark-mode.png")
+```
+
+---
 
 ARGUMENTS: $ARGUMENTS

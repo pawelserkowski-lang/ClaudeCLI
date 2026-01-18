@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-    HYDRA GUI Module - 50 Visual Enhancements for ClaudeCLI & GeminiCLI
+    HYDRA GUI Module - 50 Visual Enhancements for ClaudeHYDRA & GeminiCLI
 .DESCRIPTION
     Comprehensive GUI/TUI module featuring:
     - Animated splash screens and logos

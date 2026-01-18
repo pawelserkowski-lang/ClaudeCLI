@@ -15,7 +15,7 @@
 .AUTHOR
     HYDRA System
 .NOTES
-    Part of the ClaudeCLI AI Handler system
+    Part of the ClaudeHYDRA AI Handler system
 #>
 
 # Module paths

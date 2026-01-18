@@ -3,7 +3,7 @@
 .SYNOPSIS
     HYDRA Interactive Module - Advanced TUI Components
 .DESCRIPTION
-    Interactive components for ClaudeCLI & GeminiCLI:
+    Interactive components for ClaudeHYDRA & GeminiCLI:
     - Autocomplete with fuzzy search
     - History browser
     - Settings TUI

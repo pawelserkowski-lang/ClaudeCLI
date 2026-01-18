@@ -1,11 +1,11 @@
 # Development Commands
 
-This section outlines the primary commands for interacting with and developing in the ClaudeCLI environment.
+This section outlines the primary commands for interacting with and developing in the ClaudeHYDRA environment.
 
 **1. Project Launching:**
 - **Recommended:** Execute the VBS launcher for a streamlined start:
   ```powershell
-  .\ClaudeCLI.vbs
+  .\ClaudeHYDRA.vbs
   ```
 - **Alternative (PowerShell):** Bypass execution policy and run the main launcher script:
   ```powershell
@@ -44,7 +44,7 @@ This section outlines the primary commands for interacting with and developing i
   ```
 
 **5. Creating Desktop Shortcut:**
-- Run the script to create a desktop shortcut for ClaudeCLI:
+- Run the script to create a desktop shortcut for ClaudeHYDRA:
   ```powershell
   .\create-shortcuts.ps1
   ```

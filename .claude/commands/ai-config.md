@@ -22,7 +22,7 @@ View and modify AI Handler settings.
 When the user invokes `/ai-config`, execute this command using Bash tool:
 
 ```bash
-powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Invoke-AIConfig.ps1" $ARGUMENTS
+powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Invoke-AIConfig.ps1" $ARGUMENTS
 ```
 
 ## Available Options

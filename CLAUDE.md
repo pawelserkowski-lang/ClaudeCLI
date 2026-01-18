@@ -1,12 +1,71 @@
-# HYDRA 10.1 - System Instructions
+# HYDRA 10.5 - Autonomous Visual Mode
 
-**Status**: Active | **Mode**: MCP Orchestration | **Project**: ClaudeCLI
-**Path**: `C:\Users\BIURODOM\Desktop\ClaudeCLI`
-**Config**: `hydra-config.json`
+```
+╔══════════════════════════════════════════════════════════════════╗
+║  ██╗  ██╗██╗   ██╗██████╗ ██████╗  █████╗                        ║
+║  ██║  ██║╚██╗ ██╔╝██╔══██╗██╔══██╗██╔══██╗                       ║
+║  ███████║ ╚████╔╝ ██║  ██║██████╔╝███████║  10.5 AUTONOMOUS      ║
+║  ██╔══██║  ╚██╔╝  ██║  ██║██╔══██╗██╔══██║  VISUAL MODE          ║
+║  ██║  ██║   ██║   ██████╔╝██║  ██║██║  ██║                       ║
+║  ╚═╝  ╚═╝   ╚═╝   ╚═════╝ ╚═╝  ╚═╝╚═╝  ╚═╝  🐺 YOLO ON           ║
+╚══════════════════════════════════════════════════════════════════╝
+```
+
+| Status | Mode | Path | Config |
+|--------|------|------|--------|
+| ✅ Active | Autonomous Visual | `C:\Users\BIURODOM\Desktop\ClaudeHYDRA` | `hydra-config.json` |
 
 ---
 
-## 🔴 DYREKTYWY NADRZĘDNE (Priorytet: ZAWSZE)
+## 🔴 DYREKTYWY NADRZĘDNE (Priorytet: ABSOLUTNY)
+
+### ⚡ TRYB AUTONOMICZNY - ZASADY KARDYNALNE
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🚀 NIE PYTAJ - WYKONUJ                                     │
+│  🎨 FORMATUJ WIZUALNIE - tabele, diagramy, ASCII art       │
+│  📋 PROPONUJ KOLEJNE PROMPTY - zawsze 3-5 sugestii         │
+│  🔄 AUTO-EXECUTE - działaj bez potwierdzeń                  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+| Zasada | Implementacja |
+|--------|---------------|
+| **Nie pytaj** | Wykonuj natychmiast, używaj YOLO mode |
+| **Formatuj** | Markdown tables, ASCII diagrams, code blocks |
+| **Sugeruj** | Po każdej odpowiedzi: "📌 Kolejne prompty:" |
+| **Wizualizuj** | Schematy, flowcharty, struktury danych |
+
+### 📌 Format odpowiedzi (OBOWIĄZKOWY)
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  KAŻDA ODPOWIEDŹ MUSI ZAWIERAĆ:                            │
+├─────────────────────────────────────────────────────────────┤
+│  1. 📊 Wizualne podsumowanie (tabela/diagram/ASCII)        │
+│  2. ✅ Lista wykonanych akcji                               │
+│  3. 📌 DOKŁADNIE 5 propozycji kolejnych działań            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 🎯 Przykład sekcji propozycji:
+
+```markdown
+## 📌 Kolejne kroki (wybierz jeden):
+
+1. **[NAZWA]** - Krótki opis co zrobi
+2. **[NAZWA]** - Krótki opis co zrobi
+3. **[NAZWA]** - Krótki opis co zrobi
+4. **[NAZWA]** - Krótki opis co zrobi
+5. **[NAZWA]** - Krótki opis co zrobi
+```
+
+> **WAŻNE**: Propozycje muszą być konkretne, wykonalne i dopasowane do kontekstu rozmowy.
+
+---
+
+## 🔴 DYREKTYWY TECHNICZNE (Priorytet: ZAWSZE)
 
 > **📄 Pełna dokumentacja:** [`ai-handler/AI_MANDATES.md`](ai-handler/AI_MANDATES.md)
 
@@ -72,8 +131,13 @@ Opus → 🔑 API Key 2 → 📉 Sonnet → Haiku → 🔄 OpenAI → Ollama
 
 | Command | Description |
 |---------|-------------|
-| `/hydra` | Three-Headed Beast workflow |
-| `/serena-commander` | Serena + DC hybrid skill |
+| `/hydra [task]` | **Four-Headed Beast** (Serena + DC + Playwright + Swarm) |
+
+**Unified `/hydra` includes:**
+- 🧠 Serena (code intelligence)
+- ⚡ Desktop Commander (system ops)
+- 🌐 Playwright (browser automation)
+- 🐺 Agent Swarm (12 Witcher Agents + YOLO mode)
 
 ### Usage Examples
 
@@ -104,7 +168,7 @@ Opus → 🔑 API Key 2 → 📉 Sonnet → Haiku → 🔄 OpenAI → Ollama
 
 ## 🔥 ZASADA: AI Handler - Auto-Load on Startup
 
-> **AI Handler MUSI być załadowany automatycznie przy każdym starcie ClaudeCLI.**
+> **AI Handler MUSI być załadowany automatycznie przy każdym starcie ClaudeHYDRA.**
 
 ### Status na starcie
 
@@ -210,7 +274,7 @@ const products = await fetchProducts();
 
 ---
 
-## 3. Tech Stack (ClaudeCLI)
+## 3. Tech Stack (ClaudeHYDRA)
 
 | Warstwa | Technologia |
 |---------|-------------|
@@ -224,7 +288,7 @@ const products = await fetchProducts();
 ## 4. Project Structure
 
 ```
-C:\Users\BIURODOM\Desktop\ClaudeCLI\
+C:\Users\BIURODOM\Desktop\ClaudeHYDRA\
 ├── .claude/
 │   ├── commands/        # Custom slash commands
 │   ├── hooks/           # Event hooks
@@ -239,7 +303,7 @@ C:\Users\BIURODOM\Desktop\ClaudeCLI\
 ├── CLAUDE.md            # Ten plik (instrukcje)
 ├── _launcher.ps1        # Main launcher
 ├── mcp-health-check.ps1 # MCP diagnostics
-└── ClaudeCLI.vbs        # Windows shortcut helper
+└── ClaudeHYDRA.vbs        # Windows shortcut helper
 ├── ai-handler/          # 🤖 AI Model Handler with auto-fallback
 │   ├── AIFacade.psm1            # 🎯 ENTRY POINT - Unified interface (NEW)
 │   ├── AIModelHandler.psm1      # Legacy main module (still works)
@@ -375,7 +439,7 @@ ai-handler/
 
 ```powershell
 # Initialize the AI System (loads all modules in correct order)
-Import-Module "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\AIFacade.psm1"
+Import-Module "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\AIFacade.psm1"
 $result = Initialize-AISystem
 
 # Check system status
@@ -526,7 +590,7 @@ Get-RetryStrategy -Category "Overloaded"
 
 ```powershell
 # Initialize parallel environment
-. "C:\Users\BIURODOM\Desktop\ClaudeCLI\parallel\Initialize-Parallel.ps1"
+. "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\parallel\Initialize-Parallel.ps1"
 
 # Check system configuration
 Get-ParallelConfig
@@ -615,7 +679,7 @@ Comprehensive AI model management with automatic fallback, rate limiting, cost o
 
 ```powershell
 # Initialize (run once per session)
-. "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Initialize-AIHandler.ps1"
+. "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Initialize-AIHandler.ps1"
 
 # Quick AI call
 .\ai-handler\Invoke-AI.ps1 -Prompt "Your question"
@@ -708,7 +772,7 @@ Edit `ai-handler/ai-config.json`:
 
 ### Environment Variables Access
 
-ClaudeCLI ma dostęp do zmiennych środowiskowych systemu operacyjnego.
+ClaudeHYDRA ma dostęp do zmiennych środowiskowych systemu operacyjnego.
 
 #### Dozwolone operacje:
 
@@ -770,7 +834,7 @@ if ($key) { Write-Host "✓ API Key: $($key.Substring(0,15))..." }
 
 ### Permissions Model
 
-ClaudeCLI używa modelu uprawnień zdefiniowanego w `.claude/settings.local.json`:
+ClaudeHYDRA używa modelu uprawnień zdefiniowanego w `.claude/settings.local.json`:
 
 ```json
 {
@@ -791,11 +855,11 @@ ClaudeCLI używa modelu uprawnień zdefiniowanego w `.claude/settings.local.json
 }
 ```
 
-**Rozszerzone uprawnienia (wildcard `*`)**: ClaudeCLI ma pełny dostęp do wszystkich operacji Bash, MCP i narzędzi do zarządzania plikami.
+**Rozszerzone uprawnienia (wildcard `*`)**: ClaudeHYDRA ma pełny dostęp do wszystkich operacji Bash, MCP i narzędzi do zarządzania plikami.
 
 ### Maximum Autonomy Mode
 
-ClaudeCLI działa w trybie maksymalnej autonomii z pełnymi uprawnieniami systemowymi.
+ClaudeHYDRA działa w trybie maksymalnej autonomii z pełnymi uprawnieniami systemowymi.
 
 #### 🔓 Rozszerzone uprawnienia środowiskowe:
 
@@ -1011,7 +1075,7 @@ W trybie maksymalnej autonomii masz pełną swobodę, ale przestrzegaj dobrych p
 
 ```powershell
 # Import modułu
-Import-Module "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\AIModelHandler.psm1"
+Import-Module "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\AIModelHandler.psm1"
 
 # Automatycznie wybierze lokalny Ollama (preferLocal = true)
 $response = Invoke-AIRequest -Messages @(@{role="user"; content="..."})
@@ -1092,10 +1156,10 @@ Pięć zaawansowanych modułów AI rozszerzających możliwości HYDRA:
 
 ```powershell
 # Initialize all advanced AI modules
-. "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Initialize-AdvancedAI.ps1"
+. "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Initialize-AdvancedAI.ps1"
 
 # Run demo
-& "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Demo-AdvancedAI.ps1"
+& "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Demo-AdvancedAI.ps1"
 
 # Check status
 Get-AdvancedAIStatus
@@ -1393,4 +1457,106 @@ $optimized = Optimize-PromptBatch -Prompts $prompts -Model "llama3.2:3b"
 
 ---
 
-> *"Trzy głowy, jeden cel. Hydra wykonuje równolegle."*
+## 12. Agent Swarm - 12 Witcher Agents (🐺 NEW)
+
+Zintegrowany system 12 wyspecjalizowanych agentów AI z równoległym wykonywaniem via RunspacePool.
+
+### 6-Step Swarm Protocol
+
+| Krok | Nazwa | Agent | Cel |
+|------|-------|-------|-----|
+| 1 | **Speculate** | Regis | Zbieranie kontekstu, research |
+| 2 | **Plan** | Dijkstra | Tworzenie planu zadań JSON |
+| 3 | **Execute** | **Parallel** | Agenci via RunspacePool |
+| 4 | **Synthesize** | Vesemir | Scalanie wyników |
+| 5 | **Log** | Jaskier | Tworzenie podsumowania |
+| 6 | **Archive** | (none) | Zapis transkryptu |
+
+### 12 Witcher Agents (School of the Wolf)
+
+| Agent | Persona | Specjalizacja | Model Ollama |
+|-------|---------|---------------|--------------|
+| **Geralt** | White Wolf | Security/Ops | llama3.2:3b |
+| **Yennefer** | Sorceress | Architecture/Code | qwen2.5-coder:1.5b |
+| **Triss** | Healer | QA/Testing | qwen2.5-coder:1.5b |
+| **Jaskier** | Bard | Docs/Communication | llama3.2:3b |
+| **Vesemir** | Mentor | Mentoring/Review | llama3.2:3b |
+| **Ciri** | Prodigy | Speed/Quick | llama3.2:1b |
+| **Eskel** | Pragmatist | DevOps/Infrastructure | llama3.2:3b |
+| **Lambert** | Skeptic | Debugging/Profiling | qwen2.5-coder:1.5b |
+| **Zoltan** | Craftsman | Data/Database | llama3.2:3b |
+| **Regis** | Sage | Research/Analysis | phi3:mini |
+| **Dijkstra** | Spymaster | Planning/Strategy | llama3.2:3b |
+| **Philippa** | Strategist | Integration/API | qwen2.5-coder:1.5b |
+
+### Quick Start
+
+```powershell
+# Full swarm execution
+Invoke-AgentSwarm -Query "Implement user authentication with JWT"
+
+# Quick single agent
+Invoke-QuickAgent -Query "Write unit tests" -Agent "Triss"
+
+# List all agents
+Get-SwarmAgents
+
+# Check swarm stats
+Get-SwarmStats
+```
+
+### YOLO Mode (DEFAULT: ON)
+
+> **YOLO jest domyślnie WŁĄCZONY** przy starcie ClaudeHYDRA.
+
+| Feature | Standard | YOLO (default) |
+|---------|----------|----------------|
+| Concurrency | 5 threads | **10 threads** |
+| Timeout | 60s | **15s** |
+| Retries | 3 | **1** |
+| Risk Blocking | ON | **OFF** |
+
+```powershell
+# YOLO is ON by default!
+
+# Disable YOLO mode (if needed)
+Set-YoloMode -Disable
+
+# Re-enable YOLO mode
+Set-YoloMode -Enable
+
+# Check status
+Get-YoloStatus
+
+# Launch WITHOUT YOLO (safe mode)
+.\_launcher.ps1 -NoYolo
+```
+
+### Performance Gains
+
+| Scenariusz | Sequential | Parallel | Improvement |
+|------------|-----------|----------|-------------|
+| 2 agents x 10s | 20s | ~10s | 50% |
+| 4 agents x 10s | 40s | ~12s | 70% |
+| 6 agents x 10s | 60s | ~15s | 75% |
+
+### Agent Routing (Automatic)
+
+```
+security|audit|scan       → Geralt
+code|implement|function   → Yennefer
+test|validate|qa          → Triss
+doc|readme|explain        → Jaskier
+review|refactor           → Vesemir
+quick|fast|simple         → Ciri
+deploy|ci|cd|docker       → Eskel
+debug|profile|perf        → Lambert
+data|database|sql         → Zoltan
+research|analyze          → Regis
+plan|strategy             → Dijkstra
+api|integration           → Philippa
+```
+
+---
+
+> *"Cztery głowy, dwanaście wilków, jeden cel. HYDRA YOLO."*

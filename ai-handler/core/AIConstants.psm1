@@ -23,22 +23,22 @@
 
 $script:Paths = @{
     # Main configuration file
-    Config = "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\ai-config.json"
+    Config = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\ai-config.json"
 
     # Runtime state (auto-generated, tracks usage and rate limits)
-    State = "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\ai-state.json"
+    State = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\ai-state.json"
 
     # Cache directory for few-shot learning and responses
-    Cache = "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\cache"
+    Cache = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\cache"
 
     # Module directories
-    Modules = "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\modules"
-    Core = "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\core"
-    Utils = "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\utils"
-    Providers = "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\providers"
-    RateLimiting = "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\rate-limiting"
-    ModelSelection = "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\model-selection"
-    Fallback = "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\fallback"
+    Modules = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\modules"
+    Core = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\core"
+    Utils = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\utils"
+    Providers = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\providers"
+    RateLimiting = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\rate-limiting"
+    ModelSelection = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\model-selection"
+    Fallback = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\fallback"
 }
 
 # ============================================================================

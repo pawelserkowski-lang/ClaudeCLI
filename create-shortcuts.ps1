@@ -1,6 +1,6 @@
 # HYDRA 10.0 - Shortcut Creator
-# Creates desktop shortcuts for ClaudeCLI
-# Path: C:\Users\BIURODOM\Desktop\ClaudeCLI\create-shortcuts.ps1
+# Creates desktop shortcuts for ClaudeHYDRA
+# Path: C:\Users\BIURODOM\Desktop\ClaudeHYDRA\create-shortcuts.ps1
 
 #Requires -Version 5.1
 
@@ -8,7 +8,7 @@
 $ErrorActionPreference = "Stop"
 
 # Absolute paths zgodnie z Best Practices (CLAUDE.md sekcja 7)
-$ProjectRoot = "C:\Users\BIURODOM\Desktop\ClaudeCLI"
+$ProjectRoot = "C:\Users\BIURODOM\Desktop\ClaudeHYDRA"
 $DesktopPath = [Environment]::GetFolderPath("Desktop")
 
 function Write-ColorLog {
@@ -30,10 +30,10 @@ try {
 
     $shortcutPath = Join-Path $DesktopPath "Claude CLI.lnk"
     $SC = $WS.CreateShortcut($shortcutPath)
-    $SC.TargetPath = Join-Path $ProjectRoot "ClaudeCLI.vbs"
+    $SC.TargetPath = Join-Path $ProjectRoot "ClaudeHYDRA.vbs"
     $SC.WorkingDirectory = $ProjectRoot
     $SC.IconLocation = Join-Path $ProjectRoot "icon.ico,0"
-    $SC.Description = "HYDRA 10.0 - ClaudeCLI Maximum Autonomy Mode"
+    $SC.Description = "HYDRA 10.0 - ClaudeHYDRA Maximum Autonomy Mode"
     $SC.Save()
 
     Write-ColorLog "  [OK] Shortcut created: $shortcutPath" "Green"

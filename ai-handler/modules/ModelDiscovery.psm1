@@ -18,29 +18,37 @@
 # === Import Utility Modules ===
 $script:ModuleRoot = Split-Path -Parent $PSScriptRoot
 
-# Import AIUtil-JsonIO for JSON operations
-$jsonIOPath = Join-Path $PSScriptRoot "..\utils\AIUtil-JsonIO.psm1"
-if (Test-Path $jsonIOPath) {
-    Import-Module $jsonIOPath -Force -ErrorAction SilentlyContinue
-} else {
-    # Fallback to core location
-    $jsonIOPathAlt = Join-Path $PSScriptRoot "..\core\AIUtil-JsonIO.psm1"
-    if (Test-Path $jsonIOPathAlt) {
-        Import-Module $jsonIOPathAlt -Force -ErrorAction SilentlyContinue
+# Import AIUtil-JsonIO for JSON operations (only if not already loaded)
+if (-not (Get-Module -Name "AIUtil-JsonIO" -ErrorAction SilentlyContinue)) {
+    $jsonIOPath = Join-Path $PSScriptRoot "..\utils\AIUtil-JsonIO.psm1"
+    if (Test-Path $jsonIOPath) {
+        Import-Module $jsonIOPath -Force -Global -ErrorAction SilentlyContinue
+    } else {
+        # Fallback to core location
+        $jsonIOPathAlt = Join-Path $PSScriptRoot "..\core\AIUtil-JsonIO.psm1"
+        if (Test-Path $jsonIOPathAlt) {
+            Import-Module $jsonIOPathAlt -Force -Global -ErrorAction SilentlyContinue
+        }
     }
 }
 
-# Import AIUtil-Health for provider connectivity checks
-$healthPath = Join-Path $PSScriptRoot "..\utils\AIUtil-Health.psm1"
-if (Test-Path $healthPath) {
-    Import-Module $healthPath -Force -ErrorAction SilentlyContinue
+# Import AIUtil-Health for provider connectivity checks (only if not already loaded)
+if (-not (Get-Module -Name "AIUtil-Health" -ErrorAction SilentlyContinue)) {
+    $healthPath = Join-Path $PSScriptRoot "..\utils\AIUtil-Health.psm1"
+    if (Test-Path $healthPath) {
+        Import-Module $healthPath -Force -Global -ErrorAction SilentlyContinue
+    }
 }
 
 # Import provider modules for provider-specific model discovery
+# Only import if not already loaded to prevent overwriting global functions
 $providersPath = Join-Path $PSScriptRoot "..\providers"
 if (Test-Path $providersPath) {
     Get-ChildItem -Path $providersPath -Filter "*.psm1" -ErrorAction SilentlyContinue | ForEach-Object {
-        Import-Module $_.FullName -Force -ErrorAction SilentlyContinue
+        $modName = [System.IO.Path]::GetFileNameWithoutExtension($_.Name)
+        if (-not (Get-Module -Name $modName -ErrorAction SilentlyContinue)) {
+            Import-Module $_.FullName -Force -Global -ErrorAction SilentlyContinue
+        }
     }
 }
 

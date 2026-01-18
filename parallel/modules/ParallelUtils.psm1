@@ -1,11 +1,11 @@
 ﻿#Requires -Version 7.0
 <#
 .SYNOPSIS
-    ParallelUtils - Comprehensive parallel execution module for ClaudeCLI
+    ParallelUtils - Comprehensive parallel execution module for ClaudeHYDRA
 .DESCRIPTION
     Provides utilities for maximizing CPU core utilization across various tasks
 .AUTHOR
-    ClaudeCLI HYDRA System
+    ClaudeHYDRA HYDRA System
 #>
 
 # Get CPU core count for optimal parallelization

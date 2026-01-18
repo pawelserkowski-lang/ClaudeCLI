@@ -11,7 +11,7 @@ Display all available AI commands with usage examples.
 When the user invokes `/ai-help`, execute this command using Bash tool:
 
 ```bash
-powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeCLI\ai-handler\Invoke-AIHelp.ps1"
+powershell -ExecutionPolicy Bypass -File "C:\Users\BIURODOM\Desktop\ClaudeHYDRA\ai-handler\Invoke-AIHelp.ps1"
 ```
 
 ## Commands Overview

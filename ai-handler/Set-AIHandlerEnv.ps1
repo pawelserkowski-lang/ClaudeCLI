@@ -7,7 +7,7 @@ param(
 )
 
 $keyName = 'CLAUDECLI_ENCRYPTION_KEY'
-$keyValue = 'ClaudeCLI-2024'
+$keyValue = 'ClaudeHYDRA-2024'
 
 if ($Remove) {
     [Environment]::SetEnvironmentVariable($keyName, $null, 'User')

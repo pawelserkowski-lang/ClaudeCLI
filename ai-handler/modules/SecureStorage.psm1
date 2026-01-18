@@ -1,7 +1,7 @@
 ﻿#Requires -Version 5.1
 <#
 .SYNOPSIS
-    Secure storage helpers for ClaudeCLI.
+    Secure storage helpers for ClaudeHYDRA.
 .DESCRIPTION
     Provides AES-256 encryption, atomic writes, and JSON logging utilities.
 .NOTES

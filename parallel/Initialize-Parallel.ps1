@@ -1,7 +1,7 @@
 #Requires -Version 7.0
 <#
 .SYNOPSIS
-    Initialize parallel execution environment for ClaudeCLI
+    Initialize parallel execution environment for ClaudeHYDRA
 .DESCRIPTION
     Loads all parallel modules and displays available commands
 #>
@@ -31,7 +31,7 @@ $config = Get-ParallelConfig
 if (-not $Quiet) {
     Write-Host ""
     Write-Host "═" * 60 -ForegroundColor Cyan
-    Write-Host "  ⚡ ClaudeCLI Parallel Execution System" -ForegroundColor Cyan
+    Write-Host "  ⚡ ClaudeHYDRA Parallel Execution System" -ForegroundColor Cyan
     Write-Host "═" * 60 -ForegroundColor Cyan
     Write-Host ""
     Write-Host "🖥️  System Configuration:" -ForegroundColor Yellow

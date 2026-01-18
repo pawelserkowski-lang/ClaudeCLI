@@ -1,6 +1,6 @@
 # ═══════════════════════════════════════════════════════════════════════════════
 # CLAUDE CLI - CUSTOM PROFILE
-# Isolated profile for ClaudeCLI (does not load user's default profile)
+# Isolated profile for ClaudeHYDRA (does not load user's default profile)
 # ═══════════════════════════════════════════════════════════════════════════════
 
 # === PSReadLine Configuration ===
@@ -58,4 +58,4 @@ function prompt {
     return " > "
 }
 
-Write-Host "[ClaudeCLI Profile Loaded]" -ForegroundColor DarkGray
+Write-Host "[ClaudeHYDRA Profile Loaded]" -ForegroundColor DarkGray

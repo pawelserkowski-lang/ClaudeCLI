@@ -14,7 +14,7 @@
 ; ==========================================
 !define PRODUCT_NAME "HYDRA"
 !define PRODUCT_VERSION "10.0"
-!define PRODUCT_PUBLISHER "ClaudeCLI"
+!define PRODUCT_PUBLISHER "ClaudeHYDRA"
 !define PRODUCT_WEB_SITE "https://github.com/pawelserkowski-lang/claudecli"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\hydra.ps1"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
