@@ -504,3 +504,181 @@ body {
 :root.light .glass-card::after {
   background: var(--codex-parchment);
 }
+
+/* ========== PROGRESS BAR ANIMATIONS ========== */
+@keyframes slide {
+  0% { transform: translateX(-20px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes rune-glow {
+  0%, 100% {
+    text-shadow: 0 0 5px rgba(212, 165, 10, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 15px rgba(212, 165, 10, 0.6), 0 0 30px rgba(212, 165, 10, 0.3);
+  }
+}
+
+/* ========== THE END ANIMATION STYLES ========== */
+.the-end-particle {
+  animation: float 3s ease-in-out infinite;
+}
+
+.the-end-title {
+  animation: rune-glow 2s ease-in-out infinite;
+}
+
+/* ========== WITCHER ORNATE FRAMES ========== */
+.witcher-frame {
+  position: relative;
+  border: 3px solid transparent;
+  border-image: linear-gradient(
+    135deg,
+    var(--codex-gold) 0%,
+    var(--codex-bronze) 25%,
+    var(--codex-gold-bright) 50%,
+    var(--codex-bronze) 75%,
+    var(--codex-gold) 100%
+  ) 1;
+}
+
+.witcher-frame::before {
+  content: '❧';
+  position: absolute;
+  top: -10px;
+  left: 10px;
+  font-size: 18px;
+  color: var(--codex-gold);
+}
+
+.witcher-frame::after {
+  content: '❧';
+  position: absolute;
+  bottom: -10px;
+  right: 10px;
+  font-size: 18px;
+  color: var(--codex-gold);
+  transform: rotate(180deg);
+}
+
+/* ========== CORNER ORNAMENTS ========== */
+.corner-ornament {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: var(--codex-gold);
+  border-style: solid;
+  border-width: 0;
+}
+
+.corner-ornament.top-left {
+  top: 0;
+  left: 0;
+  border-top-width: 2px;
+  border-left-width: 2px;
+}
+
+.corner-ornament.top-right {
+  top: 0;
+  right: 0;
+  border-top-width: 2px;
+  border-right-width: 2px;
+}
+
+.corner-ornament.bottom-left {
+  bottom: 0;
+  left: 0;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+}
+
+.corner-ornament.bottom-right {
+  bottom: 0;
+  right: 0;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+}
+
+/* ========== STATUSLINE STYLES ========== */
+.statusline {
+  background: linear-gradient(
+    90deg,
+    rgba(26, 21, 16, 0.95) 0%,
+    rgba(13, 11, 7, 0.98) 50%,
+    rgba(26, 21, 16, 0.95) 100%
+  );
+  border-top: 1px solid rgba(212, 165, 10, 0.3);
+}
+
+.statusline-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 9px;
+  font-family: 'Cinzel', serif;
+  letter-spacing: 0.05em;
+}
+
+.statusline-separator {
+  color: rgba(212, 165, 10, 0.3);
+  font-size: 10px;
+}
+
+/* ========== PROGRESS INDICATORS ========== */
+.progress-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.progress-dot.active {
+  animation: pulse-glow 1s ease-in-out infinite;
+}
+
+.progress-dot.completed {
+  background-color: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+/* ========== SETTINGS PANEL ========== */
+.settings-toggle {
+  width: 48px;
+  height: 24px;
+  border-radius: 4px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+.settings-toggle-knob {
+  position: absolute;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+}
+
+.settings-toggle.on .settings-toggle-knob {
+  left: 28px;
+}
+
+.settings-toggle.off .settings-toggle-knob {
+  left: 4px;
+}

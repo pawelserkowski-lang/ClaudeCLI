@@ -2,6 +2,8 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Send, Loader2, Scroll, ChevronDown, ChevronUp, Sparkles } from 'lucide-react';
 import { useTheme } from '../contexts/ThemeContext';
 import { safeInvoke, isTauri } from '../hooks/useTauri';
+import ProgressBar from './ProgressBar';
+import TheEndAnimation from './TheEndAnimation';
 
 interface Message {
   id: string;
@@ -10,20 +12,26 @@ interface Message {
   timestamp: Date;
 }
 
-const ChatInterface: React.FC = () => {
+interface ChatInterfaceProps {
+  onConnectionChange?: (connected: boolean) => void;
+}
+
+const ChatInterface: React.FC<ChatInterfaceProps> = ({ onConnectionChange }) => {
   const { resolvedTheme } = useTheme();
   const isLight = resolvedTheme === 'light';
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '0',
       role: 'system',
-      content: '⚔ KODEKS HYDRY OTWARTY ⚔\n\nWitaj w HYDRA 10.4 - Czterogłowa Bestia gotowa do służby.\nMasz pełny dostęp do: Serena, Desktop Commander, Playwright, Agent Swarm.\n\nWpisz swoje polecenie...',
+      content: '⚔ KODEKS HYDRY OTWARTY ⚔\n\nWitaj w HYDRA 10.5 - Czterogłowa Bestia gotowa do służby.\nMasz pełny dostęp do: Serena, Desktop Commander, Playwright, Agent Swarm.\n\nWpisz swoje polecenie...',
       timestamp: new Date(),
     },
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [showTheEnd, setShowTheEnd] = useState(false);
+  const [lastTaskSummary, setLastTaskSummary] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -48,9 +56,11 @@ const ChatInterface: React.FC = () => {
           const yoloEnabled = localStorage.getItem('hydra_yolo') !== 'false';
           await safeInvoke('start_claude_session', { yoloMode: yoloEnabled });
           setIsConnected(true);
+          onConnectionChange?.(true);
         } else {
           // Browser mode - simulate connection
           setIsConnected(true);
+          onConnectionChange?.(true);
         }
       } catch (e) {
         console.error('Failed to connect:', e);
@@ -60,10 +70,11 @@ const ChatInterface: React.FC = () => {
           content: `⚠ Nie można połączyć z Claude CLI: ${e}`,
           timestamp: new Date(),
         }]);
+        onConnectionChange?.(false);
       }
     };
     connect();
-  }, []);
+  }, [onConnectionChange]);
 
   const sendMessage = async () => {
     if (!input.trim() || isLoading) return;
@@ -85,8 +96,8 @@ const ChatInterface: React.FC = () => {
       if (isTauri()) {
         response = await safeInvoke<string>('send_to_claude', { message: userMessage.content });
       } else {
-        // Browser mode - mock response
-        await new Promise(resolve => setTimeout(resolve, 1500));
+        // Browser mode - mock response with longer delay for demo
+        await new Promise(resolve => setTimeout(resolve, 3000 + Math.random() * 5000));
         response = getMockResponse(userMessage.content);
       }
 
@@ -96,6 +107,14 @@ const ChatInterface: React.FC = () => {
         content: response,
         timestamp: new Date(),
       }]);
+
+      // Check for task completion triggers
+      const lower = response.toLowerCase();
+      if (lower.includes('ukończono') || lower.includes('done') || lower.includes('completed') ||
+          lower.includes('gotowe') || lower.includes('zrobione') || lower.includes('sukces')) {
+        setLastTaskSummary(userMessage.content);
+        setTimeout(() => setShowTheEnd(true), 500);
+      }
     } catch (e) {
       setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
@@ -117,21 +136,26 @@ const ChatInterface: React.FC = () => {
 
   return (
     <div className="flex flex-col h-full">
+      {/* THE END Animation */}
+      <TheEndAnimation
+        isVisible={showTheEnd}
+        onDismiss={() => setShowTheEnd(false)}
+        taskSummary={lastTaskSummary || 'Zadanie ukończone pomyślnie'}
+      />
+
       {/* Messages Area */}
       <div className="flex-1 overflow-auto p-4 space-y-4">
         {messages.map((msg) => (
           <MessageBubble key={msg.id} message={msg} isLight={isLight} />
         ))}
 
+        {/* Progress Bar when loading */}
         {isLoading && (
-          <div className="flex items-center gap-3 p-4">
-            <div className={`flex items-center gap-2 text-sm font-cinzel ${
-              isLight ? 'text-amber-600' : 'text-amber-500'
-            }`}>
-              <Loader2 className="animate-spin" size={16} />
-              <span>HYDRA przetwarza...</span>
-              <span className="text-xs opacity-50">ᚠᚢᚦᚨᚱᚲ</span>
-            </div>
+          <div className="px-2">
+            <ProgressBar
+              isActive={isLoading}
+              estimatedDurationMs={8000}
+            />
           </div>
         )}
 
@@ -157,12 +181,26 @@ const ChatInterface: React.FC = () => {
           </span>
         </div>
 
-        {/* Input container */}
-        <div className={`flex items-end gap-3 p-3 rounded border-2 transition-all duration-300 ${
+        {/* Input container - Witcher ornate border */}
+        <div className={`flex items-end gap-3 p-3 rounded-lg border-2 transition-all duration-300 relative ${
           isLight
             ? 'bg-white/60 border-amber-400/40 focus-within:border-amber-500'
             : 'bg-black/30 border-amber-500/30 focus-within:border-amber-400'
-        }`}>
+        }`}
+        style={{
+          boxShadow: isLight
+            ? 'inset 0 0 20px rgba(245, 158, 11, 0.05)'
+            : 'inset 0 0 30px rgba(0, 0, 0, 0.3)',
+        }}
+        >
+          {/* Corner ornaments */}
+          <span className={`absolute -top-2 left-4 text-[10px] px-1 ${
+            isLight ? 'text-amber-500 bg-amber-50' : 'text-amber-500/60 bg-black'
+          }`}>◆</span>
+          <span className={`absolute -bottom-2 right-4 text-[10px] px-1 ${
+            isLight ? 'text-amber-500 bg-amber-50' : 'text-amber-500/60 bg-black'
+          }`}>◆</span>
+
           <Scroll className={`shrink-0 mb-2 ${isLight ? 'text-amber-600/50' : 'text-amber-500/40'}`} size={18} />
 
           <textarea
@@ -182,16 +220,15 @@ const ChatInterface: React.FC = () => {
           <button
             onClick={sendMessage}
             disabled={!input.trim() || isLoading}
-            className={`shrink-0 p-2.5 rounded transition-all duration-300 ${
+            className={`shrink-0 p-2.5 rounded-lg transition-all duration-300 border ${
               input.trim() && !isLoading
                 ? isLight
-                  ? 'bg-gradient-to-b from-amber-400 to-amber-500 text-white hover:from-amber-500 hover:to-amber-600'
-                  : 'bg-gradient-to-b from-amber-600 to-amber-700 text-amber-100 hover:from-amber-500 hover:to-amber-600'
+                  ? 'bg-gradient-to-b from-amber-400 to-amber-500 text-white border-amber-500 hover:from-amber-500 hover:to-amber-600 shadow-lg shadow-amber-500/20'
+                  : 'bg-gradient-to-b from-amber-600 to-amber-700 text-amber-100 border-amber-500 hover:from-amber-500 hover:to-amber-600 shadow-lg shadow-amber-500/10'
                 : isLight
-                  ? 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                  : 'bg-slate-800 text-slate-600 cursor-not-allowed'
+                  ? 'bg-slate-200 text-slate-400 border-slate-300 cursor-not-allowed'
+                  : 'bg-slate-800 text-slate-600 border-slate-700 cursor-not-allowed'
             }`}
-            style={{}}
           >
             {isLoading ? (
               <Loader2 className="animate-spin" size={18} />
@@ -206,14 +243,14 @@ const ChatInterface: React.FC = () => {
           isLight ? 'text-amber-600/40' : 'text-amber-500/30'
         }`}>
           <span>Enter = wyślij • Shift+Enter = nowa linia</span>
-          <span>◆ HYDRA 10.4 ◆</span>
+          <span>◆ HYDRA 10.5 ◆</span>
         </div>
       </div>
     </div>
   );
 };
 
-// Message Bubble Component
+// Message Bubble Component with Witcher styling
 const MessageBubble: React.FC<{ message: Message; isLight: boolean }> = ({ message, isLight }) => {
   const [expanded, setExpanded] = useState(true);
   const isUser = message.role === 'user';
@@ -222,19 +259,26 @@ const MessageBubble: React.FC<{ message: Message; isLight: boolean }> = ({ messa
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
-        className={`max-w-[85%] rounded p-4 border transition-all duration-300 ${
+        className={`max-w-[85%] rounded-lg p-4 border-2 transition-all duration-300 relative ${
           isUser
             ? isLight
-              ? 'bg-amber-100/80 border-amber-300/50 text-amber-900'
-              : 'bg-amber-900/30 border-amber-500/30 text-amber-100'
+              ? 'bg-amber-100/80 border-amber-400/50 text-amber-900'
+              : 'bg-amber-900/30 border-amber-500/40 text-amber-100'
             : isSystem
               ? isLight
                 ? 'bg-slate-100/80 border-slate-300/50 text-slate-700'
                 : 'bg-slate-800/30 border-slate-600/30 text-slate-300'
               : isLight
-                ? 'bg-white/80 border-amber-400/30 text-slate-800'
-                : 'bg-black/40 border-amber-500/20 text-amber-50'
+                ? 'bg-white/80 border-amber-400/40 text-slate-800'
+                : 'bg-black/50 border-amber-500/30 text-amber-50'
         }`}
+        style={{
+          boxShadow: isUser
+            ? isLight
+              ? '0 4px 15px rgba(245, 158, 11, 0.15)'
+              : '0 4px 20px rgba(0, 0, 0, 0.3)'
+            : 'none',
+        }}
       >
         {/* Header */}
         <div className="flex items-center justify-between mb-2">
@@ -323,6 +367,10 @@ function getMockResponse(input: string): string {
 
   if (lower.includes('pomoc') || lower.includes('help')) {
     return '📖 **KODEKS HYDRY - POMOC:**\n\n**Dostępne komendy:**\n• `/hydra` - Pełne instrukcje\n• `/ai <pytanie>` - Szybkie zapytanie AI (local)\n• `/swarm <zadanie>` - Agent Swarm (12 agentów)\n• `/yolo` - Przełącz tryb YOLO\n\n**Przykłady:**\n• "Przeanalizuj kod w src/"\n• "Otwórz stronę google.com"\n• "Znajdź wszystkie pliki .ts"';
+  }
+
+  if (lower.includes('test') || lower.includes('demo')) {
+    return '✅ **ZADANIE UKOŃCZONO!**\n\nTest demo zakończony sukcesem.\n\n**Wyniki:**\n• Czas wykonania: 3.2s\n• Agenci: 12/12 aktywnych\n• Błędy: 0\n\n⚔ HYDRA gotowa do kolejnych zadań! ⚔';
   }
 
   return `🤔 Przetwarzam Twoje polecenie...\n\n**Otrzymano:** "${input}"\n\n*W trybie demonstracyjnym (przeglądarka). W pełnej wersji HYDRA połączy się z Claude CLI.*\n\n---\n\n💡 **Wskazówka:** Uruchom aplikację przez Tauri aby uzyskać pełną funkcjonalność.`;
